@@ -1,0 +1,5 @@
+{
+    "feedback_storage_path": "data/feedback.csv",
+    "user_personas": [],
+    "feedback_form_storage_method": "google_drive"
+}
