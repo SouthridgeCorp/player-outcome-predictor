@@ -1,6 +1,8 @@
 1. **Who is the customer**?
-   - The management team of Sportiqo will use this application to take the following decision:
-        - Evaluate whether the application produces reliable simulations of historical IPL T20 matches included in
+   - The management team of Sportiqo will use this application to take the following decisions:
+        - Evaluate whether the application produces `reliable_simulations` of historical T20 tournaments
+        - Configure an `upcoming_tournament` and use the application to produce a `reliable_simulation` for the tournament
+        - Review the `projected_sportiqo_rewards_by_player_across_scenarios` to set the base price for player counter auctions
         `data/historical/ipl_matches_metadata.csv` and `data/historical/ipl_matches_ball_by_ball.csv`
             - A reliable simulation of a match takes the following static variables as input:
                 - `playing_xi_by_team_key`: List of `players` including their `player_keys` who played the match
