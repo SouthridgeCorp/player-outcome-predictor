@@ -1,0 +1,12 @@
+gspread-pandas
+gsheetsdb
+pandas
+pytest
+matplotlib
+snowflake-connector-python
+snowflake-connector-python[pandas]
+streamlit
+snowflake-sqlalchemy
+streamlit-aggrid
+
+

@@ -1,0 +1,63 @@
+[[test_case]]
+test_class = "TestUtilsConstructor"
+config_file_path = "resources/test/utils/config_utils/UtilsConstructor_local.toml"
+    [test_case.feedback_form]
+        supported_storage_methods = ["local"]
+
+[[test_case]]
+test_class = "TestUtilsConstructor"
+config_file_path = "resources/test/utils/config_utils/UtilsConstructor_snowflake.toml"
+    [test_case.feedback_form]
+        supported_storage_methods = ["local"]
+
+
+[[test_case]]
+test_class = "TestFeedbackForm"
+config_file_path = "resources/test/utils/config_utils/UtilsConstructor_local.toml"
+    [test_case.feedback_form]
+        supported_storage_methods = ["local"]
+        [test_case.feedback_form.data]
+            USER_NAME = "abd"
+            USER_EMAIL = "def@xyz.com"
+            USER_PERSONA = "cluster_1_user_1"
+            ALTERNATE_USER_PERSONA = ""
+            QUESTIONS = "blah"
+
+[[test_case]]
+test_class = "TestFeedbackForm"
+config_file_path = "resources/test/utils/config_utils/UtilsConstructor_local.toml"
+    [test_case.feedback_form]
+        supported_storage_methods = ["local"]
+        [test_case.feedback_form.data]
+            DATE = "2022-06-20"
+            USER_NAME = "abd"
+            USER_EMAIL = "def@xyz.com"
+            USER_PERSONA = ""
+            ALTERNATE_USER_PERSONA = "cluster_3_user_1"
+            QUESTIONS = "blah"
+
+[[test_case]]
+test_class = "TestFeedbackForm"
+config_file_path = "resources/test/utils/config_utils/UtilsConstructor_snowflake.toml"
+    [test_case.feedback_form]
+        supported_storage_methods = ["local"]
+        [test_case.feedback_form.data]
+            USER_NAME = "abd"
+            USER_EMAIL = "def@xyz.com"
+            USER_PERSONA = "cluster_1_user_1"
+            ALTERNATE_USER_PERSONA = ""
+            QUESTIONS = "blah"
+
+[[test_case]]
+test_class = "TestFeedbackForm"
+config_file_path = "resources/test/utils/config_utils/UtilsConstructor_snowflake.toml"
+    [test_case.feedback_form]
+        supported_storage_methods = ["local"]
+        [test_case.feedback_form.data]
+            DATE = "2022-06-20"
+            USER_NAME = "abd"
+            USER_EMAIL = "def@xyz.com"
+            USER_PERSONA = ""
+            ALTERNATE_USER_PERSONA = "cluster_3_user_1"
+            QUESTIONS = "blah"
+
