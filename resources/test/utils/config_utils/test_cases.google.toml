@@ -1,0 +1,21 @@
+[app]
+environment = "test"
+user_personas = ["cluster_1_persona_1", "cluster_1_persona_2","cluster_2_persona_1", "cluster_2_persona_2"]
+
+[feedback_form]
+storage_method = "google"
+
+[feedback_form.schema]
+DATE = "str"
+USER_NAME = "str"
+USER_EMAIL = "str"
+USER_PERSONA = "str"
+ALTERNATE_USER_PERSONA = "str"
+QUESTIONS = "str"
+
+[feedback_form.questions]
+USER_NAME = "What is your name?"
+USER_EMAIL = "What is your email address?"
+USER_PERSONA = "Which of the target user personas best matches you or your team's requirements?"
+ALTERNATE_USER_PERSONA = "If none of the target user personas matches your needs, please describe your user persona."
+QUESTIONS = "Do you have any further questions or suggestions for improvement for this application?"
