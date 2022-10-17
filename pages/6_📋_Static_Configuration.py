@@ -1,5 +1,5 @@
 import utils.page_utils as page_utils
-import utils.match_utils.data_reader_utils as reader_utils
+from utils.match_utils.singleton import Helper
 import streamlit as st
 import datetime
 
@@ -56,7 +56,8 @@ def app():
     :return: None
     """
     page_utils.setup_page("Static Configuration")
-    tournaments = reader_utils.Tournaments()
+    helper = Helper()
+    tournaments = helper.tournaments
 
     tournament_selector, training_column, testing_column = st.columns(3)
 
