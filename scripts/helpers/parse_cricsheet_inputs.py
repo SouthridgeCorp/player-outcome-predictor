@@ -6,11 +6,55 @@ import json
 #
 
 
-BASE_INPUT_DIR = "scripts/helpers/resources/cricsheet/"
+BASE_INPUT_DIR = "data/downloaded/cricsheet/"
 BASE_OUTPUT_DIR = "data/generated/match_data/cricsheet/"
 
+class PlayerMap:
+    def __init__(self):
+        self.number_of_players = 0
+        self.player_dict = {}
+        self.player_name_reverse_map = {}
 
-def set_json_value_if_exists(json_object, target_dict, key_in_json, key_in_dict, index=-1):
+    def find_key_for_player_name(self, player_name):
+        if player_name in self.player_name_reverse_map.keys():
+            return self.player_name_reverse_map[player_name]
+        split_names = player_name.split()
+        key = ""
+        for name_substr in split_names:
+            key += name_substr[0]
+        key += player_name[-1] + str(self.number_of_players)
+        return key
+
+    def insert_player_information(self, player_name, player_key=None):
+        if player_key is None:
+            key = self.find_key_for_player_name(player_name)
+        else:
+            key = player_key
+        if key not in self.player_dict.keys():
+            self.number_of_players += 1
+
+        self.player_dict[key] = {"key": key, "name": player_name}
+        self.player_name_reverse_map[player_name] = key
+        return key
+
+    def get_dataframe(self):
+        player_list = []
+
+        if self.number_of_players == 0:
+            column_list = ["key", "name"]
+            player_df = pd.DataFrame(columns=column_list)
+        else:
+            for key in self.player_dict:
+                player_list.append(self.player_dict[key])
+            player_df = pd.DataFrame(data=player_list)
+
+        return player_df
+
+
+
+
+def set_json_value_if_exists(json_object, target_dict, key_in_json, key_in_dict, index=-1,
+                             is_player=False, player_map=None):
     '''
     Helper function which copies the specified key from the json object if the key exists, and sets it as a value
     in the target dictionary. If the key does not exist in the json object, then it sets a default value in the target
@@ -27,12 +71,15 @@ def set_json_value_if_exists(json_object, target_dict, key_in_json, key_in_dict,
             value = json_object[key_in_json]
         else:
             value = json_object[key_in_json][index]
+
+        if is_player and player_map is not None:
+            key = player_map.insert_player_information(value)
+            value = key
         target_dict[key_in_dict] = value
     else:
         target_dict[key_in_dict] = ""
 
-
-def parse_player_data(player_json_list, team, match_key, player_info):
+def parse_player_data(player_json_list, team, match_key, player_info, player_map):
     '''
     Parses the list of players from the input json list and sets the player information to be copied over
     :param player_json_list: The list of players to look through
@@ -42,10 +89,11 @@ def parse_player_data(player_json_list, team, match_key, player_info):
     :return:
     '''
     for player in player_json_list[team]:
-        player_info.append({"team": team, "match_key": match_key, "player_name": player})
+        player_key = player_map.insert_player_information(player_name = player)
+        player_info.append({"team": team, "match_key": match_key, "player_key": player_key})
 
 
-def parse_innings_data(json_innings, match_key, innings_list):
+def parse_innings_data(json_innings, match_key, innings_list, player_map):
     '''
     Parses the innings object in the cricsheet json, and populates the innings list with a map of all related fields
     :param json_innings: The json innings object to parse
@@ -69,9 +117,10 @@ def parse_innings_data(json_innings, match_key, innings_list):
                 # Set all the basic values for a delivery
                 ball_map = {"match_key": match_key, "inning": inning_count, "over": over_count, "ball": ball_number,
                             "batting_team": team}
-                set_json_value_if_exists(delivery, ball_map, "batter", "batter")
-                set_json_value_if_exists(delivery, ball_map, "bowler", "bowler")
-                set_json_value_if_exists(delivery, ball_map, "non_striker", "non_striker")
+                set_json_value_if_exists(delivery, ball_map, "batter", "batter", is_player=True, player_map=player_map)
+                set_json_value_if_exists(delivery, ball_map, "bowler", "bowler", is_player=True, player_map=player_map)
+                set_json_value_if_exists(delivery, ball_map, "non_striker", "non_striker",
+                                         is_player=True, player_map=player_map)
                 set_json_value_if_exists(delivery["runs"], ball_map, "batter", "batter_runs")
                 set_json_value_if_exists(delivery["runs"], ball_map, "extras", "extras")
                 set_json_value_if_exists(delivery["runs"], ball_map, "total", "total_runs")
@@ -82,10 +131,12 @@ def parse_innings_data(json_innings, match_key, innings_list):
                     ball_map["is_wicket"] = 1
                     for wicket in delivery["wickets"]:
                         set_json_value_if_exists(wicket, ball_map, "kind", "dismissal_kind")
-                        set_json_value_if_exists(wicket, ball_map, "player_out", "player_dismissed")
+                        set_json_value_if_exists(wicket, ball_map, "player_out", "player_dismissed",
+                                                 is_player=True, player_map=player_map)
                         if "fielders" in wicket.keys():
                             for fielder in wicket["fielders"]:
-                                set_json_value_if_exists(fielder, ball_map, "name", "fielder")
+                                set_json_value_if_exists(fielder, ball_map, "name", "fielder",
+                                                         is_player=True, player_map=player_map)
                                 # ASSUMPTION: We are only interested in 1 fielder per wicket
                                 break
                         # ASSUMPTION: We are only interested in 1 wicket per delivery
@@ -113,13 +164,13 @@ def parse_innings_data(json_innings, match_key, innings_list):
                 innings_list.append(ball_map)
 
 
-def parse_json_match_data(input_file, tournament_key, match_dict_list, player_dict_list, innings_list):
+def parse_json_match_data(input_file, tournament_key, match_dict_list, playing_xi_dict_list, innings_list, player_map):
     """
     Parses all information (matches, innings, players) for a specific match.
     :param input_file: The file name containing the JSON representation of the match
     :param tournament_key: The key of the tournament
     :param match_dict_list: The list to append with the match details (as a map)
-    :param player_dict_list: The list to append with the player details (as a map)
+    :param playing_xi_dict_list: The list to append with the player details (as a map)
     :param innings_list: The list to append with the innings details (as a map)
     :return: None
     """
@@ -137,7 +188,8 @@ def parse_json_match_data(input_file, tournament_key, match_dict_list, player_di
         match_dict["tournament_key"] = tournament_key
         set_json_value_if_exists(json_object["info"], match_dict, "city", "city")
         set_json_value_if_exists(json_object["info"], match_dict, "dates", "date", index=0)
-        set_json_value_if_exists(json_object["info"], match_dict, "player_of_match", "player_of_match", index=0)
+        set_json_value_if_exists(json_object["info"], match_dict, "player_of_match",
+                                 "player_of_match", index=0, is_player=True, player_map=player_map)
         set_json_value_if_exists(json_object["info"], match_dict, "venue", "venue")
         set_json_value_if_exists(json_object["info"], match_dict, "season", "season")
         set_json_value_if_exists(json_object["info"], match_dict, "teams", "team1", index=0)
@@ -161,16 +213,19 @@ def parse_json_match_data(input_file, tournament_key, match_dict_list, player_di
         match_dict_list.append(match_dict)
 
         # Pull out the playing XI
-        parse_player_data(json_object["info"]["players"], match_dict["team1"], match_dict["key"], player_dict_list)
+        parse_player_data(json_object["info"]["players"], match_dict["team1"], match_dict["key"],
+                          playing_xi_dict_list, player_map)
+        parse_player_data(json_object["info"]["players"], match_dict["team2"], match_dict["key"],
+                          playing_xi_dict_list, player_map)
 
         # Pull out the ball-by-ball information
         if "innings" in json_object.keys():
-            parse_innings_data(json_object["innings"], match_dict["key"], innings_list)
+            parse_innings_data(json_object["innings"], match_dict["key"], innings_list, player_map)
     else:
         print("Ignoring match gender:{} type:{}".format(gender, match_type))
 
 
-def parse_match_data(tournament_key):
+def parse_match_data(tournament_key, player_map):
     """
     Goes through all the match JSONs associated with the tournament and creates the dataframes for matches, players and
     innings.
@@ -179,19 +234,20 @@ def parse_match_data(tournament_key):
     """
     input_directory = BASE_INPUT_DIR + tournament_key
     match_dict_list = []
-    player_dict_list = []
+    playing_xi_dict_list = []
     innings_list = []
 
     for filename in os.scandir(input_directory):
         if filename.is_file() and filename.path[-5:] == ".json":
-            parse_json_match_data(filename.path, tournament_key, match_dict_list, player_dict_list, innings_list)
+            parse_json_match_data(filename.path, tournament_key, match_dict_list, playing_xi_dict_list, innings_list,
+                                  player_map)
         else:
             print("Skipping non-json file {}".format(filename.path))
 
     match_df = pd.DataFrame(data=match_dict_list)
-    player_df = pd.DataFrame(data=player_dict_list)
+    playing_xi_df = pd.DataFrame(data=playing_xi_dict_list)
     innings_df = pd.DataFrame(data=innings_list)
-    return match_df, player_df, innings_df
+    return match_df, playing_xi_df, innings_df
 
 
 def write_match_data(tournament_key, match_df, player_df, innings_df):
@@ -209,7 +265,7 @@ def write_match_data(tournament_key, match_df, player_df, innings_df):
         os.makedirs(output_dir)
 
     match_df.to_csv(output_dir + "/matches.csv", index=False)
-    player_df.to_csv(output_dir + "/players.csv", index=False)
+    player_df.to_csv(output_dir + "/playing_xi.csv", index=False)
     innings_df.to_csv(output_dir + "/innings.csv", index=False)
 
 
@@ -242,6 +298,19 @@ def write_tournament_data(tournament_key, tournament_name, tournament_file, tour
     tournament_df.to_csv(tournament_file, index=False)
 
 
+def read_players_file(player_file, player_map):
+    if os.path.exists(player_file):
+        player_df = pd.read_csv(player_file)
+        player_list = player_df.to_dict('records')
+        for row in player_list:
+            player_map.insert_player_information(player_key=row["key"], player_name=row["name"])
+
+
+def write_players_file(player_file, player_map):
+    player_df = player_map.get_dataframe()
+    player_df.to_csv(player_file, index=False)
+
+
 def parse_data(tournament_key, tournament_name):
     """
     Parses & writes match & tournament data
@@ -251,11 +320,17 @@ def parse_data(tournament_key, tournament_name):
     """
 
     tournament_file = BASE_OUTPUT_DIR + "tournaments.csv"
-    match_df, player_df, innings_df = parse_match_data(tournament_key)
-    write_match_data(tournament_key, match_df, player_df, innings_df)
+    player_file = BASE_OUTPUT_DIR + "players.csv"
+
+    player_map = PlayerMap()
+    read_players_file(player_file, player_map)
+    match_df, playing_xi_df, innings_df = parse_match_data(tournament_key, player_map)
+    write_match_data(tournament_key, match_df, playing_xi_df, innings_df)
 
     write_tournament_data(tournament_key, tournament_name, tournament_file,
                           match_df["date"].min(), match_df["date"].max())
+
+    write_players_file(player_file, player_map)
 
 
 def main():
