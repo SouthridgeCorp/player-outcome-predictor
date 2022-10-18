@@ -10,11 +10,9 @@ import utils.page_utils as page_utils
 #
 # Refer to https://docs.streamlit.io/library/get-started/multipage-apps for details.
 def app():
-    page_utils.setup_page("Fractalized Product Template: v{x.y}")
+    page_utils.setup_page("Player Outcome Predictor: v{0.1}")
     with open('README.md', 'r') as f:
         readme = f.read()
-
     st.markdown(readme)
-
-
 app()
+
