@@ -6,8 +6,9 @@ import os
 import shutil
 import pytest
 
-BASE_INPUT_DIR = "data/downloaded/cricsheet/"
+BASE_INPUT_DIR = "resources/test/cricsheet/"
 BASE_OUTPUT_DIR = "data/generated/test/match_data/cricsheet/"
+
 
 # Helper function to look for a file name
 def validate_path_exists(file_name):
@@ -52,14 +53,14 @@ def validate_one_tournament_key(request, output_dir):
         for row in matches_csv:
             matches_list.append(row)
 
-    assert (helper.tournaments.artefacts[tournament].matches.get_number_of_matches() == len(matches_list))
+    assert (helper.tournaments.matches(tournament).get_number_of_matches() == len(matches_list))
 
     # Ensure that each player in the xi is also found in the players.csv file
-    player_map = {}
+    all_players = []
     with open(players_file, "r") as file:
         players_csv = csv.DictReader(file)
         for row in players_csv:
-            player_map[row["key"]] = row
+            all_players.append(row["key"])
 
     # Ensure that each match data is represented, the playing xi is correct & matches are associated with valid
     # number of innings
@@ -69,16 +70,22 @@ def validate_one_tournament_key(request, output_dir):
         match_key = match["key"]
 
         # get playing_xi counts
-        team1_playing_xi = helper.tournaments.artefacts[tournament].playing_xi.get_playing_xi(match_key, team1)
-        team2_playing_xi = helper.tournaments.artefacts[tournament].playing_xi.get_playing_xi(match_key, team2)
+        team1_playing_xi = helper.tournaments.playing_xi(tournament).get_playing_xi(match_key, team1)
+        team2_playing_xi = helper.tournaments.playing_xi(tournament).get_playing_xi(match_key, team2)
 
         assert len(team1_playing_xi["player_key"]) in [11, 12], \
             f"Team {team1} has {len(team2_playing_xi['player_key'])} players in match {match_key} ({tournament})"
         assert len(team2_playing_xi["player_key"]) in [11, 12], \
             f"Team {team2} has {len(team2_playing_xi['player_key'])} players in match {match_key} ({tournament})"
 
+        player_list = list(team1_playing_xi["player_key"].unique())
+        # player_list.append(list(team2_playing_xi["player_key"].unique()))
+
+        for player_key in player_list:
+            assert player_key in all_players, f"Player {player_key} not found in players.csv"
+
         # get innings
-        innings = helper.tournaments.artefacts[tournament].innings.get_innings(match_key)
+        innings = helper.tournaments.innings(tournament).get_innings(match_key)
 
         number_of_innings = len(innings["inning"].unique())
         if number_of_innings > 2:
@@ -88,9 +95,6 @@ def validate_one_tournament_key(request, output_dir):
         else:
             assert number_of_innings == 2, f"Match {match_key} ({tournament}) does not have 2 innings. " \
                                            f"'result_if_no_winner = {match['result_if_no_winner']}"
-
-
-
 
 
 def test_single_tournaments(validate_one_tournament_key):

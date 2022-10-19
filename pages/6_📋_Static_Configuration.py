@@ -46,7 +46,7 @@ def set_start_end_date(is_testing, tournaments):
     else:
         st.markdown(f"_Selected Tournaments & Match counts for {mode}:_")
     for tournament in tournaments.selected:
-        matches = tournaments.get_matches(tournament)
+        matches = tournaments.matches(tournament)
         match_count = matches.get_selected_match_count(start_date, end_date)
         st.markdown(f"- **{tournament.upper()}** = {match_count} matches")
 
