@@ -33,14 +33,14 @@ class Tournaments:
         self.df['first_match_date'] = pd.to_datetime(self.df['first_match_date']).dt.date
         self.df['last_match_date'] = pd.to_datetime(self.df['last_match_date']).dt.date
 
-        first_match_date = self.df["first_match_date"].min()
-        last_match_date = self.df["last_match_date"].max()
+        self.first_match_date = self.df["first_match_date"].min()
+        self.last_match_date = self.df["last_match_date"].max()
 
         # Set default limits for training & testing date ranges
-        self.training_start = first_match_date
-        self.training_end = last_match_date
-        self.testing_start = first_match_date
-        self.testing_end = last_match_date
+        self.training_start = self.first_match_date
+        self.training_end = self.last_match_date
+        self.testing_start = self.first_match_date
+        self.testing_end = self.last_match_date
 
         # represents the selected set of tournaments, based on user selection
         self.selected = []

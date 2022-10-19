@@ -22,10 +22,11 @@ def set_start_end_date(is_testing, tournaments):
 
     st.header(f"Select the {mode} window")
 
-    start_date = st.date_input('Start date', start_date, min_value=start_date, max_value=datetime.date.today(),
-                               key=f"{mode}_start")
-    end_date = st.date_input('End date', end_date, min_value=start_date, max_value=datetime.date.today(),
-                             key=f"{mode}_end")
+    start_date, end_date = \
+        st.slider("Select the {mode} window:", min_value=tournaments.first_match_date,
+                  max_value=tournaments.last_match_date,
+                  value=(tournaments.first_match_date, tournaments.last_match_date), key=f"{mode}_start")
+
 
     if start_date > end_date:
         st.error('Error: End date must fall after start date.')
@@ -60,7 +61,7 @@ def app():
     helper = utils.match_utils.singleton.get_helper()
     tournaments = helper.tournaments
 
-    tournament_selector, training_column, testing_column = st.columns(3)
+    tournament_selector, training_column, testing_column = st.columns(3, gap="large")
 
     with tournament_selector:
         st.header("Select the Tournaments ")
@@ -77,6 +78,9 @@ def app():
 
     with st.expander("Expand to see the list"):
         st.dataframe(tournaments.df, use_container_width=True)
+
+
+
 
 
 app()
