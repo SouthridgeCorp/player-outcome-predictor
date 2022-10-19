@@ -1,8 +1,8 @@
 import pandas as pd
 
-from utils.match_utils.matches import Matches
-from utils.match_utils.playing_xi import PlayingXI
-from utils.match_utils.innings import Innings
+from historical_data.matches import Matches
+from historical_data.playing_xi import PlayingXI
+from historical_data.innings import Innings
 
 
 class ArtefactsPerTournament:

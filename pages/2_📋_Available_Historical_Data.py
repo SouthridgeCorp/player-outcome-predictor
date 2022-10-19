@@ -1,7 +1,6 @@
 import utils.page_utils as page_utils
-import utils.match_utils.singleton
+import historical_data.singleton
 import streamlit as st
-import datetime
 
 
 def set_start_end_date(is_testing, tournaments):
@@ -57,8 +56,8 @@ def app():
     Input page for requesting the training & testing window, which will be used to configure the rest of the models.
     :return: None
     """
-    page_utils.setup_page("Static Configuration")
-    helper = utils.match_utils.singleton.get_helper()
+    page_utils.setup_page("Available Historical Data")
+    helper = historical_data.singleton.get_helper()
     tournaments = helper.tournaments
 
     tournament_selector, training_column, testing_column = st.columns(3, gap="large")

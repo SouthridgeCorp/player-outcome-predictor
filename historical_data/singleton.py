@@ -1,5 +1,5 @@
-from utils.match_utils.tournaments import Tournaments
-from utils.match_utils.players import Players
+from historical_data.tournaments import Tournaments
+from historical_data.players import Players
 import streamlit as st
 
 # TODO: Move to an external config file

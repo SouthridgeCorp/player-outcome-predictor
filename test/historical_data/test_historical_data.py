@@ -1,13 +1,10 @@
 import csv
 
 import scripts.helpers.cricsheet_helper
-from utils.match_utils.singleton import Helper
+from historical_data.singleton import Helper
 import os
-import shutil
 import pytest
-
-BASE_INPUT_DIR = "resources/test/cricsheet/"
-BASE_OUTPUT_DIR = "data/generated/test/match_data/cricsheet/"
+import test.conftest
 
 
 # Helper function to look for a file name
@@ -15,32 +12,16 @@ def validate_path_exists(file_name):
     return os.path.exists(file_name)
 
 
-@pytest.fixture
-def output_dir():
-    base_output_dir = BASE_OUTPUT_DIR
-    yield base_output_dir
-    # Cleanup after the test
-    shutil.rmtree(base_output_dir)
-
-
-@pytest.fixture(params=["apl", "bbl"])
-def validate_one_tournament_key(request, output_dir):
-    tournament = request.param
+@pytest.mark.parametrize("tournament", ["apl", "bbl"])
+def test_historical_data_for_one_tournament(tournament, output_dir):
     scripts.helpers.cricsheet_helper.parse_data(tournament_key=tournament,
                                                 tournament_name="Test",
-                                                base_input_dir=BASE_INPUT_DIR,
+                                                base_input_dir=test.conftest.BASE_INPUT_DIR,
                                                 base_output_dir=output_dir)
 
     # Ensure all expected files are generated
-    matches_file = f"{BASE_OUTPUT_DIR}/{tournament}/matches.csv"
-    players_file = f"{BASE_OUTPUT_DIR}/players.csv"
-
-    assert (validate_path_exists(f"{BASE_OUTPUT_DIR}/tournaments.csv"))
-    assert (validate_path_exists(players_file))
-    assert (validate_path_exists(f"{BASE_OUTPUT_DIR}/{tournament}"))
-    assert (validate_path_exists(matches_file))
-    assert (validate_path_exists(f"{BASE_OUTPUT_DIR}/{tournament}/playing_xi.csv"))
-    assert (validate_path_exists(f"{BASE_OUTPUT_DIR}/{tournament}/innings.csv"))
+    matches_file = f"{output_dir}/{tournament}/matches.csv"
+    players_file = f"{output_dir}/players.csv"
 
     # Read the files & validate the generated datasets
     helper = Helper(input_directory=output_dir)
@@ -95,7 +76,3 @@ def validate_one_tournament_key(request, output_dir):
         else:
             assert number_of_innings == 2, f"Match {match_key} ({tournament}) does not have 2 innings. " \
                                            f"'result_if_no_winner = {match['result_if_no_winner']}"
-
-
-def test_single_tournaments(validate_one_tournament_key):
-    pass
