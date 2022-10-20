@@ -1,4 +1,6 @@
 2. **What is the customer problem or opportunity?** 
+    - Simple predictive models of ball by ball outcomes do not produce simulations and credible intervals around 
+    innings, match, tournament_stage and tournament level performance at a player level. This application addresses this issue
     - A reliable simulation of a match takes the following static variables as input:
         - `playing_xi_by_team_key`: List of `players` including their `player_keys` who played the match
         - `venue_key`: Where was the match played
@@ -60,9 +62,32 @@
             - `current_total`
             - `runs_to_target` [if second innings]
         - In addition, the models will assume availability of the following information for training and testing:
-            - `batsman_outcome_index` [0, 1-b, 2-b, 3-b, 4-b, 5-b, 6-b, W]
-            - `bowler_outcome_index` [0, 1-b, 1-oe, 1-nb, 1-w,  2-b…. 6-b, 6-oe, 6-nb, 6-w, W-b, W-nb]
-            - `fielder_outcome_index` [c,s,dro,idro]
+            - `bowling_outcome_index`:
+                - [0, 1-b, 1-oe, 1-nb, 1-w,  2-b…. 6-b, 6-oe, 6-nb, 6-w, W-b, W-nb]
+                - 0 : dot_ball
+                - 1-b : 1 run, attributable to batsman
+                - 1-nb: 1 run, attributable to no ball
+                - 1-w: 1 run, attributable to wide
+                - 1-oe: 1 run, attributable to other extras
+                - ... for upto 6 runs
+                - W-b: wicket, attributable to bowler along
+                - W-bc: wicket, catch, attributable to bowler and fielder
+                - W-bs: wicket, stumping, attributable to bowler and fielder
+                - W-dro: wicket, direct run-out
+                - W-idro: wicket, indirect run-out
+                - W-others: other forms of dismissal not attributable to bowler
+            - `batting_outcome_index`:
+                - [0, 1-b, 2-b, 3-b, 4-b, 5-b, 6-b, W]
+                - 0 : dot_ball, and other bowling_outcomes not attributable to batsman, excluding wickets
+                - 1-b: same as 1-b bowling_outcome
+                - ... for upto 6 runs
+                - W: union of W-b, W-bc, W-bs, W-dro, W-idro, W-others from bowling_outcome
+            - `fielding_outcome_index`
+                - [w-c,w-s,w-dro,w-idro]
+                - c: catch,
+                - s: stumping
+                - dro: direct run out
+                - idro: indirect run out
         - By using the historical data available in the above format, 6 inferential models will be learnt using bayesian
         multinomial logistic regression on the appropriate outcome vector:
             - `first_innings_batting_outcomes_model`

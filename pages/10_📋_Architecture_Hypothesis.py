@@ -10,6 +10,5 @@ def app():
         image, url = render_mermaid(graph)
         page_utils.setup_page(f"[Architecture Hypothesis]({url})")
         st.image(image)
-    config_utils.set_app_comment_window("Architecture Hypothesis")
 
 app()

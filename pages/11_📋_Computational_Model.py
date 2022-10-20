@@ -11,6 +11,6 @@ def app():
 
     page_utils.setup_page(f"[Computational Model]({url})")
     st.image(image, "Computational Model")
-    config_utils.set_app_comment_window("Computational Model")
+
 
 app()

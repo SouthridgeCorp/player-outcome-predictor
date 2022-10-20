@@ -8,6 +8,5 @@ def app():
     with open('resources/press_release/press_release.md', 'r') as f:
         press_release = f.read()
     st.markdown(press_release)
-    config_utils.set_app_comment_window("About")
 
 app()

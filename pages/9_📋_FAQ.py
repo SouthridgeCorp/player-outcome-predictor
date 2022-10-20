@@ -34,7 +34,5 @@ def app():
     with open(f'resources/faq/faq.md', 'r') as f:
         faq = f.read()
         st.markdown(faq)
-    config_utils.set_app_comment_window("FAQ")
-
 
 app()

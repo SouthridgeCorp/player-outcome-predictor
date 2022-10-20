@@ -8,12 +8,14 @@ def app():
     st.markdown('''
         To be released in v0.2
         - Lets the user review/modify all the `rewards_formula_calculation_parameters`:
+        
             - `batting_outcomes_parameters`: 
                 - `base_reward` :A mapping from `batting_outcome_index` to `batting_outcome_reward`
                 - `strike_rate_bonus_threshold`
                 - `strike_rate_bonus_reward`
                 - `strike_rate_penalty_threshold`
                 - `strike_rate_penalty_reward`
+                
             - `bowling_outcomes_parameters`:
                 - `base_reward`:
                     - A mapping from `bowling_outcome_index` to `bowling_outcome_reward`
@@ -22,6 +24,7 @@ def app():
                 - `economy_rate_bonus_reward`
                 - `economy_rate_penalty_threshold`
                 - `economy_rate_penalty_reward`
+                
             - `fielding_outcomes_parameters`:
                 - `base_reward`:
                     - A mapping from `fielding_outcome_index` to `bowling_outcome_reward`

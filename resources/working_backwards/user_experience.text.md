@@ -1,8 +1,10 @@
 5. **What does the customer experience look like?** 
     - Available Historical Data Tab:
         - Lets the user see all `available_t20_tournaments`
+        - Lets the user select a list of tournaments for model building and evaluation
         - Lets the user set a `cut_off_tournament_for_training` 
         - Lets the user set a `cut_off_tournament_for_testing`
+        - Summarises their selection and indicates the number of matches by tournament selected for training and testing
     - Configure Sportiqo Rewards Formula Tab:
         - Lets the user review/modify all the `rewards_formula_calculation_parameters`:
             - `batting_outcomes_parameters`: 
