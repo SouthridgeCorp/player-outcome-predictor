@@ -1,6 +1,6 @@
 # 5. What does the customer experience look like?
 
-## Data Selection Tab:
+## Data Selection Tab [v0.1]:
 
 ### Objective:
 - Lets the user see all `available_t20_tournaments`
@@ -9,7 +9,7 @@
 - Lets the user set a `testing_window`
 - Summarises their selection and indicates the number of matches by `selected_tournament` for training and testing
 
-## Configure Sportiqo Rewards Formula Tab:
+## Configure Sportiqo Rewards Formula Tab [v0.2]:
 
 ### Objective:
 - Lets the user review/modify all the `rewards_formula_calculation_parameters`
@@ -74,17 +74,19 @@ Represents mutually exclusive outcomes for a fielder, composed of
 - w-idro: indirect run out
 
 
-## Review Perfect Simulation Tab:
+## Review Perfect Simulation Tab [v0.2]:
 
 ### Objective:
+
 - Lets the user review all the `error_measures` and `simulation_evaluation_metrics` for each innings, match, tournament_stage 
 and tournament in the `testing_window`, as projected by the `perfect_simulation_model`
-- The user will be able to view aggregations on both `error_measures` and `evaluation_metrics` at the following
-granularities:
+
+- The user will be able to view aggregations on both `error_measures` and `evaluation_metrics` at the following granularities:
     - `by_player_and_innnings`
     - `by_player_and_match`
     - `by_player_and_tournament_stage`
     - `by_player_and_tournament`
+
 - Lets the user view the `top_k` best performing players in each team as measured by `evaluation_metrics.rewards_by_player`:
     - `top_k_players_by_team_and_tournament`
     - `top_k_batsmen_by_team_and_tournament`
@@ -111,14 +113,16 @@ Consists of the following metrics calculated for each `simulation_evaluation_met
 - `mean_absolute_error`
 - `mean_absolute_percentage_error`
 
-## Review Inferential Models Tab:
+## Review Inferential Models Tab [v0.3]:
 
 ### Objective:
-- Lets users evaluate the ability inferential models which will 
-- Lets the user select one of the following inferential models and review `error_measures` on `inference_evaluation_metrics` specific to it:
+- Lets users evaluate the ability of inferential models to faithfully classify `bowling_outcomes_by_ball_and_innings` when `match_state_by_ball_and_innings` is known. 
+
+- Lets users select one of the following inferential models and review `error_measures` on `inference_evaluation_metrics` specific to it:
     - `first_innings_bowling_outcomes_model`
     - `second_innings_bowling_outcomes_model`
-- Lets the user review these metrics for each model at the following granularities:
+
+- Lets users review these metrics for each model at the following granularities:
     - `by_player_and_innings_and_scenario`
     - `by_player_and_innnings`
     - `by_player_and_match`
@@ -155,7 +159,7 @@ bowled:
 - `current_total`
 - `runs_to_target` [if second innings]
     
-## Review Predictive Simulations Tab:
+## Review Predictive Simulations Tab [v0.4]:
 
 ### Objective:
 - Lets the user review all the `error_measures` and `simulation_evaluation_metrics` for each innings, match, tournament_stage 
@@ -178,7 +182,7 @@ granularities:
 A model that generates a set of `credible_scenarios` by using the `inferential_models` to simulate entire tournaments
 by building them from ball by ball outcomes. Each `credible_scenario` will be associated with a set of `simulation_evaluation_metrics`.
 
-## Simulate Tournament Tab:
+## Simulate Tournament Tab [v0.5]:
 
 ### Objective:
 - Lets the user configure an `upcoming_tournament` and use the `predictive_simulation_model` to produce a 
