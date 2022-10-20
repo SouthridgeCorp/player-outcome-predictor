@@ -35,5 +35,4 @@ def app():
         faq = f.read()
         st.markdown(faq)
 
-
 app()

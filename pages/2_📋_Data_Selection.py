@@ -56,7 +56,7 @@ def app():
     Input page for requesting the training & testing window, which will be used to configure the rest of the models.
     :return: None
     """
-    page_utils.setup_page("Available Historical Data")
+    page_utils.setup_page("Data Selection")
     helper = historical_data.singleton.get_helper()
     tournaments = helper.tournaments
 
@@ -77,9 +77,5 @@ def app():
 
     with st.expander("Expand to see the list"):
         st.dataframe(tournaments.df, use_container_width=True)
-
-
-
-
 
 app()

@@ -2,11 +2,13 @@ gspread-pandas
 gsheetsdb
 pandas
 pytest
-matplotlib
+matplotlib==3.6.0
 snowflake-connector-python
 snowflake-connector-python[pandas]
 streamlit
 snowflake-sqlalchemy
 streamlit-aggrid
-
-
+pymc
+graphviz
+jupyterlab
+seaborn

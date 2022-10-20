@@ -12,4 +12,5 @@ def app():
     page_utils.setup_page(f"[Computational Model]({url})")
     st.image(image, "Computational Model")
 
+
 app()
