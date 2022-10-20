@@ -60,8 +60,17 @@ client_x509_cert_url = "xxx"
 Contact Gireesh to configure Snowflake access
 
 
-### Run the streamlit application locally
-`streamlit run app.py`
+## Setting up the virtual environment using docker
+ - Install docker-engine and docker-compose on your system from [here](https://docs.docker.com/engine/install/).
+ - Open a terminal, move to the project root directory and run `docker pull python` to download a python image from the dockerhub.
+
+## Run the streamlit application locally with docker
+   - Run `docker compose up` to build a docker image and start the container locally.
+     - This command assumes port 8501 is not in use.
+   - Open [localhost:8501](localhost:8501) in your browser.
+   
+## Run the streamlit application locally without docker
+ - `streamlit run app.py` from the repository root 
 
 ### Host the streamlit application externally
 * Follow the instruction on https://share.streamlit.io/deploy
@@ -99,16 +108,26 @@ project
 │   
 └───pages [python module for hosting all pages of the streamlit application]
     │   1_📋_About.py [serves resources/press_release]
-    │   2_📋_About.py [serves resources/press_release]
-    │   1_📋_About.py [serves resources/press_release]
-    │   1_📋_About.py [serves resources/press_release]
-    │   1_📋_About.py [serves resources/press_release]
-    │   1_📋_About.py [serves resources/press_release]
-    │   1_📋_About.py [serves resources/press_release]
-    │   2_📋_FAQ.py [serves resources/faq and resources/working_backwards]
-    │   3_📋_Architecture_Hypothesis.py [serves resources/architecture_hypothesis]
-    │   4_📋_Computational_Model.py [serves resources/computational_model]
-    │   5_📋_Feedback.py [serves page to collect feedback]
+    │   2_📋_Data_Selection.py 
+    │   3_📋_Configure_Sportiqo_Rewards.py
+    │   4_📋_Review_Perfect_Simulation.py
+    │   5_📋_Review_Inferential_Models.py
+    │   6_📋_Review_Predictive_Simulations.py
+    │   7_📋_Simulate_Tournament.py
+    │   8_📋_FAQ.py [serves resources/faq and resources/working_backwards]
+    │   9_📋_Architecture_Hypothesis.py [serves resources/architecture_hypothesis]
+    │   10_📋_Computational_Model.py [serves resources/computational_model]
+    │   11_📋_Feedback.py [serves page to collect feedback]
+│   
+└───historical_data [python module for serving historical_data]
+└───rewards_configuration [python module for configuring rewards formula]
+└───simulators [python module for simulators]
+    └───perfect_simulator [python module for perfect simulator]
+    └───predcitive_simulator [python module for predictive simulator]
+└───inferential_models [python module for inferential models]
+    └───bowling_outcomes_by_ball_models [python module for inferential models that classify bowling_outcomes_by_ball_and_innings]
+        └───first_innings_model [python module for inferential models that operate on the first innings]
+        └───second_innings_model [python module for inferential models that operate on the second innings]
 │   
 └───utils [python module for serving configuration from schemas]
     │   graph_utils.py [utility functions for rendering mermaid graphs]

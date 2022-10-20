@@ -11,8 +11,7 @@ def app():
 ### Objective:
 - Lets the user review all the `error_measures` and `simulation_evaluation_metrics` for each innings, match, tournament_stage 
 and tournament in the `testing_window`, as projected by the `predictive_simulation_model`
-- The user will be able to view aggregations on both `error_measures` and `simulation_evaluation_metrics` at the following
-granularities:
+- The user will be able to view aggregations on both `error_measures` and `simulation_evaluation_metrics` at the following granularities:
     - `by_player_and_innnings`
     - `by_player_and_match`
     - `by_player_and_tournament_stage`
