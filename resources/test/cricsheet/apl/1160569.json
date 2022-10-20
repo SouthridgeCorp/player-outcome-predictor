@@ -1,0 +1,2991 @@
+{
+  "meta": {
+    "data_version": "1.1.0",
+    "created": "2021-11-06",
+    "revision": 2
+  },
+  "info": {
+    "balls_per_over": 6,
+    "city": "Sharjah",
+    "dates": [
+      "2018-10-05"
+    ],
+    "event": {
+      "name": "Afghanistan Premier League",
+      "match_number": 1
+    },
+    "gender": "male",
+    "match_type": "T20",
+    "officials": {
+      "match_referees": [
+        "DT Jukes"
+      ],
+      "reserve_umpires": [
+        "Farooq Khan"
+      ],
+      "tv_umpires": [
+        "Ahmed Shah Pakteen"
+      ],
+      "umpires": [
+        "Bismillah Shinwari",
+        "Izatullah Safi"
+      ]
+    },
+    "outcome": {
+      "winner": "Kabul Zwanan",
+      "by": {
+        "wickets": 3
+      }
+    },
+    "overs": 20,
+    "player_of_match": [
+      "LJ Evans"
+    ],
+    "players": {
+      "Paktia Panthers": [
+        "Mohammad Shahzad",
+        "Ihsanullah",
+        "CS Delport",
+        "Sikandar Raza",
+        "Shahid Afridi",
+        "CS MacLeod",
+        "Samiullah Shenwari",
+        "Sharafuddin Ashraf",
+        "Zia-ur-Rehman",
+        "Yousuf Zazai",
+        "Tahir Khan"
+      ],
+      "Kabul Zwanan": [
+        "L Ronchi",
+        "Hazratullah",
+        "Javed Ahmadi",
+        "LJ Evans",
+        "Shahidullah",
+        "Rashid Khan",
+        "Muslim Musa",
+        "WD Parnell",
+        "Fareed Ahmad",
+        "Ali Khan",
+        "Zahir Shehzad"
+      ]
+    },
+    "registry": {
+      "people": {
+        "Ahmed Shah Pakteen": "43602937",
+        "Ali Khan": "b0eaaac6",
+        "Bismillah Shinwari": "cae815a0",
+        "CS Delport": "afa78c3a",
+        "CS MacLeod": "9c376401",
+        "DT Jukes": "7c215d14",
+        "Fareed Ahmad": "67b7bad4",
+        "Farooq Khan": "c1d0caa5",
+        "Hazratullah": "5ea51c25",
+        "Ihsanullah": "5aeab54c",
+        "Izatullah Safi": "0429e73e",
+        "Javed Ahmadi": "0087a35d",
+        "L Ronchi": "0fa5042b",
+        "LJ Evans": "1c513d54",
+        "Mohammad Shahzad": "d6dcb0c9",
+        "Muslim Musa": "ac8877ed",
+        "Rashid Khan": "5f547c8b",
+        "Samiullah Shenwari": "61646132",
+        "Shahid Afridi": "0dc00542",
+        "Shahidullah": "82b90140",
+        "Sharafuddin Ashraf": "7e678d00",
+        "Sikandar Raza": "26d041c4",
+        "Tahir Khan": "d11d472e",
+        "WD Parnell": "3a60e0b5",
+        "Yousuf Zazai": "e6c04d3f",
+        "Zahir Shehzad": "1fa08c73",
+        "Zia-ur-Rehman": "fda22a2e"
+      }
+    },
+    "season": "2018/19",
+    "team_type": "club",
+    "teams": [
+      "Paktia Panthers",
+      "Kabul Zwanan"
+    ],
+    "toss": {
+      "decision": "field",
+      "winner": "Kabul Zwanan"
+    },
+    "venue": "Sharjah Cricket Stadium"
+  },
+  "innings": [
+    {
+      "team": "Paktia Panthers",
+      "overs": [
+        {
+          "over": 0,
+          "deliveries": [
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "WD Parnell",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "WD Parnell",
+              "extras": {
+                "wides": 1
+              },
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 0,
+                "extras": 1,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "WD Parnell",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "WD Parnell",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "WD Parnell",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "WD Parnell",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "WD Parnell",
+              "extras": {
+                "wides": 1
+              },
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 0,
+                "extras": 1,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "WD Parnell",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            }
+          ]
+        },
+        {
+          "over": 1,
+          "deliveries": [
+            {
+              "batter": "Ihsanullah",
+              "bowler": "Ali Khan",
+              "non_striker": "Mohammad Shahzad",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "Ali Khan",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 4,
+                "extras": 0,
+                "total": 4
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "Ali Khan",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 4,
+                "extras": 0,
+                "total": 4
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "Ali Khan",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "Ali Khan",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "Ali Khan",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 4,
+                "extras": 0,
+                "total": 4
+              }
+            }
+          ]
+        },
+        {
+          "over": 2,
+          "deliveries": [
+            {
+              "batter": "Ihsanullah",
+              "bowler": "WD Parnell",
+              "non_striker": "Mohammad Shahzad",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "WD Parnell",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 6,
+                "extras": 0,
+                "total": 6
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "WD Parnell",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "WD Parnell",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "WD Parnell",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "WD Parnell",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            }
+          ]
+        },
+        {
+          "over": 3,
+          "deliveries": [
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "Zahir Shehzad",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Ihsanullah",
+              "bowler": "Zahir Shehzad",
+              "non_striker": "Mohammad Shahzad",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Ihsanullah",
+              "bowler": "Zahir Shehzad",
+              "non_striker": "Mohammad Shahzad",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "Zahir Shehzad",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 4,
+                "extras": 0,
+                "total": 4
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "Zahir Shehzad",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "Zahir Shehzad",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            }
+          ]
+        },
+        {
+          "over": 4,
+          "deliveries": [
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "Ali Khan",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 4,
+                "extras": 0,
+                "total": 4
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "Ali Khan",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Ihsanullah",
+              "bowler": "Ali Khan",
+              "non_striker": "Mohammad Shahzad",
+              "runs": {
+                "batter": 4,
+                "extras": 0,
+                "total": 4
+              }
+            },
+            {
+              "batter": "Ihsanullah",
+              "bowler": "Ali Khan",
+              "non_striker": "Mohammad Shahzad",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Ihsanullah",
+              "bowler": "Ali Khan",
+              "non_striker": "Mohammad Shahzad",
+              "runs": {
+                "batter": 4,
+                "extras": 0,
+                "total": 4
+              }
+            },
+            {
+              "batter": "Ihsanullah",
+              "bowler": "Ali Khan",
+              "non_striker": "Mohammad Shahzad",
+              "runs": {
+                "batter": 4,
+                "extras": 0,
+                "total": 4
+              }
+            }
+          ]
+        },
+        {
+          "over": 5,
+          "deliveries": [
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "Zahir Shehzad",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "Zahir Shehzad",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "Zahir Shehzad",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 4,
+                "extras": 0,
+                "total": 4
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "Zahir Shehzad",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "Zahir Shehzad",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Ihsanullah",
+              "bowler": "Zahir Shehzad",
+              "non_striker": "Mohammad Shahzad",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            }
+          ]
+        },
+        {
+          "over": 6,
+          "deliveries": [
+            {
+              "batter": "Ihsanullah",
+              "bowler": "Fareed Ahmad",
+              "non_striker": "Mohammad Shahzad",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "Fareed Ahmad",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Ihsanullah",
+              "bowler": "Fareed Ahmad",
+              "non_striker": "Mohammad Shahzad",
+              "runs": {
+                "batter": 6,
+                "extras": 0,
+                "total": 6
+              }
+            },
+            {
+              "batter": "Ihsanullah",
+              "bowler": "Fareed Ahmad",
+              "non_striker": "Mohammad Shahzad",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "Fareed Ahmad",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 4,
+                "extras": 0,
+                "total": 4
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "Fareed Ahmad",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            }
+          ]
+        },
+        {
+          "over": 7,
+          "deliveries": [
+            {
+              "batter": "Ihsanullah",
+              "bowler": "Rashid Khan",
+              "non_striker": "Mohammad Shahzad",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Ihsanullah",
+              "bowler": "Rashid Khan",
+              "non_striker": "Mohammad Shahzad",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "Rashid Khan",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 6,
+                "extras": 0,
+                "total": 6
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "Rashid Khan",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Ihsanullah",
+              "bowler": "Rashid Khan",
+              "non_striker": "Mohammad Shahzad",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "Rashid Khan",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            }
+          ]
+        },
+        {
+          "over": 8,
+          "deliveries": [
+            {
+              "batter": "Ihsanullah",
+              "bowler": "Fareed Ahmad",
+              "extras": {
+                "wides": 1
+              },
+              "non_striker": "Mohammad Shahzad",
+              "runs": {
+                "batter": 0,
+                "extras": 1,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Ihsanullah",
+              "bowler": "Fareed Ahmad",
+              "non_striker": "Mohammad Shahzad",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Ihsanullah",
+              "bowler": "Fareed Ahmad",
+              "extras": {
+                "wides": 1
+              },
+              "non_striker": "Mohammad Shahzad",
+              "runs": {
+                "batter": 0,
+                "extras": 1,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Ihsanullah",
+              "bowler": "Fareed Ahmad",
+              "extras": {
+                "legbyes": 4
+              },
+              "non_striker": "Mohammad Shahzad",
+              "runs": {
+                "batter": 0,
+                "extras": 4,
+                "total": 4
+              }
+            },
+            {
+              "batter": "Ihsanullah",
+              "bowler": "Fareed Ahmad",
+              "non_striker": "Mohammad Shahzad",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "Fareed Ahmad",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 6,
+                "extras": 0,
+                "total": 6
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "Fareed Ahmad",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 6,
+                "extras": 0,
+                "total": 6
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "Fareed Ahmad",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            }
+          ]
+        },
+        {
+          "over": 9,
+          "deliveries": [
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "Zahir Shehzad",
+              "extras": {
+                "wides": 5
+              },
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 0,
+                "extras": 5,
+                "total": 5
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "Zahir Shehzad",
+              "non_striker": "Ihsanullah",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Ihsanullah",
+              "bowler": "Zahir Shehzad",
+              "non_striker": "Mohammad Shahzad",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              },
+              "wickets": [
+                {
+                  "player_out": "Ihsanullah",
+                  "fielders": [
+                    {
+                      "name": "LJ Evans"
+                    }
+                  ],
+                  "kind": "caught"
+                }
+              ]
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "Zahir Shehzad",
+              "non_striker": "CS Delport",
+              "runs": {
+                "batter": 6,
+                "extras": 0,
+                "total": 6
+              }
+            },
+            {
+              "batter": "Mohammad Shahzad",
+              "bowler": "Zahir Shehzad",
+              "non_striker": "CS Delport",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              },
+              "wickets": [
+                {
+                  "player_out": "Mohammad Shahzad",
+                  "kind": "bowled"
+                }
+              ]
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Zahir Shehzad",
+              "non_striker": "CS Delport",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "CS Delport",
+              "bowler": "Zahir Shehzad",
+              "non_striker": "Sikandar Raza",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            }
+          ]
+        },
+        {
+          "over": 10,
+          "deliveries": [
+            {
+              "batter": "CS Delport",
+              "bowler": "Rashid Khan",
+              "non_striker": "Sikandar Raza",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "CS Delport",
+              "bowler": "Rashid Khan",
+              "non_striker": "Sikandar Raza",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Rashid Khan",
+              "non_striker": "CS Delport",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "CS Delport",
+              "bowler": "Rashid Khan",
+              "non_striker": "Sikandar Raza",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Rashid Khan",
+              "non_striker": "CS Delport",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Rashid Khan",
+              "non_striker": "CS Delport",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            }
+          ]
+        },
+        {
+          "over": 11,
+          "deliveries": [
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Muslim Musa",
+              "non_striker": "CS Delport",
+              "runs": {
+                "batter": 4,
+                "extras": 0,
+                "total": 4
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Muslim Musa",
+              "non_striker": "CS Delport",
+              "runs": {
+                "batter": 6,
+                "extras": 0,
+                "total": 6
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Muslim Musa",
+              "non_striker": "CS Delport",
+              "runs": {
+                "batter": 2,
+                "extras": 0,
+                "total": 2
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Muslim Musa",
+              "non_striker": "CS Delport",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "CS Delport",
+              "bowler": "Muslim Musa",
+              "extras": {
+                "wides": 1
+              },
+              "non_striker": "Sikandar Raza",
+              "runs": {
+                "batter": 0,
+                "extras": 1,
+                "total": 1
+              }
+            },
+            {
+              "batter": "CS Delport",
+              "bowler": "Muslim Musa",
+              "non_striker": "Sikandar Raza",
+              "runs": {
+                "batter": 4,
+                "extras": 0,
+                "total": 4
+              }
+            },
+            {
+              "batter": "CS Delport",
+              "bowler": "Muslim Musa",
+              "non_striker": "Sikandar Raza",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            }
+          ]
+        },
+        {
+          "over": 12,
+          "deliveries": [
+            {
+              "batter": "CS Delport",
+              "bowler": "Ali Khan",
+              "non_striker": "Sikandar Raza",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Ali Khan",
+              "non_striker": "CS Delport",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Ali Khan",
+              "non_striker": "CS Delport",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "CS Delport",
+              "bowler": "Ali Khan",
+              "non_striker": "Sikandar Raza",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Ali Khan",
+              "non_striker": "CS Delport",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Ali Khan",
+              "non_striker": "CS Delport",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            }
+          ]
+        },
+        {
+          "over": 13,
+          "deliveries": [
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Zahir Shehzad",
+              "non_striker": "CS Delport",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "CS Delport",
+              "bowler": "Zahir Shehzad",
+              "non_striker": "Sikandar Raza",
+              "runs": {
+                "batter": 6,
+                "extras": 0,
+                "total": 6
+              }
+            },
+            {
+              "batter": "CS Delport",
+              "bowler": "Zahir Shehzad",
+              "non_striker": "Sikandar Raza",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "CS Delport",
+              "bowler": "Zahir Shehzad",
+              "non_striker": "Sikandar Raza",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Zahir Shehzad",
+              "non_striker": "CS Delport",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Zahir Shehzad",
+              "non_striker": "CS Delport",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            }
+          ]
+        },
+        {
+          "over": 14,
+          "deliveries": [
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Rashid Khan",
+              "non_striker": "CS Delport",
+              "runs": {
+                "batter": 6,
+                "extras": 0,
+                "total": 6
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Rashid Khan",
+              "non_striker": "CS Delport",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "CS Delport",
+              "bowler": "Rashid Khan",
+              "non_striker": "Sikandar Raza",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Rashid Khan",
+              "non_striker": "CS Delport",
+              "runs": {
+                "batter": 2,
+                "extras": 0,
+                "total": 2
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Rashid Khan",
+              "non_striker": "CS Delport",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Rashid Khan",
+              "extras": {
+                "byes": 4
+              },
+              "non_striker": "CS Delport",
+              "runs": {
+                "batter": 0,
+                "extras": 4,
+                "total": 4
+              }
+            }
+          ]
+        },
+        {
+          "over": 15,
+          "deliveries": [
+            {
+              "batter": "CS Delport",
+              "bowler": "Fareed Ahmad",
+              "non_striker": "Sikandar Raza",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Fareed Ahmad",
+              "non_striker": "CS Delport",
+              "runs": {
+                "batter": 4,
+                "extras": 0,
+                "total": 4
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Fareed Ahmad",
+              "non_striker": "CS Delport",
+              "runs": {
+                "batter": 6,
+                "extras": 0,
+                "total": 6
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Fareed Ahmad",
+              "non_striker": "CS Delport",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "CS Delport",
+              "bowler": "Fareed Ahmad",
+              "non_striker": "Sikandar Raza",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              },
+              "wickets": [
+                {
+                  "player_out": "CS Delport",
+                  "kind": "bowled"
+                }
+              ]
+            },
+            {
+              "batter": "Shahid Afridi",
+              "bowler": "Fareed Ahmad",
+              "non_striker": "Sikandar Raza",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            }
+          ]
+        },
+        {
+          "over": 16,
+          "deliveries": [
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Rashid Khan",
+              "non_striker": "Shahid Afridi",
+              "runs": {
+                "batter": 4,
+                "extras": 0,
+                "total": 4
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Rashid Khan",
+              "non_striker": "Shahid Afridi",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Rashid Khan",
+              "non_striker": "Shahid Afridi",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Rashid Khan",
+              "non_striker": "Shahid Afridi",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Rashid Khan",
+              "non_striker": "Shahid Afridi",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Rashid Khan",
+              "non_striker": "Shahid Afridi",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            }
+          ]
+        },
+        {
+          "over": 17,
+          "deliveries": [
+            {
+              "batter": "Shahid Afridi",
+              "bowler": "WD Parnell",
+              "non_striker": "Sikandar Raza",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Shahid Afridi",
+              "bowler": "WD Parnell",
+              "non_striker": "Sikandar Raza",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "WD Parnell",
+              "extras": {
+                "noballs": 1
+              },
+              "non_striker": "Shahid Afridi",
+              "runs": {
+                "batter": 0,
+                "extras": 1,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "WD Parnell",
+              "non_striker": "Shahid Afridi",
+              "runs": {
+                "batter": 4,
+                "extras": 0,
+                "total": 4
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "WD Parnell",
+              "non_striker": "Shahid Afridi",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Shahid Afridi",
+              "bowler": "WD Parnell",
+              "non_striker": "Sikandar Raza",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Shahid Afridi",
+              "bowler": "WD Parnell",
+              "non_striker": "Sikandar Raza",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              },
+              "wickets": [
+                {
+                  "player_out": "Shahid Afridi",
+                  "kind": "bowled"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "over": 18,
+          "deliveries": [
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Ali Khan",
+              "non_striker": "CS MacLeod",
+              "runs": {
+                "batter": 6,
+                "extras": 0,
+                "total": 6
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Ali Khan",
+              "non_striker": "CS MacLeod",
+              "runs": {
+                "batter": 6,
+                "extras": 0,
+                "total": 6
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Ali Khan",
+              "non_striker": "CS MacLeod",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "CS MacLeod",
+              "bowler": "Ali Khan",
+              "non_striker": "Sikandar Raza",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "CS MacLeod",
+              "bowler": "Ali Khan",
+              "non_striker": "Sikandar Raza",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Ali Khan",
+              "extras": {
+                "noballs": 1
+              },
+              "non_striker": "CS MacLeod",
+              "runs": {
+                "batter": 0,
+                "extras": 1,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "Ali Khan",
+              "non_striker": "CS MacLeod",
+              "runs": {
+                "batter": 4,
+                "extras": 0,
+                "total": 4
+              }
+            }
+          ]
+        },
+        {
+          "over": 19,
+          "deliveries": [
+            {
+              "batter": "CS MacLeod",
+              "bowler": "WD Parnell",
+              "non_striker": "Sikandar Raza",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "CS MacLeod",
+              "bowler": "WD Parnell",
+              "non_striker": "Sikandar Raza",
+              "runs": {
+                "batter": 4,
+                "extras": 0,
+                "total": 4
+              }
+            },
+            {
+              "batter": "CS MacLeod",
+              "bowler": "WD Parnell",
+              "non_striker": "Sikandar Raza",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "WD Parnell",
+              "non_striker": "CS MacLeod",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "WD Parnell",
+              "non_striker": "CS MacLeod",
+              "runs": {
+                "batter": 6,
+                "extras": 0,
+                "total": 6
+              }
+            },
+            {
+              "batter": "Sikandar Raza",
+              "bowler": "WD Parnell",
+              "non_striker": "CS MacLeod",
+              "runs": {
+                "batter": 6,
+                "extras": 0,
+                "total": 6
+              }
+            }
+          ]
+        }
+      ],
+      "powerplays": [
+        {
+          "from": 0.1,
+          "to": 5.6,
+          "type": "mandatory"
+        }
+      ]
+    },
+    {
+      "team": "Kabul Zwanan",
+      "overs": [
+        {
+          "over": 0,
+          "deliveries": [
+            {
+              "batter": "L Ronchi",
+              "bowler": "Sharafuddin Ashraf",
+              "non_striker": "Hazratullah",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "L Ronchi",
+              "bowler": "Sharafuddin Ashraf",
+              "non_striker": "Hazratullah",
+              "runs": {
+                "batter": 4,
+                "extras": 0,
+                "total": 4
+              }
+            },
+            {
+              "batter": "L Ronchi",
+              "bowler": "Sharafuddin Ashraf",
+              "non_striker": "Hazratullah",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "L Ronchi",
+              "bowler": "Sharafuddin Ashraf",
+              "non_striker": "Hazratullah",
+              "runs": {
+                "batter": 4,
+                "extras": 0,
+                "total": 4
+              }
+            },
+            {
+              "batter": "L Ronchi",
+              "bowler": "Sharafuddin Ashraf",
+              "non_striker": "Hazratullah",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "L Ronchi",
+              "bowler": "Sharafuddin Ashraf",
+              "non_striker": "Hazratullah",
+              "runs": {
+                "batter": 6,
+                "extras": 0,
+                "non_boundary": true,
+                "total": 6
+              }
+            }
+          ]
+        },
+        {
+          "over": 1,
+          "deliveries": [
+            {
+              "batter": "Hazratullah",
+              "bowler": "Yousuf Zazai",
+              "non_striker": "L Ronchi",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Hazratullah",
+              "bowler": "Yousuf Zazai",
+              "non_striker": "L Ronchi",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "L Ronchi",
+              "bowler": "Yousuf Zazai",
+              "non_striker": "Hazratullah",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Hazratullah",
+              "bowler": "Yousuf Zazai",
+              "non_striker": "L Ronchi",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Hazratullah",
+              "bowler": "Yousuf Zazai",
+              "non_striker": "L Ronchi",
+              "runs": {
+                "batter": 4,
+                "extras": 0,
+                "total": 4
+              }
+            },
+            {
+              "batter": "Hazratullah",
+              "bowler": "Yousuf Zazai",
+              "non_striker": "L Ronchi",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            }
+          ]
+        },
+        {
+          "over": 2,
+          "deliveries": [
+            {
+              "batter": "L Ronchi",
+              "bowler": "Sharafuddin Ashraf",
+              "non_striker": "Hazratullah",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              },
+              "wickets": [
+                {
+                  "player_out": "L Ronchi",
+                  "fielders": [
+                    {
+                      "name": "Mohammad Shahzad"
+                    }
+                  ],
+                  "kind": "stumped"
+                }
+              ]
+            },
+            {
+              "batter": "Javed Ahmadi",
+              "bowler": "Sharafuddin Ashraf",
+              "non_striker": "Hazratullah",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Javed Ahmadi",
+              "bowler": "Sharafuddin Ashraf",
+              "non_striker": "Hazratullah",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Javed Ahmadi",
+              "bowler": "Sharafuddin Ashraf",
+              "non_striker": "Hazratullah",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Javed Ahmadi",
+              "bowler": "Sharafuddin Ashraf",
+              "non_striker": "Hazratullah",
+              "runs": {
+                "batter": 6,
+                "extras": 0,
+                "total": 6
+              }
+            },
+            {
+              "batter": "Javed Ahmadi",
+              "bowler": "Sharafuddin Ashraf",
+              "non_striker": "Hazratullah",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            }
+          ]
+        },
+        {
+          "over": 3,
+          "deliveries": [
+            {
+              "batter": "Javed Ahmadi",
+              "bowler": "Yousuf Zazai",
+              "extras": {
+                "wides": 1
+              },
+              "non_striker": "Hazratullah",
+              "runs": {
+                "batter": 0,
+                "extras": 1,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Javed Ahmadi",
+              "bowler": "Yousuf Zazai",
+              "non_striker": "Hazratullah",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Javed Ahmadi",
+              "bowler": "Yousuf Zazai",
+              "non_striker": "Hazratullah",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Hazratullah",
+              "bowler": "Yousuf Zazai",
+              "extras": {
+                "legbyes": 1
+              },
+              "non_striker": "Javed Ahmadi",
+              "runs": {
+                "batter": 0,
+                "extras": 1,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Javed Ahmadi",
+              "bowler": "Yousuf Zazai",
+              "non_striker": "Hazratullah",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Hazratullah",
+              "bowler": "Yousuf Zazai",
+              "non_striker": "Javed Ahmadi",
+              "runs": {
+                "batter": 2,
+                "extras": 0,
+                "total": 2
+              }
+            },
+            {
+              "batter": "Hazratullah",
+              "bowler": "Yousuf Zazai",
+              "non_striker": "Javed Ahmadi",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            }
+          ]
+        },
+        {
+          "over": 4,
+          "deliveries": [
+            {
+              "batter": "Hazratullah",
+              "bowler": "Zia-ur-Rehman",
+              "non_striker": "Javed Ahmadi",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Javed Ahmadi",
+              "bowler": "Zia-ur-Rehman",
+              "non_striker": "Hazratullah",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Javed Ahmadi",
+              "bowler": "Zia-ur-Rehman",
+              "non_striker": "Hazratullah",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Hazratullah",
+              "bowler": "Zia-ur-Rehman",
+              "non_striker": "Javed Ahmadi",
+              "runs": {
+                "batter": 4,
+                "extras": 0,
+                "total": 4
+              }
+            },
+            {
+              "batter": "Hazratullah",
+              "bowler": "Zia-ur-Rehman",
+              "non_striker": "Javed Ahmadi",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Hazratullah",
+              "bowler": "Zia-ur-Rehman",
+              "non_striker": "Javed Ahmadi",
+              "runs": {
+                "batter": 4,
+                "extras": 0,
+                "total": 4
+              }
+            }
+          ]
+        },
+        {
+          "over": 5,
+          "deliveries": [
+            {
+              "batter": "Javed Ahmadi",
+              "bowler": "Tahir Khan",
+              "non_striker": "Hazratullah",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Hazratullah",
+              "bowler": "Tahir Khan",
+              "non_striker": "Javed Ahmadi",
+              "runs": {
+                "batter": 4,
+                "extras": 0,
+                "total": 4
+              }
+            },
+            {
+              "batter": "Hazratullah",
+              "bowler": "Tahir Khan",
+              "non_striker": "Javed Ahmadi",
+              "runs": {
+                "batter": 6,
+                "extras": 0,
+                "total": 6
+              }
+            },
+            {
+              "batter": "Hazratullah",
+              "bowler": "Tahir Khan",
+              "non_striker": "Javed Ahmadi",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              },
+              "wickets": [
+                {
+                  "player_out": "Hazratullah",
+                  "fielders": [
+                    {
+                      "name": "Yousuf Zazai"
+                    }
+                  ],
+                  "kind": "caught"
+                }
+              ]
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Tahir Khan",
+              "non_striker": "Javed Ahmadi",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Tahir Khan",
+              "non_striker": "Javed Ahmadi",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            }
+          ]
+        },
+        {
+          "over": 6,
+          "deliveries": [
+            {
+              "batter": "Javed Ahmadi",
+              "bowler": "Shahid Afridi",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Javed Ahmadi",
+              "bowler": "Shahid Afridi",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Shahid Afridi",
+              "non_striker": "Javed Ahmadi",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Javed Ahmadi",
+              "bowler": "Shahid Afridi",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 6,
+                "extras": 0,
+                "total": 6
+              }
+            },
+            {
+              "batter": "Javed Ahmadi",
+              "bowler": "Shahid Afridi",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Shahid Afridi",
+              "non_striker": "Javed Ahmadi",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            }
+          ]
+        },
+        {
+          "over": 7,
+          "deliveries": [
+            {
+              "batter": "LJ Evans",
+              "bowler": "Tahir Khan",
+              "non_striker": "Javed Ahmadi",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Javed Ahmadi",
+              "bowler": "Tahir Khan",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Javed Ahmadi",
+              "bowler": "Tahir Khan",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 6,
+                "extras": 0,
+                "total": 6
+              }
+            },
+            {
+              "batter": "Javed Ahmadi",
+              "bowler": "Tahir Khan",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              },
+              "wickets": [
+                {
+                  "player_out": "Javed Ahmadi",
+                  "fielders": [
+                    {
+                      "name": "Samiullah Shenwari"
+                    }
+                  ],
+                  "kind": "caught"
+                }
+              ]
+            },
+            {
+              "batter": "Shahidullah",
+              "bowler": "Tahir Khan",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Shahidullah",
+              "bowler": "Tahir Khan",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 2,
+                "extras": 0,
+                "total": 2
+              }
+            }
+          ]
+        },
+        {
+          "over": 8,
+          "deliveries": [
+            {
+              "batter": "LJ Evans",
+              "bowler": "Shahid Afridi",
+              "non_striker": "Shahidullah",
+              "runs": {
+                "batter": 4,
+                "extras": 0,
+                "total": 4
+              }
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Shahid Afridi",
+              "non_striker": "Shahidullah",
+              "runs": {
+                "batter": 4,
+                "extras": 0,
+                "total": 4
+              }
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Shahid Afridi",
+              "non_striker": "Shahidullah",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Shahidullah",
+              "bowler": "Shahid Afridi",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Shahidullah",
+              "bowler": "Shahid Afridi",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 6,
+                "extras": 0,
+                "total": 6
+              }
+            },
+            {
+              "batter": "Shahidullah",
+              "bowler": "Shahid Afridi",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 2,
+                "extras": 0,
+                "total": 2
+              }
+            }
+          ]
+        },
+        {
+          "over": 9,
+          "deliveries": [
+            {
+              "batter": "LJ Evans",
+              "bowler": "Sikandar Raza",
+              "non_striker": "Shahidullah",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Sikandar Raza",
+              "non_striker": "Shahidullah",
+              "runs": {
+                "batter": 6,
+                "extras": 0,
+                "total": 6
+              }
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Sikandar Raza",
+              "non_striker": "Shahidullah",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Shahidullah",
+              "bowler": "Sikandar Raza",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Sikandar Raza",
+              "non_striker": "Shahidullah",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Sikandar Raza",
+              "non_striker": "Shahidullah",
+              "runs": {
+                "batter": 6,
+                "extras": 0,
+                "total": 6
+              }
+            }
+          ]
+        },
+        {
+          "over": 10,
+          "deliveries": [
+            {
+              "batter": "Shahidullah",
+              "bowler": "Zia-ur-Rehman",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Shahidullah",
+              "bowler": "Zia-ur-Rehman",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Zia-ur-Rehman",
+              "non_striker": "Shahidullah",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Shahidullah",
+              "bowler": "Zia-ur-Rehman",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              },
+              "wickets": [
+                {
+                  "player_out": "Shahidullah",
+                  "fielders": [
+                    {
+                      "name": "Ihsanullah"
+                    }
+                  ],
+                  "kind": "caught"
+                }
+              ]
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Zia-ur-Rehman",
+              "non_striker": "Rashid Khan",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Zia-ur-Rehman",
+              "non_striker": "Rashid Khan",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            }
+          ]
+        },
+        {
+          "over": 11,
+          "deliveries": [
+            {
+              "batter": "LJ Evans",
+              "bowler": "Shahid Afridi",
+              "non_striker": "Rashid Khan",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Rashid Khan",
+              "bowler": "Shahid Afridi",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 2,
+                "extras": 0,
+                "total": 2
+              }
+            },
+            {
+              "batter": "Rashid Khan",
+              "bowler": "Shahid Afridi",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Rashid Khan",
+              "bowler": "Shahid Afridi",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 4,
+                "extras": 0,
+                "total": 4
+              }
+            },
+            {
+              "batter": "Rashid Khan",
+              "bowler": "Shahid Afridi",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Shahid Afridi",
+              "non_striker": "Rashid Khan",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            }
+          ]
+        },
+        {
+          "over": 12,
+          "deliveries": [
+            {
+              "batter": "LJ Evans",
+              "bowler": "Zia-ur-Rehman",
+              "non_striker": "Rashid Khan",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Rashid Khan",
+              "bowler": "Zia-ur-Rehman",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 6,
+                "extras": 0,
+                "total": 6
+              }
+            },
+            {
+              "batter": "Rashid Khan",
+              "bowler": "Zia-ur-Rehman",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 6,
+                "extras": 0,
+                "total": 6
+              }
+            },
+            {
+              "batter": "Rashid Khan",
+              "bowler": "Zia-ur-Rehman",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 2,
+                "extras": 0,
+                "total": 2
+              }
+            },
+            {
+              "batter": "Rashid Khan",
+              "bowler": "Zia-ur-Rehman",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Zia-ur-Rehman",
+              "non_striker": "Rashid Khan",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            }
+          ]
+        },
+        {
+          "over": 13,
+          "deliveries": [
+            {
+              "batter": "Rashid Khan",
+              "bowler": "Yousuf Zazai",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 2,
+                "extras": 0,
+                "total": 2
+              }
+            },
+            {
+              "batter": "Rashid Khan",
+              "bowler": "Yousuf Zazai",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            },
+            {
+              "batter": "Rashid Khan",
+              "bowler": "Yousuf Zazai",
+              "extras": {
+                "wides": 1
+              },
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 0,
+                "extras": 1,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Rashid Khan",
+              "bowler": "Yousuf Zazai",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              },
+              "wickets": [
+                {
+                  "player_out": "Rashid Khan",
+                  "fielders": [
+                    {
+                      "name": "Samiullah Shenwari"
+                    }
+                  ],
+                  "kind": "caught"
+                }
+              ]
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Yousuf Zazai",
+              "non_striker": "Muslim Musa",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Muslim Musa",
+              "bowler": "Yousuf Zazai",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Yousuf Zazai",
+              "non_striker": "Muslim Musa",
+              "runs": {
+                "batter": 6,
+                "extras": 0,
+                "total": 6
+              }
+            }
+          ]
+        },
+        {
+          "over": 14,
+          "deliveries": [
+            {
+              "batter": "Muslim Musa",
+              "bowler": "Sharafuddin Ashraf",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Sharafuddin Ashraf",
+              "non_striker": "Muslim Musa",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Muslim Musa",
+              "bowler": "Sharafuddin Ashraf",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Sharafuddin Ashraf",
+              "non_striker": "Muslim Musa",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Muslim Musa",
+              "bowler": "Sharafuddin Ashraf",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Sharafuddin Ashraf",
+              "non_striker": "Muslim Musa",
+              "runs": {
+                "batter": 2,
+                "extras": 0,
+                "total": 2
+              }
+            }
+          ]
+        },
+        {
+          "over": 15,
+          "deliveries": [
+            {
+              "batter": "Muslim Musa",
+              "bowler": "Shahid Afridi",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 6,
+                "extras": 0,
+                "total": 6
+              }
+            },
+            {
+              "batter": "Muslim Musa",
+              "bowler": "Shahid Afridi",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 6,
+                "extras": 0,
+                "total": 6
+              }
+            },
+            {
+              "batter": "Muslim Musa",
+              "bowler": "Shahid Afridi",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              },
+              "wickets": [
+                {
+                  "player_out": "Muslim Musa",
+                  "fielders": [
+                    {
+                      "name": "CS Delport"
+                    },
+                    {
+                      "name": "Shahid Afridi"
+                    }
+                  ],
+                  "kind": "run out"
+                }
+              ]
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Shahid Afridi",
+              "non_striker": "WD Parnell",
+              "runs": {
+                "batter": 2,
+                "extras": 0,
+                "total": 2
+              }
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Shahid Afridi",
+              "non_striker": "WD Parnell",
+              "runs": {
+                "batter": 4,
+                "extras": 0,
+                "total": 4
+              }
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Shahid Afridi",
+              "non_striker": "WD Parnell",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            }
+          ]
+        },
+        {
+          "over": 16,
+          "deliveries": [
+            {
+              "batter": "WD Parnell",
+              "bowler": "Sharafuddin Ashraf",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              },
+              "wickets": [
+                {
+                  "player_out": "WD Parnell",
+                  "kind": "caught and bowled"
+                }
+              ]
+            },
+            {
+              "batter": "Fareed Ahmad",
+              "bowler": "Sharafuddin Ashraf",
+              "extras": {
+                "noballs": 1
+              },
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 1,
+                "extras": 1,
+                "total": 2
+              }
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Sharafuddin Ashraf",
+              "extras": {
+                "wides": 1
+              },
+              "non_striker": "Fareed Ahmad",
+              "runs": {
+                "batter": 0,
+                "extras": 1,
+                "total": 1
+              }
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Sharafuddin Ashraf",
+              "non_striker": "Fareed Ahmad",
+              "runs": {
+                "batter": 6,
+                "extras": 0,
+                "total": 6
+              }
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Sharafuddin Ashraf",
+              "non_striker": "Fareed Ahmad",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Fareed Ahmad",
+              "bowler": "Sharafuddin Ashraf",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Sharafuddin Ashraf",
+              "non_striker": "Fareed Ahmad",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Fareed Ahmad",
+              "bowler": "Sharafuddin Ashraf",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 0,
+                "extras": 0,
+                "total": 0
+              }
+            }
+          ]
+        },
+        {
+          "over": 17,
+          "deliveries": [
+            {
+              "batter": "LJ Evans",
+              "bowler": "Sikandar Raza",
+              "non_striker": "Fareed Ahmad",
+              "runs": {
+                "batter": 4,
+                "extras": 0,
+                "total": 4
+              }
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Sikandar Raza",
+              "non_striker": "Fareed Ahmad",
+              "runs": {
+                "batter": 6,
+                "extras": 0,
+                "total": 6
+              }
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Sikandar Raza",
+              "non_striker": "Fareed Ahmad",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Fareed Ahmad",
+              "bowler": "Sikandar Raza",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Sikandar Raza",
+              "non_striker": "Fareed Ahmad",
+              "runs": {
+                "batter": 6,
+                "extras": 0,
+                "total": 6
+              }
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Sikandar Raza",
+              "extras": {
+                "wides": 1
+              },
+              "non_striker": "Fareed Ahmad",
+              "runs": {
+                "batter": 0,
+                "extras": 1,
+                "total": 1
+              }
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Sikandar Raza",
+              "extras": {
+                "noballs": 1
+              },
+              "non_striker": "Fareed Ahmad",
+              "runs": {
+                "batter": 1,
+                "extras": 1,
+                "total": 2
+              }
+            },
+            {
+              "batter": "Fareed Ahmad",
+              "bowler": "Sikandar Raza",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            }
+          ]
+        },
+        {
+          "over": 18,
+          "deliveries": [
+            {
+              "batter": "Fareed Ahmad",
+              "bowler": "Zia-ur-Rehman",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Zia-ur-Rehman",
+              "non_striker": "Fareed Ahmad",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "Fareed Ahmad",
+              "bowler": "Zia-ur-Rehman",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 4,
+                "extras": 0,
+                "total": 4
+              }
+            },
+            {
+              "batter": "Fareed Ahmad",
+              "bowler": "Zia-ur-Rehman",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 4,
+                "extras": 0,
+                "total": 4
+              }
+            },
+            {
+              "batter": "Fareed Ahmad",
+              "bowler": "Zia-ur-Rehman",
+              "non_striker": "LJ Evans",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            },
+            {
+              "batter": "LJ Evans",
+              "bowler": "Zia-ur-Rehman",
+              "non_striker": "Fareed Ahmad",
+              "runs": {
+                "batter": 1,
+                "extras": 0,
+                "total": 1
+              }
+            }
+          ]
+        },
+        {
+          "over": 19,
+          "deliveries": [
+            {
+              "batter": "LJ Evans",
+              "bowler": "Yousuf Zazai",
+              "non_striker": "Fareed Ahmad",
+              "runs": {
+                "batter": 4,
+                "extras": 0,
+                "total": 4
+              }
+            }
+          ]
+        }
+      ],
+      "powerplays": [
+        {
+          "from": 0.1,
+          "to": 5.6,
+          "type": "mandatory"
+        }
+      ],
+      "target": {
+        "overs": 20,
+        "runs": 219
+      }
+    }
+  ]
+}

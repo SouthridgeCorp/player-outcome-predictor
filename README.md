@@ -1,5 +1,14 @@
-## FRACTALIZED PRODUCT TEMPLATE 
-_Template Repo for All FDm Product Repos_
+# player-outcome-predictor
+Predictive modeling to forecast player outcomes over a T20 tournament
+
+## Getting the data ready
+Before running the app, input data must be prepared: 
+- Run `scripts/helpers/parse_cricsheet_inputs.py`
+- The `parse_cricsheet_inputs.py` script parses T20 match information from cricsheet and generates the datasets to be 
+used by the predictor app  This script converts `scripts/helpers/resources/IPLMatches.csv` to a format which is acceptable by the app
+- The output of the script is a csv list of the matches we know about and a list of tournaments we know about
+- For detailed instructions on how to run the script and its expected inputs & outputs, please refer to 
+`scripts/helpers/README_parse_cricsheet_inputs.md`
 
 ### Setting up configuration for a deployment
 #### Config.toml
@@ -88,10 +97,13 @@ project
 │   └───computational_model [folder with content to be served for computational model]
 │   └───architecture_hypothesis [folder with content to be served for architecture_hypothesis] 
 │   
-└───utils [version controlled folder with configuration files]
-│   │   data_schema.json [json file with everything used by utils]
-│   
 └───pages [python module for hosting all pages of the streamlit application]
+    │   1_📋_About.py [serves resources/press_release]
+    │   2_📋_About.py [serves resources/press_release]
+    │   1_📋_About.py [serves resources/press_release]
+    │   1_📋_About.py [serves resources/press_release]
+    │   1_📋_About.py [serves resources/press_release]
+    │   1_📋_About.py [serves resources/press_release]
     │   1_📋_About.py [serves resources/press_release]
     │   2_📋_FAQ.py [serves resources/faq and resources/working_backwards]
     │   3_📋_Architecture_Hypothesis.py [serves resources/architecture_hypothesis]
@@ -108,14 +120,4 @@ project
 
 ## Running Tests
 `pytest test`
-=======
-# player-outcome-predictor
-Predictive modeling to forecast player outcomes over a T20 tournament
 
-## Getting the data ready
-
-### All IPL Matches
-- Run `scripts/helpers/build_tournament_match_file.py`
-- This script converts `scripts/helpers/resources/IPLMatches.csv` to a format which is acceptable by the app
-- The output of the script is a csv list of the matches we know about and a list of tournaments we know about
-- This script stores the output file in `resources/match_data/matches.csv` and `resources/match_data/tournaments.csv`

@@ -25,6 +25,11 @@ graph LR
     bowling_outcomes_by_ball_and_innings --> batting_outcomes_by_ball_and_innings
     bowling_outcomes_by_ball_and_innings --> fielding_outcomes_by_ball_and_innings
 
+    bowling_outcomes_by_ball_and_innings --> precision_bowling_outcomes_by_ball_and_innings
+    bowling_outcomes_by_ball_and_innings --> recall_bowling_outcomes_by_ball_and_innings
+    bowling_outcomes_by_ball_and_innings --> f1_score_bowling_outcomes_by_ball_and_innings
+
+
     batting_outcomes_by_ball_and_innings --> batting_base_rewards_by_ball_and_innings
     batting_base_reward --> batting_base_rewards_by_ball_and_innings
 
@@ -126,7 +131,13 @@ graph LR
         fielding_base_rewards_by_ball_and_innings
     end
 
-    subgraph evaluation_metrics
+    subgraph inference_evaluation_metrics
+        precision_bowling_outcomes_by_ball_and_innings
+        recall_bowling_outcomes_by_ball_and_innings
+        f1_score_bowling_outcomes_by_ball_and_innings
+    end
+
+    subgraph simulation_evaluation_metrics
         rewards_by_player_and_innings
         batting_rewards_by_player_and_innings
         bowling_rewards_by_player_and_innings
