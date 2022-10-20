@@ -12,7 +12,7 @@ def validate_path_exists(file_name):
     return os.path.exists(file_name)
 
 
-@pytest.mark.parametrize("tournament", ["apl", "bbl"])
+@pytest.mark.parametrize("tournament", test.conftest.tournaments_to_test)
 def test_historical_data_for_one_tournament(tournament, output_dir):
     scripts.helpers.cricsheet_helper.parse_data(tournament_key=tournament,
                                                 tournament_name="Test",
