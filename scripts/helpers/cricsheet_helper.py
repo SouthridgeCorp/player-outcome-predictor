@@ -184,8 +184,8 @@ def parse_innings_data(json_innings, match_key, innings_list, player_map):
                                     # implies an indirect run out
                                     if direct_runout == 1:
                                         direct_runout = 0
-                                # We don't really care beyond 2 fielders for now, hence break
-                                break
+                                    # We don't really care beyond 2 fielders for now, hence break
+                                    break
 
                         ball_map["is_direct_runout"] = str(direct_runout)
                         # ASSUMPTION: We are only interested in 1 wicket per delivery
