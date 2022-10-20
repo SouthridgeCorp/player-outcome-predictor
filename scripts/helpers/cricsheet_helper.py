@@ -13,6 +13,7 @@ class PlayerMap:
     """
     Utility class to help parse / update global player information.
     """
+
     def __init__(self):
         self.number_of_players = 0
         # This is a dict of dicts, with key = player key and value = dict of all player attributes known
@@ -161,12 +162,32 @@ def parse_innings_data(json_innings, match_key, innings_list, player_map):
                         set_json_value_if_exists(wicket, ball_map, "kind", "dismissal_kind")
                         set_json_value_if_exists(wicket, ball_map, "player_out", "player_dismissed",
                                                  is_player=True, player_map=player_map)
+
+                        direct_runout = 0
+                        # ASSUMPTION: Let us assume that all run outs are direct, unless proven otherwise by the
+                        # fielder count below
+                        if ball_map["dismissal_kind"] == "run out":
+                            direct_runout = 1
+
+                        num_fielders = 0
                         if "fielders" in wicket.keys():
                             for fielder in wicket["fielders"]:
-                                set_json_value_if_exists(fielder, ball_map, "name", "fielder",
-                                                         is_player=True, player_map=player_map)
-                                # ASSUMPTION: We are only interested in 1 fielder per wicket
+                                num_fielders += 1
+
+                                if num_fielders == 1:
+                                    # We only care about the first field for keeping records
+                                    set_json_value_if_exists(fielder, ball_map, "name", "fielder",
+                                                             is_player=True, player_map=player_map)
+
+                                if num_fielders > 1:
+                                    # ASSUMPTION: We assume that the presence of more than 1 fielder in a run-out
+                                    # implies an indirect run out
+                                    if direct_runout == 1:
+                                        direct_runout = 0
+                                # We don't really care beyond 2 fielders for now, hence break
                                 break
+
+                        ball_map["is_direct_runout"] = str(direct_runout)
                         # ASSUMPTION: We are only interested in 1 wicket per delivery
                         break
                 else:
@@ -174,6 +195,7 @@ def parse_innings_data(json_innings, match_key, innings_list, player_map):
                     ball_map["dismissal_kind"] = ""
                     ball_map["player_dismissed"] = ""
                     ball_map["fielder"] = ""
+                    ball_map["is_direct_runout"] = ""
 
                 # Get all information on extras
                 if "extras" in delivery.keys():
@@ -214,6 +236,7 @@ def parse_json_match_data(input_file, tournament_key, match_dict_list, playing_x
 
     if gender == "male" and match_type == "T20":
         match_dict["key"] = input_file.split("/")[-1][:-5]
+
         # Get Match level meta-data
         match_dict["tournament_key"] = tournament_key
         set_json_value_if_exists(json_object["info"], match_dict, "city", "city")
@@ -224,6 +247,10 @@ def parse_json_match_data(input_file, tournament_key, match_dict_list, playing_x
         set_json_value_if_exists(json_object["info"], match_dict, "season", "season")
         set_json_value_if_exists(json_object["info"], match_dict, "teams", "team1", index=0)
         set_json_value_if_exists(json_object["info"], match_dict, "teams", "team2", index=1)
+        if "event" in json_object["info"]:
+            set_json_value_if_exists(json_object["info"]["event"], match_dict, "match_number", "match_number")
+            set_json_value_if_exists(json_object["info"]["event"], match_dict, "group", "group")
+            set_json_value_if_exists(json_object["info"]["event"], match_dict, "stage", "stage")
 
         # Who won the toss and what did they do?
         set_json_value_if_exists(json_object["info"]["toss"], match_dict, "winner", "toss_winner")
