@@ -1,7 +1,7 @@
 import utils.page_utils as page_utils
 import historical_data.singleton
 import streamlit as st
-
+import utils.config_utils
 
 def set_start_end_date(is_testing, tournaments):
     """
@@ -57,7 +57,12 @@ def app():
     :return: None
     """
     page_utils.setup_page("Data Selection")
-    helper = historical_data.singleton.get_helper()
+    config_utils = utils.config_utils.create_utils_object()
+
+    input_directory = config_utils.get_input_directory()
+    tournament_file_name = config_utils.get_tournament_file_name()
+    player_file_name = config_utils.get_player_file_name()
+    helper = historical_data.singleton.get_helper(input_directory, tournament_file_name, player_file_name)
     tournaments = helper.tournaments
 
     tournament_selector, training_column, testing_column = st.columns(3, gap="large")

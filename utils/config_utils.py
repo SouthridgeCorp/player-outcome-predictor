@@ -351,3 +351,12 @@ class ConfigUtils:
         spread.df_to_sheet(df[col], sheet=spreadsheetname, index=False)
 
         return True
+
+    def get_input_directory(self):
+        return self.config['player_outcome_predictor']['input_directory']
+
+    def get_tournament_file_name(self):
+        return self.config['player_outcome_predictor']['tournament_file_name']
+
+    def get_player_file_name(self):
+        return self.config['player_outcome_predictor']['player_file_name']

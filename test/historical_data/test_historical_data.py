@@ -13,18 +13,16 @@ def validate_path_exists(file_name):
 
 
 @pytest.mark.parametrize("tournament", test.conftest.tournaments_to_test)
-def test_historical_data_for_one_tournament(tournament, output_dir):
+def test_historical_data_for_one_tournament(tournament, output_dir, tournaments_file_name,
+                                            players_file_name, players_file, matches_file):
     scripts.helpers.cricsheet_helper.parse_data(tournament_key=tournament,
                                                 tournament_name="Test",
                                                 base_input_dir=test.conftest.BASE_INPUT_DIR,
                                                 base_output_dir=output_dir)
 
-    # Ensure all expected files are generated
-    matches_file = f"{output_dir}/{tournament}/matches.csv"
-    players_file = f"{output_dir}/players.csv"
-
     # Read the files & validate the generated datasets
-    helper = Helper(input_directory=output_dir)
+    helper = Helper(input_directory=output_dir,
+                    tournament_file_name=tournaments_file_name, player_file_name=players_file_name)
     assert (len(helper.tournaments.artefacts.keys()) == 1)
 
     # Ensure the tournament is associated with the right number of matches
