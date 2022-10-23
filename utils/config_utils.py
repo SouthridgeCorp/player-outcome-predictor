@@ -11,9 +11,9 @@ import snowflake.connector
 from snowflake.connector.pandas_tools import pd_writer, write_pandas
 from sqlalchemy import create_engine
 import ssl
+
 ssl._create_default_https_context = ssl._create_unverified_context
 from datetime import datetime
-
 
 
 def init_snowflake_connection():
@@ -28,32 +28,37 @@ def init_snowflake_sql_engine(database_name, schema_name):
     engine = create_engine(conn_string)
     return engine
 
+
 def create_utils_object():
     if 'ConfigUtils' not in st.session_state:
         st.session_state['ConfigUtils'] = ConfigUtils("./.streamlit/config.toml")
     return st.session_state['ConfigUtils']
 
+
 def set_app_comment_window(page_name):
-    utils_obj= create_utils_object()
+    utils_obj = create_utils_object()
     st.title("Feedback! 💬")
 
     st.write("Add your comment to the page:", page_name)
     form = st.form("comment")
-# We are saving user info to session state to use it from other pages. We need to check if user info saved to session state before.
-# It is enough to check one value of user info like name_val in below.
+    # We are saving user info to session state to use it from other pages. We need to check if user info saved to session state before.
+    # It is enough to check one value of user info like name_val in below.
     if 'name_val' not in st.session_state:
         st.session_state['name_val'] = form.text_input(utils_obj.config['feedback_form']['questions']['USER_NAME'])
         st.session_state['email_val'] = form.text_input(utils_obj.config['feedback_form']['questions']['USER_EMAIL'])
         st.session_state['target_user_val'] = form.radio(
             utils_obj.config['feedback_form']['questions']['USER_PERSONA'],
-            utils_obj.config['app']['user_personas']  )
-    else: # auto populating
-        st.session_state['name_val'] = form.text_input(utils_obj.config['feedback_form']['questions']['USER_NAME'],value = st.session_state['name_val'])
-        st.session_state['email_val'] = form.text_input(utils_obj.config['feedback_form']['questions']['USER_EMAIL'], value=st.session_state['email_val'])
+            utils_obj.config['app']['user_personas'])
+    else:  # auto populating
+        st.session_state['name_val'] = form.text_input(utils_obj.config['feedback_form']['questions']['USER_NAME'],
+                                                       value=st.session_state['name_val'])
+        st.session_state['email_val'] = form.text_input(utils_obj.config['feedback_form']['questions']['USER_EMAIL'],
+                                                        value=st.session_state['email_val'])
 
         st.session_state['target_user_val'] = form.radio(
             utils_obj.config['feedback_form']['questions']['USER_PERSONA'],
-            utils_obj.config['app']['user_personas'], index=utils_obj.config['app']['user_personas'].index(st.session_state['target_user_val'] )
+            utils_obj.config['app']['user_personas'],
+            index=utils_obj.config['app']['user_personas'].index(st.session_state['target_user_val'])
         )
 
     alternate_target_val = form.text_input(
@@ -64,7 +69,9 @@ def set_app_comment_window(page_name):
     now = datetime.now().date().strftime("%Y/%m/%d")
 
     feedback_form_data = dict(zip(list(utils_obj.config['feedback_form']['schema'].keys()),
-                                  [now, st.session_state['name_val'], st.session_state['email_val'], st.session_state['target_user_val'], alternate_target_val, questions_val, page_name]))
+                                  [now, st.session_state['name_val'], st.session_state['email_val'],
+                                   st.session_state['target_user_val'], alternate_target_val, questions_val,
+                                   page_name]))
 
     submit = form.form_submit_button("Add comment")
 
@@ -75,7 +82,6 @@ def set_app_comment_window(page_name):
             utils_obj.save_feedback(feedback_form_data)
         else:
             st.error("Invalid Email ID!!")
-
 
 
 class ConfigUtils:
@@ -351,6 +357,8 @@ class ConfigUtils:
         spread.df_to_sheet(df[col], sheet=spreadsheetname, index=False)
 
         return True
+
+    # App specific logic
 
     def get_input_directory(self):
         return self.config['player_outcome_predictor']['input_directory']

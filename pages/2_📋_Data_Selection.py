@@ -59,6 +59,7 @@ def app():
     page_utils.setup_page("Data Selection")
     config_utils = utils.config_utils.create_utils_object()
 
+    # get the helper from the singleton instance
     input_directory = config_utils.get_input_directory()
     tournament_file_name = config_utils.get_tournament_file_name()
     player_file_name = config_utils.get_player_file_name()
