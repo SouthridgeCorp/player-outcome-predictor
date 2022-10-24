@@ -109,6 +109,7 @@ graph LR
         batting_strike_rate_by_player_and_innings
 
         bowling_economy_rate_by_player_and_innings
+        wickets_taken_by_player_and_innings
     end
 
     subgraph outcomes_by_team_and_innings
@@ -116,7 +117,6 @@ graph LR
 
         bowling_economy_rate_by_team_and_innings
         
-        wickets_taken_by_player_and_innings
     end
 
     subgraph rewards
