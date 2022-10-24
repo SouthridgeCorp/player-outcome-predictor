@@ -51,3 +51,18 @@ class DataSelection:
         """
         #TODO: Implement this
         return pd.DataFrame()
+
+    def get_frequent_players_universe(self)-> pd.DataFrame:
+        """
+        Returns a dataframe representing whether a player is featured frequently in a team or not in the training window
+        df schema:
+            index: [player_key]
+            columns: [
+                {team_key}_num_matches_played : number of matches played by the player for the team in the training window
+                {team_key}_num_matches_played_rank : rank of the player key in terms of number of matches played for the team
+                featured_player: 1 if player has rank <= 11 for at least 1 team, else zero
+                ]
+        :return: pd.DataFrame as above
+        """
+        #TODO: implement this.
+        return pd.DataFrame()
