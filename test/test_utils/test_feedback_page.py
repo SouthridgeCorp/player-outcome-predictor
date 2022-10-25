@@ -16,7 +16,8 @@ data = {
     "USER_EMAIL": ["alison@gmail.com"],
     "USER_PERSONA": ["target user val"],
     "ALTERNATE_USER_PERSONA": ["alternate target val"],
-    "QUESTIONS": ["questions val"]
+    "QUESTIONS": ["questions val"],
+    "PAGE_NAME": ["name of the page where the feedback component lives"]
 }
 df = pd.DataFrame(data)
 
