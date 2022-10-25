@@ -2,13 +2,7 @@
 environment = "production"
 user_personas = ["cluster_1_persona_1", "cluster_1_persona_2","cluster_2_persona_1", "cluster_2_persona_2"]
 
-
-[player_outcome_predictor.historical_data]
-input_directory = "data/generated/prod/match_data/cricsheet/"
-tournament_file_name = "tournaments.csv"
-player_file_name = "players.csv"
-
-[player_outcome_predictor.rewards_configuration]
+[rewards]
 repo_path=""
 generated_path=""
 file_name = ""
