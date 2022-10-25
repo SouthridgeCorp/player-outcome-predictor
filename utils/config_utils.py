@@ -361,10 +361,10 @@ class ConfigUtils:
     # App specific logic
 
     def get_input_directory(self):
-        return self.config['player_outcome_predictor']['input_directory']
+        return self.config['player_outcome_predictor']['historical_data']['input_directory']
 
     def get_tournament_file_name(self):
-        return self.config['player_outcome_predictor']['tournament_file_name']
+        return self.config['player_outcome_predictor']['historical_data']['tournament_file_name']
 
     def get_player_file_name(self):
-        return self.config['player_outcome_predictor']['player_file_name']
+        return self.config['player_outcome_predictor']['historical_data']['player_file_name']

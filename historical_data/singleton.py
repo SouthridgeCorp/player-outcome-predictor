@@ -2,10 +2,6 @@ from historical_data.tournaments import Tournaments
 from historical_data.players import Players
 import streamlit as st
 
-# TODO: Move to an external config file
-TOURNAMENT_FILE_NAME = "tournaments.csv"
-PLAYER_FILE_NAME = "players.csv"
-
 
 def get_helper(input_directory, tournament_file_name, player_file_name):
     """
@@ -25,6 +21,7 @@ class Helper:
     """
     Helper class which houses the Tournaments & Players file for future business logic implementation
     """
+
     def __init__(self, input_directory, tournament_file_name, player_file_name):
         self.tournaments = Tournaments(input_directory, tournament_file_name)
         player_file = f"{input_directory}/{player_file_name}"
