@@ -12,8 +12,6 @@ from snowflake.connector.pandas_tools import pd_writer, write_pandas
 from sqlalchemy import create_engine
 import ssl
 
-from config_utils import init_snowflake_connection
-
 ssl._create_default_https_context = ssl._create_unverified_context
 from datetime import datetime
 
