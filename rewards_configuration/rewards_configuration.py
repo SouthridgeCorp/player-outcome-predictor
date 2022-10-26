@@ -81,15 +81,6 @@ class RewardsConfiguration:
     def get_fielding_bonus(self) -> pd.DataFrame:
         return self.fielding_df[self.fielding_df[self.REWARD_TYPE_COLUMN] == self.BONUS][self.BONUS_PENALTY_COLUMNS]
 
-    def set_batting_base_rewards(self, df: pd.DataFrame):
-        self.set_base_rewards(df, self.BATTING_VALUE)
-
-    def set_bowling_base_rewards(self, df: pd.DataFrame):
-        self.set_base_rewards(df, self.BOWLING_VALUE)
-
-    def set_fielding_base_rewards(self, df: pd.DataFrame):
-        self.set_base_rewards(df, self.FIELDING_VALUE)
-
     def set_base_rewards(self, df: pd.DataFrame, play_type):
         df_to_update = None
         if play_type == self.BATTING_VALUE:
