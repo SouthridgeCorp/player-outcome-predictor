@@ -2,11 +2,6 @@
 environment = "test"
 user_personas = ["cluster_1_persona_1", "cluster_1_persona_2","cluster_2_persona_1", "cluster_2_persona_2"]
 
-[player_outcome_predictor.rewards_configuration]
-repo_path="resources/test/rewards_configuration"
-generated_path="data/generated/test/rewards"
-file_name = "rewards.csv"
-
 [feedback_form]
 storage_method = "local"
 storage_dir = "data"

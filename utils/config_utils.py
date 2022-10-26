@@ -7,18 +7,14 @@ import numpy as np
 import streamlit as st
 from gspread_pandas import Spread, Client
 from google.oauth2 import service_account
-import snowflake.connector
 from snowflake.connector.pandas_tools import pd_writer, write_pandas
 from sqlalchemy import create_engine
 import ssl
 
+from config_utils import init_snowflake_connection
+
 ssl._create_default_https_context = ssl._create_unverified_context
 from datetime import datetime
-
-
-def init_snowflake_connection():
-    connection = snowflake.connector.connect(**st.secrets["snowflake"])
-    return connection
 
 
 def init_snowflake_sql_engine(database_name, schema_name):
@@ -368,3 +364,8 @@ class ConfigUtils:
 
     def get_player_file_name(self):
         return self.config['player_outcome_predictor']['historical_data']['player_file_name']
+
+    def get_rewards_info(self) -> (str, str, str):
+        rewards_config = self.config['player_outcome_predictor']['rewards_configuration']
+        return rewards_config["repo_path"], rewards_config["generated_path"], rewards_config["file_name"]
+

@@ -30,6 +30,3 @@ config_file_path = "resources/test/utils/config_utils/UtilsConstructor_local.tom
             ALTERNATE_USER_PERSONA = "cluster_3_user_1"
             QUESTIONS = "blah"
 
-[[test_case]]
-test_class = "TestRewardsConfiguration"
-config_file_path = "resources/test/utils/config_utils/UtilsConstructor_local.toml"
