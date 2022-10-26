@@ -93,5 +93,5 @@ def setup_create_and_teardown(test_case):
 def teardown(config_instance:ConfigUtils):
     config_instance.delete_feedback_storage()
     repo_path, generated_path, file_name = config_instance.get_rewards_info()
-    if os.path.exists(generated_path):
+    if (file_name != "") and (os.path.exists(generated_path)):
         shutil.rmtree(generated_path)

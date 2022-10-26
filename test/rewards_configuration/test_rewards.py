@@ -15,7 +15,7 @@ def get_generated_df(play_type, reward_type, rewards_config):
         else:
             generated_df = rewards_config.get_fielding_base_rewards()
     elif reward_type == "bonus":
-        expected_columns = ["bonus_penalty_threshold", "bonus_penalty_cap_floor"]
+        expected_columns = ["outcome_index", "bonus_penalty_threshold", "bonus_penalty_cap_floor"]
         if play_type == "batting":
             generated_df = rewards_config.get_batting_bonus()
         elif play_type == "bowling":
@@ -23,7 +23,7 @@ def get_generated_df(play_type, reward_type, rewards_config):
         else:
             generated_df = rewards_config.get_fielding_bonus()
     else:
-        expected_columns = ["bonus_penalty_threshold", "bonus_penalty_cap_floor"]
+        expected_columns = ["outcome_index", "bonus_penalty_threshold", "bonus_penalty_cap_floor"]
         if play_type == "batting":
             generated_df = rewards_config.get_batting_penalties()
         elif play_type == "bowling":
@@ -64,8 +64,7 @@ def update_generated_data(play_type, reward_type, rewards_config, generated_file
         for index, row in df_to_update.iterrows():
             df_to_update.at[index, "bonus_penalty_threshold"] = f"{new_value}%"
             break
-        # df_to_update.at[0, "bonus_penalty_threshold"] = new_value
-        generated_df.iat[0, 0] = f"{new_value}%"
+        generated_df.iat[0, 1] = f"{new_value}%"
         rewards_config.set_bonus_penalty_values(generated_df, play_type, reward_type)
 
     if not validate_generated_data(df_to_update, play_type, reward_type, rewards_config):
@@ -84,9 +83,7 @@ class TestRewardsConfiguration:
 
     def test_rewards_generation(self, setup_and_teardown, rewards_configuration, generated_file):
         test_case, config_instance = setup_and_teardown
-
         repo_path, generated_path, file_name = config_instance.get_rewards_info()
-
         assert repo_path != ""
         assert generated_path != ""
         assert file_name != ""
@@ -96,11 +93,11 @@ class TestRewardsConfiguration:
     @pytest.mark.parametrize("reward_type", ["base_reward", "bonus", "penalty"])
     def test_rewards_queries(self, rewards_configuration, generated_file, play_type, reward_type):
         test_df = pd.read_csv(generated_file)
-
         assert validate_generated_data(test_df, play_type, reward_type, rewards_configuration), \
             f"Error when comparing dataframes for {play_type} and {reward_type}"
 
     @pytest.mark.parametrize("play_type", ["batting", "bowling", "fielding"])
     @pytest.mark.parametrize("reward_type", ["base_reward", "bonus", "penalty"])
     def test_data_updates(self, rewards_configuration, generated_file, play_type, reward_type):
-        assert update_generated_data(play_type, reward_type, rewards_configuration, generated_file)
+        assert update_generated_data(play_type, reward_type, rewards_configuration, generated_file), \
+            f"Error when updating dataframes for {play_type} and {reward_type}"

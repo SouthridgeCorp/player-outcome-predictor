@@ -7,6 +7,7 @@ import numpy as np
 import streamlit as st
 from gspread_pandas import Spread, Client
 from google.oauth2 import service_account
+import snowflake.connector
 from snowflake.connector.pandas_tools import pd_writer, write_pandas
 from sqlalchemy import create_engine
 import ssl
@@ -16,6 +17,9 @@ from config_utils import init_snowflake_connection
 ssl._create_default_https_context = ssl._create_unverified_context
 from datetime import datetime
 
+def init_snowflake_connection():
+    connection = snowflake.connector.connect(**st.secrets["snowflake"])
+    return connection
 
 def init_snowflake_sql_engine(database_name, schema_name):
     conn_string = f"snowflake://{st.secrets['snowflake']['user']}" \
