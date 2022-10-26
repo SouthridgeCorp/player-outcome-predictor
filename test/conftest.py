@@ -3,6 +3,8 @@ import shutil
 import pytest
 import os
 
+from utils.config_utils import ConfigUtils
+
 BASE_INPUT_DIR = "resources/test/cricsheet/"
 BASE_OUTPUT_DIR = "data/generated/test/match_data/cricsheet/"
 
@@ -68,3 +70,28 @@ def output_dir():
     yield base_output_dir
     # Cleanup after the test
     shutil.rmtree(base_output_dir)
+
+
+@pytest.fixture(scope='class')
+def setup_and_teardown(test_case):
+    config_instance = ConfigUtils(path_to_toml_config=test_case['config_file_path'])
+    yield test_case,config_instance
+    teardown(config_instance)
+
+
+@pytest.fixture(scope='class')
+def setup_create_and_teardown(test_case):
+    config_instance = ConfigUtils(path_to_toml_config=test_case['config_file_path'])
+    try:
+        config_instance.create_feedback_storage()
+        yield test_case,config_instance
+        teardown(config_instance)
+    except Exception as e:
+        teardown(config_instance)
+
+
+def teardown(config_instance:ConfigUtils):
+    config_instance.delete_feedback_storage()
+    repo_path, generated_path, file_name = config_instance.get_rewards_info()
+    if (file_name != "") and (os.path.exists(generated_path)):
+        shutil.rmtree(generated_path)

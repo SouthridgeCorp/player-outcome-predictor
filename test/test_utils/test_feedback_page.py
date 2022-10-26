@@ -1,9 +1,13 @@
 import pandas as pd
+import pytest
 
 from utils.config_utils import ConfigUtils
 from datetime import datetime
 
-utils_obj = ConfigUtils("./resources/test/utils/config_utils/test_cases.google.toml")
+
+def get_utils():
+    return ConfigUtils("./resources/test/utils/config_utils/test_cases.google.toml")
+
 
 now = datetime.now()
 date = now.date()
@@ -22,7 +26,9 @@ data = {
 df = pd.DataFrame(data)
 
 
+@pytest.mark.skip
 def test_save_to_drive():
+    utils_obj = get_utils()
     utils_obj.save_google_feedback(df)
     test_result = utils_obj.search_google_sheet(df)
     utils_obj.clean_google_sheet()

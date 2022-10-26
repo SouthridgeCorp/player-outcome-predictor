@@ -15,11 +15,9 @@ import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
 from datetime import datetime
 
-
 def init_snowflake_connection():
     connection = snowflake.connector.connect(**st.secrets["snowflake"])
     return connection
-
 
 def init_snowflake_sql_engine(database_name, schema_name):
     conn_string = f"snowflake://{st.secrets['snowflake']['user']}" \
@@ -368,3 +366,8 @@ class ConfigUtils:
 
     def get_player_file_name(self):
         return self.config['player_outcome_predictor']['historical_data']['player_file_name']
+
+    def get_rewards_info(self) -> (str, str, str):
+        rewards_config = self.config['player_outcome_predictor']['rewards_configuration']
+        return rewards_config["repo_path"], rewards_config["generated_path"], rewards_config["file_name"]
+

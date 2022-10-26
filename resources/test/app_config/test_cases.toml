@@ -1,0 +1,4 @@
+[[test_case]]
+test_class = "TestRewardsConfiguration"
+config_file_path = "resources/test/app_config/AppConfiguration_local.toml"
+

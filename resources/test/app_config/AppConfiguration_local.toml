@@ -1,23 +1,17 @@
 [app]
-environment = "production"
+environment = "test"
 user_personas = ["cluster_1_persona_1", "cluster_1_persona_2","cluster_2_persona_1", "cluster_2_persona_2"]
 
-
-[player_outcome_predictor.historical_data]
-input_directory = "data/generated/prod/match_data/cricsheet/"
-tournament_file_name = "tournaments.csv"
-player_file_name = "players.csv"
-
 [player_outcome_predictor.rewards_configuration]
-repo_path="resources/prod/app_config/rewards_configuration"
-generated_path="data/generated/prod/rewards"
+repo_path="resources/test/app_config/rewards_configuration"
+generated_path="data/generated/test/rewards"
 file_name = "rewards.csv"
 
 [feedback_form]
+storage_method = "local"
 storage_dir = "data"
 storage_path = "feedback"
 storage_file = "feedback.csv"
-storage_method = "local"
 
 [feedback_form.schema]
 DATE = "str"
@@ -26,7 +20,6 @@ USER_EMAIL = "str"
 USER_PERSONA = "str"
 ALTERNATE_USER_PERSONA = "str"
 QUESTIONS = "str"
-PAGE_NAME = "str"
 
 [feedback_form.questions]
 USER_NAME = "What is your name?"
