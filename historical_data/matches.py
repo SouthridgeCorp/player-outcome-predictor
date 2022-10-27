@@ -1,3 +1,5 @@
+import datetime
+
 import pandas as pd
 
 
@@ -19,7 +21,7 @@ class Matches:
         """
         return len(self.df["key"])
 
-    def get_selected_matches(self, start_date, end_date):
+    def get_selected_matches(self, start_date: datetime.date, end_date: datetime.date):
         """
         Find all matches between the specified date range
         :param start_date: The start of the date range
@@ -37,3 +39,14 @@ class Matches:
         """
         selected_df = self.get_selected_matches(start_date, end_date)
         return len(selected_df.index)
+
+    def get_selected_match_keys(self, start_date: datetime.date, end_date: datetime.date):
+        selected_df = self.get_selected_matches(start_date, end_date)
+        return selected_df["key"].tolist()
+
+    def get_teams(self, match_key):
+        match_df = self.df[self.df["key"] == int(match_key)]
+        assert len(match_df.index) == 1
+        team1 = match_df.iloc[0]["team1"]
+        team2 = match_df.iloc[0]["team2"]
+        return team1, team2

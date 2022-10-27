@@ -3,6 +3,7 @@ import historical_data.singleton
 import streamlit as st
 import utils.config_utils
 
+
 def set_start_end_date(is_testing, tournaments):
     """
     Helper function for building out the date / time widget for testing & training
@@ -12,12 +13,8 @@ def set_start_end_date(is_testing, tournaments):
     """
     if is_testing:
         mode = "testing"
-        start_date = tournaments.testing_start
-        end_date = tournaments.testing_end
     else:
         mode = "training"
-        start_date = tournaments.training_start
-        end_date = tournaments.training_end
 
     st.header(f"Select the {mode} window")
 
@@ -26,16 +23,13 @@ def set_start_end_date(is_testing, tournaments):
                   max_value=tournaments.last_match_date,
                   value=(tournaments.first_match_date, tournaments.last_match_date), key=f"{mode}_start")
 
-
     if start_date > end_date:
         st.error('Error: End date must fall after start date.')
 
     if is_testing:
-        tournaments.testing_start = start_date
-        tournaments.testing_end = end_date
+        tournaments.set_testing_dates(start_date, end_date)
     else:
-        tournaments.training_start = start_date
-        tournaments.training_end = end_date
+        tournaments.set_training_dates(start_date, end_date)
 
     st.subheader(f"Summary for the {mode} window")
     st.markdown(f"**Start Date** = {start_date}")
@@ -60,18 +54,15 @@ def app():
     config_utils = utils.config_utils.create_utils_object()
 
     # get the helper from the singleton instance
-    input_directory = config_utils.get_input_directory()
-    tournament_file_name = config_utils.get_tournament_file_name()
-    player_file_name = config_utils.get_player_file_name()
-    helper = historical_data.singleton.get_helper(input_directory, tournament_file_name, player_file_name)
+    helper = historical_data.singleton.get_helper(config_utils)
     tournaments = helper.tournaments
 
     tournament_selector, training_column, testing_column = st.columns(3, gap="large")
 
     with tournament_selector:
         st.header("Select the Tournaments ")
-        tournaments.set_selected_names(st.multiselect("Please select tournaments for training & testing",
-                                                      tournaments.df["name"].to_list()))
+        tournaments.set_selected_tournament_names(st.multiselect("Please select tournaments for training & testing",
+                                                                 tournaments.df["name"].to_list()))
 
     with training_column:
         set_start_end_date(False, tournaments)
@@ -83,5 +74,6 @@ def app():
 
     with st.expander("Expand to see the list"):
         st.dataframe(tournaments.df, use_container_width=True)
+
 
 app()
