@@ -7,17 +7,14 @@ from datetime import datetime
 import csv
 
 
-
 def prepare_for_tests(data_selection_instance, is_testing):
     tournaments = data_selection_instance.historical_data_helper.tournaments
 
     tournaments.set_selected_tournament_names(["Big Bash League", "Afghanistan Premier League"])
     start_date = datetime.strptime("01/01/2018", "%d/%m/%Y").date()
     end_date = datetime.strptime("31/12/2018", "%d/%m/%Y").date()
-    if is_testing:
-        tournaments.set_testing_dates(start_date, end_date)
-    else:
-        tournaments.set_training_dates(start_date, end_date)
+
+    tournaments.set_start_end_dates(start_date, end_date, is_testing)
 
     return start_date, end_date
 
@@ -99,10 +96,3 @@ class TestRewardsConfiguration:
 
         for column in expected_columns:
             pd.testing.assert_series_equal(df[column], expected_df[column])
-
-
-
-
-
-
-

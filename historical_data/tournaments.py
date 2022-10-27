@@ -53,20 +53,36 @@ class Tournaments:
             self.artefacts[tournament] = ArtefactsPerTournament(base_path, tournament)
 
     def get_start_end_dates(self, is_testing) -> (datetime.date, datetime.date):
+        """
+        Get the start / end dates set in the Tournaments object
+        :param is_testing: True for testing, False for training
+        :return: A tuple of 2 dates
+        """
         if is_testing:
             return self.testing_start, self.testing_end
         else:
             return self.training_start, self.training_end
 
-    def set_testing_dates(self, start_date: datetime.date, end_date: datetime.date):
-        self.testing_start = start_date
-        self.testing_end = end_date
+    def set_start_end_dates(self, start_date: datetime.date, end_date: datetime.date, is_testing):
+        """
+        Sets the testing window
+        :param start_date: The start date to be set
+        :param end_date: The end date to be set
+        :param is_testing: True for testing, False for training
+        :return: None
+        """
+        if is_testing:
+            self.testing_start = start_date
+            self.testing_end = end_date
+        else:
+            self.training_start = start_date
+            self.training_end = end_date
 
-    def set_training_dates(self, start_date: datetime.date, end_date: datetime.date):
-        self.training_start = start_date
-        self.training_end = end_date
-
-    def get_selected_tournaments(self):
+    def get_selected_tournaments(self) -> list:
+        """
+        Gets the list of selected tournaments
+        :return: A list of tournaments
+        """
         return self.selected
 
     def set_selected_tournament_names(self, selected_names: list):
@@ -76,7 +92,6 @@ class Tournaments:
         :return: None
         """
         self.selected = self.df[self.df["name"].isin(selected_names)]["key"].tolist()
-
 
     def matches(self, tournament):
         """

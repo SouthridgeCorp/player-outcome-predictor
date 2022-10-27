@@ -4,6 +4,10 @@ from historical_data.playing_xi import PlayingXI
 
 
 class PlayerInformation:
+    """
+    Helper class - do not use outside this context - used to keep count of all the matches per team played by a player
+    """
+
     def __init__(self, player_key):
         self.player_key = player_key
         self.match_count = {}
@@ -17,7 +21,6 @@ class PlayerInformation:
         if team not in self.match_count.keys():
             self.match_count[team] = 0
         self.match_count[team] += 1
-
 
     def get_dictionary(self):
         player_dict = {"player_key": self.player_key}
@@ -51,8 +54,7 @@ class DataSelection:
 
         return selected_matches_df
 
-    def get_playing_xi_for_selected_matches(self,
-                                            is_testing: bool) -> pd.DataFrame:
+    def get_playing_xi_for_selected_matches(self, is_testing: bool) -> pd.DataFrame:
         """
         Get all playing_xis from matches in selected tournaments filtered for is_testing
         :param is_testing: Set True if testing data is needed, else set False
@@ -74,8 +76,7 @@ class DataSelection:
         playing_xi_df = pd.concat(playing_xi_list)
         return playing_xi_df
 
-    def get_innings_for_selected_matches(self,
-                                         is_testing: bool) -> pd.DataFrame:
+    def get_innings_for_selected_matches(self, is_testing: bool) -> pd.DataFrame:
         """
         Get ball_by_ball pre-processed innings data from matches in selected tournaments filtered for is_testing
         :param is_testing: Set True if testing data is needed, else set False
@@ -106,17 +107,20 @@ class DataSelection:
                 {team_key}_num_matches_played_rank : rank of the player key in terms of number of matches played for
                 the team
                 featured_player: 1 if player has rank <= 11 for at least 1 team, else zero
+                best_rank: The best rank the player has achieved across all teams they have played for
                 ]
         :return: pd.DataFrame as above
         """
         playing_xi_df = self.get_playing_xi_for_selected_matches(is_testing=False)
 
-        playing_xi_list = playing_xi_df.to_dict('records') # Get the entire playing xi information
+        playing_xi_list = playing_xi_df.to_dict('records')  # Get the entire playing xi information
+
+        # ******** Calculate the match count per team per player ******************
+
         # Map all the information available by players
         player_info_dict = {}
         # Keep track of all teams seen
         team_set = set()
-
         # for each player & team in the xi
         for row in playing_xi_list:
             player_key = row[PlayingXI.PLAYER_KEY_COLUMN]
@@ -129,18 +133,20 @@ class DataSelection:
             player_info_dict[player_key].increment_match_count(team_key)
             team_set.add(team_key)
 
-
+        # *************** Populate the dataframe *******************
         player_list = []
         for player_key in player_info_dict.keys():
             player_list.append(player_info_dict[player_key].get_dictionary())
-
         df = pd.DataFrame(player_list)
         df.set_index('player_key')
+
+        # Rank the columns
         columns = []
         for team in team_set:
             df[f"{team}_num_matches_played_rank"] = df[f"{team}_num_matches_played"].rank(ascending=False, method="min")
             columns.append(f"{team}_num_matches_played")
 
+        # Calculate featured player
         df = df.assign(best_rank=lambda x: x[columns].min(axis=1))
         df = df.assign(featured_player=lambda x: df['best_rank'] <= 11)
         return df

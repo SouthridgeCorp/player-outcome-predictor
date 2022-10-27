@@ -40,11 +40,22 @@ class Matches:
         selected_df = self.get_selected_matches(start_date, end_date)
         return len(selected_df.index)
 
-    def get_selected_match_keys(self, start_date: datetime.date, end_date: datetime.date):
+    def get_selected_match_keys(self, start_date: datetime.date, end_date: datetime.date) -> list:
+        """
+        Get a list of match keys corresponding to the start & end date windows
+        :param start_date: The starting date of the window
+        :param end_date: The ending state of the window
+        :return: A list of keys
+        """
         selected_df = self.get_selected_matches(start_date, end_date)
         return selected_df["key"].tolist()
 
-    def get_teams(self, match_key):
+    def get_teams(self, match_key: str) -> (str, str):
+        """
+        Get the teams playing in a match
+        :param match_key: The identifier for the match in question
+        :return: A tuple containing team 1 & team 2
+        """
         match_df = self.df[self.df["key"] == int(match_key)]
         assert len(match_df.index) == 1
         team1 = match_df.iloc[0]["team1"]

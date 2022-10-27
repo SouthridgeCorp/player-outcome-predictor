@@ -26,10 +26,7 @@ def set_start_end_date(is_testing, tournaments):
     if start_date > end_date:
         st.error('Error: End date must fall after start date.')
 
-    if is_testing:
-        tournaments.set_testing_dates(start_date, end_date)
-    else:
-        tournaments.set_training_dates(start_date, end_date)
+    tournaments.set_start_end_dates(start_date, end_date, is_testing)
 
     st.subheader(f"Summary for the {mode} window")
     st.markdown(f"**Start Date** = {start_date}")
