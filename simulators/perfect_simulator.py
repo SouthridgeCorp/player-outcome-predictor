@@ -2,15 +2,16 @@ from data_selection.data_selection import DataSelection
 from rewards_configuration.rewards_configuration import RewardsConfiguration
 import pandas as pd
 
+
 class PerfectSimulator:
 
     def __init__(self,
-                 data_selection:DataSelection,
-                 rewards_configuration:RewardsConfiguration):
+                 data_selection: DataSelection,
+                 rewards_configuration: RewardsConfiguration):
         self.data_selection = data_selection
 
     def get_bowling_outcomes_by_ball_and_innings(self,
-                                                 is_testing:bool)-> pd.DataFrame:
+                                                 is_testing: bool) -> pd.DataFrame:
         """
         Returns a dataframe with bowling outcomes by ball and innings mapped as below:
             - [0, 1-b, 1-oe, 1-nb, 1-w,  2-b…. 6-b, 6-oe, 6-nb, 6-w, W-b, W-nb]
@@ -35,11 +36,14 @@ class PerfectSimulator:
         :return: pd.DataFrame listing bowling outcomes for each ball in each innings in training/testing matches for
         selected tournaments
         """
-        #TODO: Implement this
+        # TODO: Implement this
+
+        innings = self.data_selection.get_innings_for_selected_matches(is_testing)
+
         return pd.DataFrame()
 
     def get_match_state_by_ball_and_innings(self,
-                                            is_testing:bool)-> pd.DataFrame:
+                                            is_testing: bool) -> pd.DataFrame:
         """
         Returns a dataframe representing the state of the match before a given ball in a given innings was bowled:
         df schema:
@@ -69,11 +73,11 @@ class PerfectSimulator:
         :return: pd.DataFrame listing match_state for each ball in each innings in training/testing matches for
         selected tournaments
         """
-        #TODO: Implement this. Refer to https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.LabelBinarizer.html
+        # TODO: Implement this. Refer to https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.LabelBinarizer.html
         return pd.DataFrame()
 
     def get_batting_outcomes_by_ball_and_innings(self,
-                                                 is_testing:bool)-> pd.DataFrame:
+                                                 is_testing: bool) -> pd.DataFrame:
         """
         Returns a dataframe representing mutually exclusive outcomes for a batter, composed of
         - [0, 1-b, 2-b, 3-b, 4-b, 5-b, 6-b, W]
@@ -90,14 +94,14 @@ class PerfectSimulator:
         :return: pd.DataFrame listing batting outcomes for each ball in each innings in training/testing matches for
         selected tournaments
         """
-        #TODO: Implement this by passing self.get_bowling_outcomes_by_ball_and_innings and a batter_id df to a
+        # TODO: Implement this by passing self.get_bowling_outcomes_by_ball_and_innings and a batter_id df to a
         # simulator.utils.bowling_to_batting_outcomes_converter function which implements the core logic as a function
         # call rather than a class method. This function can be used by other classes/methods which have access to an
         # appropriate bowling_outcomes_index column.
         return pd.DataFrame()
 
     def get_fielding_outcomes_by_ball_and_innings(self,
-                                                 is_testing:bool)-> pd.DataFrame:
+                                                  is_testing: bool) -> pd.DataFrame:
         """
         Returns a dataframe representing mutually exclusive outcomes for a fielder, composed of
             - [w-c,w-s,w-dro,w-idro,nfo]
@@ -115,14 +119,14 @@ class PerfectSimulator:
         :return: pd.DataFrame listing fielding outcomes for each ball in each innings in training/testing matches for
         selected tournaments
         """
-        #TODO: Implement this by passing self.get_bowling_outcomes_by_ball_and_innings and a fielder_id df to a
+        # TODO: Implement this by passing self.get_bowling_outcomes_by_ball_and_innings and a fielder_id df to a
         # simulator.utils.bowling_to_fielding_outcomes_converter function which implements the core logic as a function
         # call rather than a class method. This function can be used by other classes/methods which have access to an
         # appropriate bowling_outcomes_index column.
         return pd.DataFrame()
 
     def get_outcomes_by_ball_and_innings(self,
-                                         is_testing:bool)->pd.DataFrame:
+                                         is_testing: bool) -> pd.DataFrame:
         """Returns a dataframe representing all outcomes at a ball and innings level for the train/test dataset
         df schema:
             index: [match_key, innings, over_number, ball_number]
@@ -137,11 +141,11 @@ class PerfectSimulator:
         See `outcomes_by_ball_and_innings` subgraph of the computational model
         :param is_testing: Set True if testing data is needed, else set False
         :return: pd.DataFrame as above"""
-        #TODO: implement this
+        # TODO: implement this
         return pd.DataFrame()
 
     def get_outcomes_by_player_and_innings(self,
-                                           is_testing:bool)-> pd.DataFrame:
+                                           is_testing: bool) -> pd.DataFrame:
         """Returns a dataframe representing all outcomes at a player and innings level for the train/test dataset
         df schema:
             index: [match_key, innings, team_id, player_id]
@@ -153,11 +157,11 @@ class PerfectSimulator:
         See `outcomes_by_player_and_innings` subgraph of the computational model
         :param is_testing: Set True if testing data is needed, else set False
         :return: pd.DataFrame as above"""
-        #TODO: implement this
+        # TODO: implement this
         return pd.DataFrame()
 
     def get_outcomes_by_team_and_innings(self,
-                                         is_testing:bool)-> pd.DataFrame:
+                                         is_testing: bool) -> pd.DataFrame:
         """Returns a dataframe representing all outcomes at a player and innings level for the train/test dataset
         df schema:
             index: [match_key, innings, team_id]
@@ -168,11 +172,11 @@ class PerfectSimulator:
         See `outcomes_by_team_and_innings` subgraph of the computational model
         :param is_testing: Set True if testing data is needed, else set False
         :return: pd.DataFrame as above"""
-        #TODO: implement this
+        # TODO: implement this
         return pd.DataFrame()
 
     def get_rewards_components(self,
-                               is_testing:bool)->(pd.DataFrame,pd.DataFrame):
+                               is_testing: bool) -> (pd.DataFrame, pd.DataFrame):
         """Returns 2 dataframes:
         base_rewards_by_ball_and_innings: represents base rewards of all types calculated at a ball and innings level
         for the train/test dataset
@@ -199,12 +203,12 @@ class PerfectSimulator:
         See `rewards` subgraph of the computational model
         :param is_testing: Set True if testing data is needed, else set False
         :return: pd.DataFrame as above"""
-        #TODO: implement this
+        # TODO: implement this
         return pd.DataFrame()
 
     def get_simulation_evaluation_metrics_by_granularity(self,
-                                                         is_testing:bool,
-                                                         granularity:str)->pd.DataFrame:
+                                                         is_testing: bool,
+                                                         granularity: str) -> pd.DataFrame:
         """Returns a dataframe representing all rewards for a player at the chosen granularity level:
         df schema:
             index: [player_key,
@@ -222,12 +226,12 @@ class PerfectSimulator:
         See `simulation_evaluation_metrics` subgraph of the computational model
         :param is_testing: Set True if testing data is needed, else set False
         :return: pd.DataFrame as above"""
-        #TODO: implement this
+        # TODO: implement this
         return pd.DataFrame()
 
     def get_error_measures(self,
-                           is_testing:bool,
-                           contender_simulation_evaluation_metrics:pd.DataFrame)->pd.DataFrame:
+                           is_testing: bool,
+                           contender_simulation_evaluation_metrics: pd.DataFrame) -> pd.DataFrame:
         """Returns a dataframe representing error measures between this simulator's simulation_evaluation_metrics
         and a contender simulators simulation evaluation metrics.
         df schema:
@@ -245,5 +249,5 @@ class PerfectSimulator:
         :return: pd.DataFrame as above
         :raises: Exception if the contender_simulation_evaluation_metrics does not have a matching index
         to the result of self.get_simulation_evaluation_metrics(is_testing,granularity [as implied by the contender df]"""
-        #TODO: implement this
+        # TODO: implement this
         return pd.DataFrame()
