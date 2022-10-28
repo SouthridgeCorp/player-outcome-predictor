@@ -2,6 +2,7 @@ import utils.page_utils as page_utils
 import historical_data.singleton
 import streamlit as st
 import utils.config_utils
+from data_selection.data_selection import DataSelection
 
 
 def set_start_end_date(is_testing, tournaments):
@@ -52,6 +53,9 @@ def app():
 
     # get the helper from the singleton instance
     helper = historical_data.singleton.get_helper(config_utils)
+
+    # get a data selection instance from the singleton
+    data_selection = DataSelection(historical_data)
     tournaments = helper.tournaments
 
     tournament_selector, training_column, testing_column = st.columns(3, gap="large")
@@ -72,5 +76,8 @@ def app():
     with st.expander("Expand to see the list"):
         st.dataframe(tournaments.df, use_container_width=True)
 
-
+    st.header("Player Universe Selected")
+    with st.expander("Expand to see the player universe"):
+        pu = data_selection.get_frequent_players_universe()
+        st.dataframe(pu, use_container_width=True)
 app()
