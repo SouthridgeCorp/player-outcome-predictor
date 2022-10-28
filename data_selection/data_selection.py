@@ -73,7 +73,10 @@ class DataSelection:
                 playing_xi_list.append(
                     self.historical_data_helper.tournaments.playing_xi(tournament).get_playing_xi(key, team2))
 
-        playing_xi_df = pd.concat(playing_xi_list)
+        if len(playing_xi_list) > 0:
+            playing_xi_df = pd.concat(playing_xi_list)
+        else:
+            playing_xi_df = pd.DataFrame()
         return playing_xi_df
 
     def get_innings_for_selected_matches(self, is_testing: bool) -> pd.DataFrame:
@@ -137,6 +140,10 @@ class DataSelection:
         player_list = []
         for player_key in player_info_dict.keys():
             player_list.append(player_info_dict[player_key].get_dictionary())
+
+        if len(player_list) == 0:
+            return pd.DataFrame
+
         df = pd.DataFrame(player_list)
         df.set_index('player_key')
 
@@ -149,4 +156,6 @@ class DataSelection:
         # Calculate featured player
         df = df.assign(best_rank=lambda x: x[columns].min(axis=1))
         df = df.assign(featured_player=lambda x: df['best_rank'] <= 11)
+        df = self.historical_data_helper.players.merge_with_players(df, 'player_key')
+
         return df

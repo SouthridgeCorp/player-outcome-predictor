@@ -55,7 +55,7 @@ def app():
     helper = historical_data.singleton.get_helper(config_utils)
 
     # get a data selection instance from the singleton
-    data_selection = DataSelection(historical_data)
+    data_selection = DataSelection(helper)
     tournaments = helper.tournaments
 
     tournament_selector, training_column, testing_column = st.columns(3, gap="large")
@@ -79,5 +79,8 @@ def app():
     st.header("Player Universe Selected")
     with st.expander("Expand to see the player universe"):
         pu = data_selection.get_frequent_players_universe()
-        st.dataframe(pu, use_container_width=True)
+        if pu.empty:
+            st.write("Please select the target tournaments before calculating the player universe")
+        else:
+            st.dataframe(pu, use_container_width=True)
 app()

@@ -77,7 +77,7 @@ class TestRewardsConfiguration:
                         team_set.add(team1)
                         team_set.add(team2)
 
-        expected_columns = ["player_key", "featured_player", "best_rank"]
+        expected_columns = ["name", "player_key", "featured_player", "best_rank"]
         for team in team_set:
             expected_columns.append(f"{team}_num_matches_played")
             expected_columns.append(f"{team}_num_matches_played_rank")
