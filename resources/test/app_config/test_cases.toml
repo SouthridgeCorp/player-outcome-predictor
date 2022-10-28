@@ -2,3 +2,12 @@
 test_class = "TestRewardsConfiguration"
 config_file_path = "resources/test/app_config/AppConfiguration_local.toml"
 
+[[test_case]]
+test_class = "TestDataSelection"
+config_file_path = "resources/test/app_config/AppConfiguration_local.toml"
+baseline_file = "resources/test/app_config/data_selection/player_universe.csv"
+
+[[test_case]]
+test_class = "TestHistoricalData"
+config_file_path = "resources/test/app_config/historical_data/AppConfiguration_local.toml"
+

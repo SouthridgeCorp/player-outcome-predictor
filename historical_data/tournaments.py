@@ -3,6 +3,7 @@ import pandas as pd
 from historical_data.matches import Matches
 from historical_data.playing_xi import PlayingXI
 from historical_data.innings import Innings
+import datetime
 
 
 class ArtefactsPerTournament:
@@ -51,7 +52,40 @@ class Tournaments:
         for tournament in tournaments:
             self.artefacts[tournament] = ArtefactsPerTournament(base_path, tournament)
 
-    def set_selected_names(self, selected_names):
+    def get_start_end_dates(self, is_testing) -> (datetime.date, datetime.date):
+        """
+        Get the start / end dates set in the Tournaments object
+        :param is_testing: True for testing, False for training
+        :return: A tuple of 2 dates
+        """
+        if is_testing:
+            return self.testing_start, self.testing_end
+        else:
+            return self.training_start, self.training_end
+
+    def set_start_end_dates(self, start_date: datetime.date, end_date: datetime.date, is_testing):
+        """
+        Sets the testing window
+        :param start_date: The start date to be set
+        :param end_date: The end date to be set
+        :param is_testing: True for testing, False for training
+        :return: None
+        """
+        if is_testing:
+            self.testing_start = start_date
+            self.testing_end = end_date
+        else:
+            self.training_start = start_date
+            self.training_end = end_date
+
+    def get_selected_tournaments(self) -> list:
+        """
+        Gets the list of selected tournaments
+        :return: A list of tournaments
+        """
+        return self.selected
+
+    def set_selected_tournament_names(self, selected_names: list):
         """
         Set the selected tournament details based on user selection
         :param selected_names: The names of tournaments that have been selected
