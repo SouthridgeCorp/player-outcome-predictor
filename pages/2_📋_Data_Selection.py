@@ -1,5 +1,6 @@
+import utils.app_utils
 import utils.page_utils as page_utils
-import historical_data.singleton
+import historical_data.helper
 import streamlit as st
 import utils.config_utils
 from data_selection.data_selection import DataSelection
@@ -52,7 +53,7 @@ def app():
     config_utils = utils.config_utils.create_utils_object()
 
     # get the helper from the singleton instance
-    helper = historical_data.singleton.get_helper(config_utils)
+    helper = utils.app_utils.get_helper(config_utils)
 
     # get a data selection instance from the singleton
     data_selection = DataSelection(helper)

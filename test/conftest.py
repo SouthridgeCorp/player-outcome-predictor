@@ -95,3 +95,5 @@ def teardown(config_instance:ConfigUtils):
     repo_path, generated_path, file_name = config_instance.get_rewards_info()
     if (file_name != "") and (os.path.exists(generated_path)):
         shutil.rmtree(generated_path)
+
+

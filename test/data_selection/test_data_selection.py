@@ -1,22 +1,9 @@
 import pandas as pd
 import pytest
 from test.conftest import get_test_cases
-from historical_data.singleton import Helper
+from test.data_selection.conftest import prepare_for_tests
 from data_selection.data_selection import DataSelection
-from datetime import datetime
 import csv
-
-
-def prepare_for_tests(data_selection_instance, is_testing):
-    tournaments = data_selection_instance.historical_data_helper.tournaments
-
-    tournaments.set_selected_tournament_names(["Big Bash League", "Afghanistan Premier League"])
-    start_date = datetime.strptime("01/01/2018", "%d/%m/%Y").date()
-    end_date = datetime.strptime("31/12/2018", "%d/%m/%Y").date()
-
-    tournaments.set_start_end_dates(start_date, end_date, is_testing)
-
-    return start_date, end_date
 
 
 @pytest.mark.parametrize(

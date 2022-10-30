@@ -3,6 +3,58 @@ from rewards_configuration.rewards_configuration import RewardsConfiguration
 import pandas as pd
 
 
+def get_bowler_penalty_for_runs(row):
+    total_runs = row["total_runs"]
+    extras = row["extras"]
+    wides = row["wides"]
+    no_ball = row["noballs"]
+    non_boundary = row["non_boundary"]
+
+    if total_runs == 0:
+        outcome_index = "0"
+    else:
+        # Assumption: If a batsman runs on a no-ball or wide, the no-ball takes precedence
+        if extras > 0:
+            if no_ball == 1:
+                outcome_index = f"{total_runs}-nb"
+            elif wides == 1:
+                outcome_index = f"{total_runs}-w"
+            else:
+                outcome_index = f"{total_runs}-oe"
+        else:
+            outcome_index = f"{total_runs}-b"
+    return outcome_index
+
+def bowling_outcome(row):
+    total_runs = row["total_runs"]
+
+    is_wicket = row["is_wicket"]
+    dismissal_kind = row["dismissal_kind"]
+    is_direct_runout = row["is_direct_runout"]
+
+    # Assumption: If there are wickets & runs on the same ball, the wicket takes precedence
+    if is_wicket == 1:
+        if dismissal_kind == "stumped":
+            outcome_index = "W-bs"
+        elif dismissal_kind == "caught":
+            outcome_index = "W-bc"
+        elif dismissal_kind == "run_out":
+            if (pd.isna(is_direct_runout)) or is_direct_runout == 0:
+                outcome_index = "W-idro"
+            else:
+                outcome_index = "W-dro"
+        elif (dismissal_kind == "bowled") or (dismissal_kind == "caught and bowled"):
+            outcome_index = "W-b"
+        else:
+            outcome_index = "W-others"
+        if total_runs > 0:
+            outcome_index = f"{get_bowler_penalty_for_runs(row)}{outcome_index}"
+    else:
+        outcome_index = get_bowler_penalty_for_runs(row)
+
+    return outcome_index
+
+
 class PerfectSimulator:
 
     def __init__(self,
@@ -28,7 +80,7 @@ class PerfectSimulator:
             - W-idro: wicket, indirect run-out
             - W-others: other forms of dismissal not attributable to bowler
         df schema:
-            index: [match_key, innings, over_number, ball_number, bowler]
+            index: [match_key, innings, over_number, ball_number]
             columns: bowling_outcomes_index, bowler_id
             values: [one of 0, 1-b, 1-oe, 1-nb, 1-w,  2-b…. 6-b, 6-oe, 6-nb, 6-w, W-b, W-nb]
 
@@ -36,11 +88,19 @@ class PerfectSimulator:
         :return: pd.DataFrame listing bowling outcomes for each ball in each innings in training/testing matches for
         selected tournaments
         """
-        # TODO: Implement this
+        innings_df = self.data_selection.get_innings_for_selected_matches(is_testing)
+        index_columns = ['match_key', 'inning', 'over', 'ball']
+        bowling_outcomes_df = pd.DataFrame()
+        bowling_outcomes_df = innings_df.filter(index_columns, axis=1)
+        #   bowling_outcomes_df = innings_df.assign(bowling_outcomes_index=lambda x: bowling_outcome(x))
 
-        innings = self.data_selection.get_innings_for_selected_matches(is_testing)
-
-        return pd.DataFrame()
+        bowling_outcomes_df['bowling_outcome_index'] = innings_df.apply(
+            lambda x: bowling_outcome(x), axis=1)
+        bowling_outcomes_df['bowler'] = innings_df.apply(lambda x: x['bowler'], axis=1)
+        bowling_outcomes_df = self.data_selection.merge_with_players(bowling_outcomes_df, 'bowler', source_left=True)
+        bowling_outcomes_df.set_index(index_columns)
+        bowling_outcomes_df = bowling_outcomes_df.sort_values(index_columns)
+        return bowling_outcomes_df
 
     def get_match_state_by_ball_and_innings(self,
                                             is_testing: bool) -> pd.DataFrame:
@@ -73,7 +133,10 @@ class PerfectSimulator:
         :return: pd.DataFrame listing match_state for each ball in each innings in training/testing matches for
         selected tournaments
         """
-        # TODO: Implement this. Refer to https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.LabelBinarizer.html
+        # TODO: Implement this.
+        #  Refer to https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.LabelBinarizer.html
+
+        player_universe = self.data_selection.get_frequent_players_universe()
         return pd.DataFrame()
 
     def get_batting_outcomes_by_ball_and_innings(self,

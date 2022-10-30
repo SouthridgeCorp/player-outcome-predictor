@@ -1,4 +1,4 @@
-from historical_data.singleton import Helper
+from historical_data.helper import Helper
 import pandas as pd
 from historical_data.playing_xi import PlayingXI
 
@@ -156,6 +156,10 @@ class DataSelection:
         # Calculate featured player
         df = df.assign(best_rank=lambda x: x[columns].min(axis=1))
         df = df.assign(featured_player=lambda x: df['best_rank'] <= 11)
-        df = self.historical_data_helper.players.merge_with_players(df, 'player_key')
+        df = self.merge_with_players(df, 'player_key')
 
         return df
+
+    def merge_with_players(self, source_df, key, source_left=False):
+        return self.historical_data_helper.players.merge_with_players(source_df, key, source_left)
+

@@ -1,8 +1,9 @@
 import streamlit as st
 import utils.page_utils as page_utils
 import utils.config_utils
-from rewards_configuration.rewards_configuration import RewardsConfiguration, get_rewards
-from utils.aggrid_utis import AgGridTable
+from rewards_configuration.rewards_configuration import RewardsConfiguration
+from utils.app_utils import get_rewards
+from utils.aggrid_utils import AgGridTable
 import pandas as pd
 from st_aggrid import AgGrid
 import typing

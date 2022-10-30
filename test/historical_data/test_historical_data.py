@@ -1,7 +1,7 @@
 import csv
 
 import scripts.helpers.cricsheet_helper
-from historical_data.singleton import Helper
+from historical_data.helper import Helper
 import os
 import pytest
 import test.conftest

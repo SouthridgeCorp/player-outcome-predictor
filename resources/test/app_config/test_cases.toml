@@ -14,3 +14,4 @@ config_file_path = "resources/test/app_config/historical_data/AppConfiguration_l
 [[test_case]]
 test_class = "TestPerfectSimulator"
 config_file_path = "resources/test/app_config/AppConfiguration_local.toml"
+baseline_file = "resources/test/app_config/simulators/perfect_simulator/bowling_outcomes.csv"
