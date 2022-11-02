@@ -97,6 +97,12 @@ class DataSelection:
                 innings_list.append(self.historical_data_helper.tournaments.innings(tournament).get_innings(key))
 
         innings_df = pd.concat(innings_list)
+
+        matches_df = self.get_selected_matches(is_testing)
+        innings_df = pd.merge(innings_df, matches_df[["key", "team1", "team2"]], left_on="match_key", right_on="key")
+        innings_df.drop('key', axis=1, inplace=True)
+        innings_df['bowling_team'] = innings_df.apply(lambda x: identify_bowling_team(x), axis=1)
+
         return innings_df
 
     def get_frequent_players_universe(self) -> pd.DataFrame:
@@ -156,6 +162,41 @@ class DataSelection:
         # Calculate featured player
         df = df.assign(best_rank=lambda x: x[columns].min(axis=1))
         df = df.assign(featured_player=lambda x: df['best_rank'] <= 11)
-        df = self.historical_data_helper.players.merge_with_players(df, 'player_key')
+        df = self.merge_with_players(df, 'player_key')
+        df.set_index('player_key', inplace=True)
+        df = df.sort_values('player_key')
 
         return df
+
+    def merge_with_players(self, source_df, key, source_left=False):
+        return self.historical_data_helper.players.merge_with_players(source_df, key, source_left)
+
+    def get_selected_teams(self, is_testing:bool) -> list:
+
+        start_date, end_date = self.historical_data_helper.tournaments.get_start_end_dates(is_testing)
+        selected_teams = []
+        for tournament in self.historical_data_helper.tournaments.get_selected_tournaments():
+            match = self.historical_data_helper.tournaments.matches(tournament)
+            selected_teams += match.get_selected_teams(start_date, end_date)
+
+        return list(set(selected_teams))
+
+    def get_selected_venues(self, is_testing:bool) -> list:
+
+        start_date, end_date = self.historical_data_helper.tournaments.get_start_end_dates(is_testing)
+        selected_venues = []
+        for tournament in self.historical_data_helper.tournaments.get_selected_tournaments():
+            match = self.historical_data_helper.tournaments.matches(tournament)
+            selected_venues += match.get_selected_venues(start_date, end_date)
+
+        return list(set(selected_venues))
+
+
+def identify_bowling_team(row):
+    team1 = row["team1"]
+    team2 = row["team2"]
+    batting_team = row["batting_team"]
+    if batting_team == team1:
+        return team2
+    else:
+        return team1

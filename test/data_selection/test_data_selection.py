@@ -24,7 +24,7 @@ def prepare_for_tests(data_selection_instance, is_testing):
     get_test_cases('app_config', 'TestDataSelection'),
     scope='class'
 )
-class TestRewardsConfiguration:
+class TestDataSelection:
 
     @pytest.mark.parametrize('is_testing', [True, False])
     def test_selected_matches(self, data_selection_instance: DataSelection, is_testing):

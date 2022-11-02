@@ -61,3 +61,25 @@ class Matches:
         team1 = match_df.iloc[0]["team1"]
         team2 = match_df.iloc[0]["team2"]
         return team1, team2
+
+    def get_selected_teams(self, start_date: datetime.date, end_date: datetime.date) -> list:
+        """
+        Get a list of teams corresponding to the start & end date windows
+        :param start_date: The starting date of the window
+        :param end_date: The ending state of the window
+        :return: A list of keys
+        """
+        selected_df = self.get_selected_matches(start_date, end_date)
+        team_list = list(selected_df["team1"])
+        team_list += list(selected_df["team2"])
+        return list(set(team_list))
+
+    def get_selected_venues(self, start_date: datetime.date, end_date: datetime.date) -> list:
+        """
+        Get a list of venues corresponding to the start & end date windows
+        :param start_date: The starting date of the window
+        :param end_date: The ending state of the window
+        :return: A list of keys
+        """
+        selected_df = self.get_selected_matches(start_date, end_date)
+        return list(set(list(selected_df["venue"])))

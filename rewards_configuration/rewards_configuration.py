@@ -39,6 +39,17 @@ class RewardsConfiguration:
     PENALTY = "penalty"
     BONUS = "bonus"
 
+    # Fielding dismissal values
+    FIELDING_CATCH = "Catch"
+    FIELDING_STUMP = "Stumping"
+    FIELDING_DRO = "Direct run out"
+    FIELDING_IDRO = "Indirect run out"
+
+    # Bowling extras values
+    NO_BALL = "No ball"
+    WIDE = "Wide"
+
+
     # Meta-data about columns to be used for display / slicing
     NON_EDITABLE_OUTPUT_COLUMNS = [OUTCOME_INDEX_COLUMN]
     BASE_REWARD_OUTPUT_COLUMNS = [OUTCOME_INDEX_COLUMN, REWARD_AMOUNT_COLUMN]
@@ -191,6 +202,59 @@ class RewardsConfiguration:
         self.bowling_df.to_csv(self.rewards_file, index=False, mode='a', header=False)
         self.fielding_df.to_csv(self.rewards_file, index=False, mode='a', header=False)
         self.read_csv()
+
+
+    def get_fielding_base_rewards_for_dismissal(self, fielding_outcome):
+        fielding_rewards = self.get_fielding_base_rewards()
+        if fielding_outcome in [self.FIELDING_CATCH, self.FIELDING_STUMP, self.FIELDING_DRO, self.FIELDING_IDRO]:
+            return fielding_rewards[fielding_rewards['outcome_index'] == fielding_outcome].iloc[0][1]
+        else:
+            return 0
+
+    def get_batting_base_rewards_for_dismissal(self):
+        batting_rewards_df = self.get_batting_base_rewards()
+        return batting_rewards_df[batting_rewards_df['outcome_index'] == 'Dismissal'].iloc[0][1]
+
+    def get_label_for_runs(self, runs):
+        label = "Dot ball"
+        if runs == 1:
+            label = "Single"
+        elif runs == 2:
+            label = "Two"
+        elif runs == 3:
+            label = "Three"
+        elif runs == 4:
+            label = "Four"
+        elif runs == 5:
+            label = "Five"
+        elif runs >= 6: # Any runs conceded > 6 treated with the same penalty / rewards
+            label = "Six"
+        return label
+
+    def get_label_for_wickets(self, wickets):
+        if wickets == 1:
+            label = "1 Wicket"
+        else:
+            label = f"{wickets} Wickets"
+        return label
+
+    def get_batting_base_rewards_for_runs(self, runs):
+        batting_rewards_df = self.get_batting_base_rewards()
+        return batting_rewards_df[batting_rewards_df['outcome_index'] == self.get_label_for_runs(runs)].iloc[0][1]
+
+    def get_bowling_base_rewards_for_runs(self, runs):
+        bowling_rewards_df = self.get_bowling_base_rewards()
+        return bowling_rewards_df[bowling_rewards_df['outcome_index'] == self.get_label_for_runs(runs)].iloc[0][1]
+
+    def get_bowling_base_rewards_for_extras(self, extra):
+        bowling_rewards_df = self.get_bowling_base_rewards()
+        return bowling_rewards_df[bowling_rewards_df['outcome_index'] == extra].iloc[0][1]
+
+    def get_bowling_rewards_for_wickets(self, wicket):
+        bowling_rewards_df = self.get_bowling_base_rewards()
+        wicket_label = self.get_label_for_wickets(wicket)
+        return bowling_rewards_df[bowling_rewards_df['outcome_index'] == wicket_label].iloc[0][1]
+
 
 
 def get_rewards(static_data_config: ConfigUtils) -> RewardsConfiguration:
