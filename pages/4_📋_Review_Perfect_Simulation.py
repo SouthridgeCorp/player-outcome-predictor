@@ -1,9 +1,12 @@
 import streamlit as st
 
-import utils.app_utils
+from utils.config_utils import create_utils_object
 import utils.page_utils as page_utils
 from simulators.perfect_simulator import Granularity, PerfectSimulator
 from utils.app_utils import data_selection_instance, rewards_instance
+import os
+import pandas as pd
+
 
 def data_selection_summary(tournaments):
     selected_tournaments, training, testing = st.columns(3)
@@ -23,6 +26,12 @@ def data_selection_summary(tournaments):
         testing_start_date, testing_end_date = tournaments.get_start_end_dates(True)
         st.write(f"Start Date: {testing_start_date}")
         st.write(f"End Date: {testing_end_date}")
+
+
+@st.cache
+def get_perfect_simulator_data(perfect_simulator, granularity):
+    return perfect_simulator.get_simulation_evaluation_metrics_by_granularity(True, granularity)
+
 
 def app():
     data_selection = data_selection_instance()
@@ -44,13 +53,13 @@ def app():
 
         evaluation_column, top_players_column = st.columns(2)
         with st.spinner("Calculating Simulation Metrics.."):
-            perfect_simulator_df = perfect_simulator.get_simulation_evaluation_metrics_by_granularity(True, granularity)
+            perfect_simulator_df = get_perfect_simulator_data(perfect_simulator, granularity)
 
         with st.spinner('Calculating Error Measures'):
-            errors_df = perfect_simulator.get_error_measures(True, perfect_simulator_df, granularity)
+            errors_df = perfect_simulator.get_error_measures(True, perfect_simulator_df, granularity,
+                                                             perfect_simulator_df)
 
         with st.spinner("Calculating Top Players.."):
-            perfect_simulator_df = perfect_simulator_df.reset_index()
             perfect_simulator_df = data_selection.merge_with_players(perfect_simulator_df, 'player_key')
             perfect_simulator_df = perfect_simulator_df.sort_values('total_rewards', ascending=False)
 
@@ -61,14 +70,18 @@ def app():
 
         with top_players_column:
             with st.spinner("Writing Top Players"):
-                st.subheader('Top 10 Players')
-                st.write(perfect_simulator_df[['player_key', 'name', 'total_rewards']])
+                st.subheader('Top 100 Players')
+                # CSS to inject contained in a string
+                hide_dataframe_row_index = """
+                            <style>
+                            .row_heading.level0 {display:none}
+                            .blank {display:none}
+                            </style>
+                            """
 
-
-
-
-
-
+                # Inject CSS with Markdown
+                st.markdown(hide_dataframe_row_index, unsafe_allow_html=True)
+                st.dataframe(perfect_simulator_df[['name', 'total_rewards']].head(10))
 
     st.markdown('''
 ## Review Perfect Simulation Tab [v0.2]:
@@ -110,5 +123,6 @@ Consists of the following metrics calculated for each `simulation_evaluation_met
 - `mean_absolute_percentage_error`
 
     ''')
+
 
 app()

@@ -1,5 +1,8 @@
 from data_selection.data_selection import DataSelection, identify_bowling_team
 from rewards_configuration.rewards_configuration import RewardsConfiguration
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
 import pandas as pd
 from simulators.utils.outcomes_calculator import bowling_outcome, batting_outcome, fielding_outcome, \
     set_base_rewards, set_bonus_penalty
@@ -7,12 +10,15 @@ from simulators.utils.match_state_utils import setup_data_labels, initialise_mat
     setup_data_labels_with_training, add_missing_columns, calculate_ball_by_ball_stats
 from simulators.utils.utils import aggregate_base_rewards
 from sklearn.metrics import mean_absolute_error as mae, mean_absolute_percentage_error as mape
+import logging
+
+
 
 class Granularity:
     TOURNAMENT = "tournament"
-    STAGE = "stage"
+    STAGE = "tournament_stage"
     MATCH = "match"
-    INNING = "inning"
+    INNING = "innings"
 
 class PerfectSimulator:
 
@@ -51,6 +57,7 @@ class PerfectSimulator:
         :return: pd.DataFrame listing bowling outcomes for each ball in each innings in training/testing matches for
         selected tournaments
         """
+        logging.info("Getting Innings data")
         innings_df = self.data_selection.get_innings_for_selected_matches(is_testing)
         index_columns = ['match_key', 'inning', 'over', 'ball']
         extra_columns = ['batter_runs', 'extras', 'total_runs', 'non_boundary', 'is_wicket', 'dismissal_kind',
@@ -59,12 +66,14 @@ class PerfectSimulator:
 
         bowling_outcomes_df = innings_df.filter(index_columns + extra_columns, axis=1)
 
+        logging.info("Applying outcomes")
         bowling_outcomes_df['bowling_outcome_index'] = innings_df.apply(lambda x: bowling_outcome(x), axis=1)
         bowling_outcomes_df = self.data_selection.merge_with_players(bowling_outcomes_df, 'bowler', source_left=True)
         bowling_outcomes_df.set_index(index_columns, inplace=True, verify_integrity=True)
         bowling_outcomes_df = bowling_outcomes_df.sort_values(index_columns)
 
         bowling_outcomes_df.drop('name', axis=1, inplace=True)
+        logging.info("DONE WITH BOWLING INFO")
         return bowling_outcomes_df
 
     def get_match_state_by_ball_and_innings(self,
@@ -218,8 +227,11 @@ class PerfectSimulator:
         See `outcomes_by_ball_and_innings` subgraph of the computational model
         :param is_testing: Set True if testing data is needed, else set False
         :return: pd.DataFrame as above"""
+        logging.info("Getting bowling outcomes")
         bowling_df = self.get_bowling_outcomes_by_ball_and_innings(is_testing)
+        logging.info("Getting batting outcomes")
         batting_df = self.get_batting_outcomes_by_ball_and_innings(is_testing, bowling_df)
+        logging.info("Getting fielding outcomes")
         fielding_df = self.get_fielding_outcomes_by_ball_and_innings(is_testing, bowling_df)
 
         df = pd.merge(pd.merge(bowling_df,
@@ -241,28 +253,30 @@ class PerfectSimulator:
         See `outcomes_by_player_and_innings` subgraph of the computational model
         :param is_testing: Set True if testing data is needed, else set False
         :return: pd.DataFrame as above"""
+
+        logging.info("Getting innings basic info")
         innings_df = self.data_selection.get_innings_for_selected_matches(is_testing)
         matches_df = self.data_selection.get_selected_matches(is_testing)
 
+
+        logging.info("DONE Getting innings basic info")
         innings_df = pd.merge(innings_df, matches_df[['key', 'tournament_key', 'stage']],
                               left_on='match_key', right_on='key')
 
-        # matches_df = self.data_selection.get_selected_matches(is_testing)
-        # innings_df = pd.merge(innings_df, matches_df[["key", "team1", "team2"]], left_on="match_key", right_on="key")
-        # innings_df.drop('key', axis=1, inplace=True)
-        # innings_df['bowling_team'] = innings_df.apply(lambda x: identify_bowling_team(x), axis=1)
 
+        logging.info("Building batter list")
         outcomes_list = []
         for g, g_df in innings_df.groupby(['match_key', 'inning', 'batting_team', 'batter']):
             total_balls_bowled = len(g_df)
             total_runs_made = g_df['batter_runs'].sum()
-            tournament_key = g_df.iloc[0]['tournament_key']
-            stage = g_df.iloc[0]['stage']
             batting_strike_rate = 100 * total_runs_made / total_balls_bowled
             outcomes_list.append({'match_key': g[0], 'inning': g[1], 'team': g[2],
                                   'player_key': g[3], 'strike_rate': batting_strike_rate,
-                                  'tournament_key': tournament_key, 'stage': stage,
                                   'total_balls': total_balls_bowled, 'batting_total_runs': total_runs_made})
+
+
+        logging.info("DONE Getting innings batting info & starting bowling info")
+
 
         for g, g_df in innings_df.groupby(['match_key', 'inning', 'bowling_team', 'bowler']):
             number_of_overs = len(g_df['over'].unique())
@@ -271,22 +285,30 @@ class PerfectSimulator:
             number_of_runouts = len(g_df[g_df['dismissal_kind'] == 'run out'])
             number_of_wickets -= number_of_runouts
             economy_rate = total_runs_made / number_of_overs
-            tournament_key = g_df.iloc[0]['tournament_key']
-            stage = g_df.iloc[0]['stage']
+
             outcomes_list.append({'match_key': g[0], 'inning': g[1], 'team': g[2],
                                   'player_key': g[3], 'economy_rate': economy_rate, 'wickets_taken': number_of_wickets,
-                                  'tournament_key': tournament_key, 'stage': stage,
                                   'number_of_overs': number_of_overs, 'total_runs': total_runs_made})
+
+
+        logging.info("DONE Getting innings bowling info")
 
         outcomes_df = pd.DataFrame(data=outcomes_list)
         index_columns = ['match_key', 'inning', 'team', 'player_key']
+
+        outcomes_df = pd.merge(outcomes_df, matches_df[['key', 'tournament_key', 'stage']],
+                               left_on='match_key', right_on='key')
+
         outcomes_df.set_index(index_columns, inplace=True, verify_integrity=True)
         outcomes_df = outcomes_df.sort_values(index_columns)
+
+        logging.info("DONE with innings basic info")
+
 
         return outcomes_df
 
     def get_outcomes_by_team_and_innings(self,
-                                         is_testing: bool) -> pd.DataFrame:
+                                         is_testing: bool, input_player_outcomes=None) -> pd.DataFrame:
         """Returns a dataframe representing all outcomes at a player and innings level for the train/test dataset
         df schema:
             index: [match_key, innings, team_id]
@@ -297,15 +319,18 @@ class PerfectSimulator:
         See `outcomes_by_team_and_innings` subgraph of the computational model
         :param is_testing: Set True if testing data is needed, else set False
         :return: pd.DataFrame as above"""
-        player_outcomes = self.get_outcomes_by_player_and_innings(is_testing)
+        if input_player_outcomes is not None:
+            player_outcomes = input_player_outcomes.copy()
+        else:
+            player_outcomes = self.get_outcomes_by_player_and_innings(is_testing)
         innings_outcomes_list = []
         for g, g_df in player_outcomes.groupby(['match_key', 'inning', 'team']):
             total_runs = g_df['total_runs'].sum()
             total_balls = g_df['total_balls'].sum()
             batting_total_runs = g_df['batting_total_runs'].sum()
             number_of_overs = g_df['number_of_overs'].sum()
-            economy_rate = total_runs / number_of_overs
-            strike_rate = 100 * batting_total_runs / total_balls
+            economy_rate = (total_runs / number_of_overs) if number_of_overs != 0 else 0
+            strike_rate = (100 * batting_total_runs / total_balls) if total_balls != 0 else 0
             innings_outcomes_list.append({'match_key': g[0], 'inning': g[1], 'team': g[2],
                                           'inning_economy_rate': economy_rate, 'inning_strike_rate': strike_rate,
                                           'inning_number_of_overs': number_of_overs, 'inning_total_runs': total_runs,
@@ -348,19 +373,31 @@ class PerfectSimulator:
         :param is_testing: Set True if testing data is needed, else set False
         :return: pd.DataFrame as above"""
 
+        logging.info("Getting Outcome by Ball & Innings")
         outcomes_df = self.get_outcomes_by_ball_and_innings(is_testing)
+        logging.info("DONE Getting Outcome by Ball & Innings")
 
+        logging.info(f"Getting Base Rewards: {outcomes_df.shape}")
         outcomes_df['batter_base_rewards'], outcomes_df['non_striker_base_rewards'], \
         outcomes_df['bowling_base_rewards'], outcomes_df['fielding_base_rewards'] = zip(*outcomes_df.apply(
             lambda x: set_base_rewards(x, self.rewards_configuration), axis=1))
 
+        logging.info("DONE Getting Base Rewards")
+
+        logging.info("Getting Outcomes by player & innings")
+
         bonus_penalty_df = self.get_outcomes_by_player_and_innings(is_testing)
-        team_stats_df = self.get_outcomes_by_team_and_innings(is_testing)
+        logging.info("DONE Getting Outcomes by player & innings")
+
+        logging.info("Getting Team Stats")
+        team_stats_df = self.get_outcomes_by_team_and_innings(is_testing, bonus_penalty_df)
+        logging.info("DONE Getting Team Stats")
+
 
         # Calculate cumulative base rewards per player
 
         base_rewards_per_player_dict = {}
-
+        logging.info("Getting Aggregates")
         aggregate_base_rewards(outcomes_df, 'batting_team', 'batter', 'batter_base_rewards', 'batter_base_rewards',
                                base_rewards_per_player_dict)
         aggregate_base_rewards(outcomes_df, 'batting_team', 'non_striker', 'non_striker_base_rewards',
@@ -370,6 +407,9 @@ class PerfectSimulator:
         aggregate_base_rewards(outcomes_df, 'bowling_team', 'bowler', 'bowling_base_rewards',
                                'bowling_base_rewards', base_rewards_per_player_dict)
 
+        logging.info("DONE Getting Aggregates")
+
+        logging.info("Creating Base Rewards Per Player")
         base_rewards_per_player_list = []
 
         for key in base_rewards_per_player_dict.keys():
@@ -379,16 +419,27 @@ class PerfectSimulator:
         index_columns = ['match_key', 'inning', 'team', 'player_key']
         base_rewards_per_player_df.set_index(index_columns, inplace=True, verify_integrity=True)
         base_rewards_per_player_df = base_rewards_per_player_df.sort_values(index_columns)
+        logging.info("DONE Creating Base Rewards Per Player")
+
+        logging.info("Creating Merges")
 
         bonus_penalty_df = pd.merge(bonus_penalty_df,
                                     base_rewards_per_player_df[['batter_base_rewards',
                                                                 'fielding_base_rewards', 'bowling_base_rewards']],
                                     left_index=True, right_index=True)
+
+        logging.info("DONE Creating Merges")
+
+        logging.info(f"Getting Total Rewards {bonus_penalty_df.shape}")
+
+        #bonus_penalty_df = pd.merge(bonus_penalty_df, team_stats_df, left_on=["match_key", "inning", "team"],
+         #                           right_index=True)
         bonus_penalty_df['bowling_bonus_wickets'], bonus_penalty_df['bowling_bonus'], \
         bonus_penalty_df['bowling_penalty'], bonus_penalty_df['batting_bonus'], \
         bonus_penalty_df['batting_penalty'], bonus_penalty_df['bowling_rewards'], \
         bonus_penalty_df['batting_rewards'], bonus_penalty_df['fielding_rewards'] = zip(*bonus_penalty_df.apply(
             lambda x: set_bonus_penalty(x, self.rewards_configuration, team_stats_df), axis=1))
+        logging.info("DONE Getting Total Rewards")
 
         return outcomes_df, bonus_penalty_df
 
@@ -414,11 +465,14 @@ class PerfectSimulator:
         :param is_testing: Set True if testing data is needed, else set False
         :return: pd.DataFrame as above"""
 
+        logging.info("Getting Rewards Components")
         base_rewards_df, bonus_penalty_df = self.get_rewards_components(is_testing)
+        logging.info("Done Getting Rewards Components")
 
         group_by_columns = get_index_columns(granularity)
         rewards_df = pd.DataFrame()
 
+        logging.info("Total Rewards Components")
         for g, g_df in bonus_penalty_df.groupby(group_by_columns):
             input_dict = {'bowling_rewards': g_df['bowling_rewards'].sum(),
                           'batting_rewards': g_df['batting_rewards'].sum(),
@@ -433,11 +487,15 @@ class PerfectSimulator:
 
         rewards_df.set_index(group_by_columns, inplace=True, verify_integrity=True)
 
+        logging.info("DONE Total Rewards Components")
+
         return rewards_df
 
     def get_error_measures(self,
                            is_testing: bool,
-                           contender_simulation_evaluation_metrics: pd.DataFrame, granularity) -> pd.DataFrame:
+                           contender_simulation_evaluation_metrics: pd.DataFrame,
+                           granularity,
+                           perfect_simulator_rewards_ref = None) -> pd.DataFrame:
         """Returns a dataframe representing error measures between this simulator's simulation_evaluation_metrics
         and a contender simulators simulation evaluation metrics.
         df schema:
@@ -456,7 +514,10 @@ class PerfectSimulator:
         :raises: Exception if the contender_simulation_evaluation_metrics does not have a matching index
         to the result of self.get_simulation_evaluation_metrics(is_testing,granularity [as implied by the contender df]"""
 
-        perfect_simulator_rewards_df = self.get_simulation_evaluation_metrics_by_granularity(is_testing, granularity)
+        if perfect_simulator_rewards_ref is not None:
+            perfect_simulator_rewards_df = perfect_simulator_rewards_ref.copy()
+        else:
+            perfect_simulator_rewards_df = self.get_simulation_evaluation_metrics_by_granularity(is_testing, granularity)
 
         columns_to_compare = ['batting_rewards', 'bowling_rewards', 'fielding_rewards', 'total_rewards']
 

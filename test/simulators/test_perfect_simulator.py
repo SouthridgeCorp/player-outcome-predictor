@@ -2,6 +2,7 @@ from test.conftest import get_test_cases
 import pytest
 from test.data_selection.conftest import prepare_for_tests, setup_training_and_testing
 import pandas as pd
+import logging
 
 
 @pytest.mark.parametrize(
@@ -418,7 +419,8 @@ class TestPerfectSimulator:
 
         expected_columns.sort()
 
-        assert (expected_columns == received_columns)
+        assert (expected_columns == received_columns), f"Granularity: {granularity} expected_columns: " \
+                                                       f"{expected_columns} received_columns: {received_columns}"
 
 
     @pytest.mark.parametrize('is_testing', [True, False])
@@ -426,6 +428,7 @@ class TestPerfectSimulator:
     def test_get_error_measures(self, perfect_simulator, is_testing, granularity):
 
         prepare_for_tests(perfect_simulator.data_selection, is_testing)
+
         rewards_df = perfect_simulator.get_simulation_evaluation_metrics_by_granularity(is_testing, granularity)
 
         error_df = perfect_simulator.get_error_measures(is_testing, rewards_df, granularity)

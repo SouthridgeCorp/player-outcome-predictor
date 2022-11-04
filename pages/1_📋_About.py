@@ -1,6 +1,5 @@
 import streamlit as st
 import utils.page_utils as page_utils
-import utils.config_utils as config_utils
 
 def app():
 
