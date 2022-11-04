@@ -149,7 +149,7 @@ def outcomes(row):
     batting_outcomes, non_striker_outcomes = batting_outcome(row)
     fielding_outcomes = fielding_outcome(row)
 
-    return bowling_outcomes, batting_outcomes, fielding_outcomes
+    return bowling_outcomes, batting_outcomes, non_striker_outcomes, fielding_outcomes
 
 def set_fielding_outcome(row, rewards_configuration: RewardsConfiguration):
     is_wicket = row["is_wicket"]
@@ -272,9 +272,9 @@ def get_all_outcomes_by_ball_and_innnings(data_selection, is_testing):
     outcomes_df = innings_df.filter(index_columns + extra_columns, axis=1)
 
     logging.info("Applying outcomes")
-    outcomes_df['bowling_outcome_index'],  outcomes_df['batter_outcome_index'],
-    outcomes_df['non_striker_outcome_index'], outcomes_df['fielding_outcome_index']  = zip(
-            *innings_df.apply(lambda x: outcomes(x), axis=1))
+    outcomes_df['bowling_outcome_index'],  outcomes_df['batter_outcome_index'], \
+    outcomes_df['non_striker_outcome_index'], outcomes_df['fielding_outcome_index'] \
+        = zip(*innings_df.apply(lambda x: outcomes(x), axis=1))
 
     outcomes_df = data_selection.merge_with_players(outcomes_df, 'bowler', source_left=True)
     outcomes_df.set_index(index_columns, inplace=True, verify_integrity=True)

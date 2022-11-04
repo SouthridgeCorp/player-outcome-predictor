@@ -4,6 +4,14 @@ import os
 import shutil
 import functools
 
+class RewardsStructure:
+    def __init__(self, reward_amount, bonus_penalty_threshold, bonus_penalty_cap_floor):
+        self.reward_amount = reward_amount
+        self.bonus_penalty_threshold = float(bonus_penalty_threshold.strip('%')) / 100 \
+            if pd.notna(bonus_penalty_threshold) else 0.0
+        self.bonus_penalty_cap_floor = float(bonus_penalty_cap_floor.strip('%')) / 100 \
+            if pd.notna(bonus_penalty_cap_floor) else 0.0
+
 
 class RewardsConfiguration:
     """
@@ -67,8 +75,11 @@ class RewardsConfiguration:
             shutil.copyfile(repo_file, generated_file)
 
         self.rewards_file = generated_file
-
+        self.cache = {}
         self.read_csv()
+
+    def build_cache_key(self, play_type, reward_type, outcome_type):
+        return f"{play_type}-{reward_type}-{outcome_type}"
 
     def read_csv(self):
         """
@@ -79,9 +90,23 @@ class RewardsConfiguration:
         self.fielding_df = self.df[self.df[self.PLAY_TYPE_COLUMN] == self.FIELDING_VALUE]
         self.bowling_df = self.df[self.df[self.PLAY_TYPE_COLUMN] == self.BOWLING_VALUE]
         self.batting_df = self.df[self.df[self.PLAY_TYPE_COLUMN] == self.BATTING_VALUE]
+
         self.cache = {}
 
-    @functools.lru_cache
+        for index, row in self.df.iterrows():
+            play_type = row[RewardsConfiguration.PLAY_TYPE_COLUMN]
+            reward_type = row[RewardsConfiguration.REWARD_TYPE_COLUMN]
+            outcome_index = row[RewardsConfiguration.OUTCOME_INDEX_COLUMN]
+            key = self.build_cache_key(play_type, reward_type, outcome_index)
+
+            reward_amount = row[RewardsConfiguration.REWARD_AMOUNT_COLUMN]
+            bonus_penalty_threshold = row[RewardsConfiguration.BONUS_PENALTY_THRESHOLD_COLUMN]
+            bonus_penalty_cap_floor = row[RewardsConfiguration.BONUS_PENALTY_CAP_FLOOR_COLUMN]
+
+            self.cache[key] = RewardsStructure(reward_amount, bonus_penalty_threshold, bonus_penalty_cap_floor)
+
+
+
     def get_batting_base_rewards(self) -> pd.DataFrame:
         """
         Returns all the base_rewards associated with batting
@@ -90,7 +115,6 @@ class RewardsConfiguration:
         return self.batting_df[self.batting_df[self.REWARD_TYPE_COLUMN]
                                == self.BASE_REWARD][self.BASE_REWARD_OUTPUT_COLUMNS]
 
-    @functools.lru_cache
     def get_bowling_base_rewards(self) -> pd.DataFrame:
         """
         Returns all the base_rewards associated with bowling
@@ -99,7 +123,6 @@ class RewardsConfiguration:
         return self.bowling_df[self.bowling_df[self.REWARD_TYPE_COLUMN]
                                == self.BASE_REWARD][self.BASE_REWARD_OUTPUT_COLUMNS]
 
-    @functools.lru_cache
     def get_fielding_base_rewards(self) -> pd.DataFrame:
         """
         Returns all the base_rewards associated with fielding
@@ -108,7 +131,6 @@ class RewardsConfiguration:
         return self.fielding_df[self.fielding_df[self.REWARD_TYPE_COLUMN]
                                 == self.BASE_REWARD][self.BASE_REWARD_OUTPUT_COLUMNS]
 
-    @functools.lru_cache
     def get_batting_penalties(self) -> pd.DataFrame:
         """
         Returns the penalty meta-data associated with batting
@@ -116,7 +138,6 @@ class RewardsConfiguration:
         """
         return self.batting_df[self.batting_df[self.REWARD_TYPE_COLUMN] == self.PENALTY][self.BONUS_PENALTY_COLUMNS]
 
-    @functools.lru_cache
     def get_bowling_penalties(self) -> pd.DataFrame:
         """
         Returns the penalty meta-data associated with bowling
@@ -124,7 +145,6 @@ class RewardsConfiguration:
         """
         return self.bowling_df[self.bowling_df[self.REWARD_TYPE_COLUMN] == self.PENALTY][self.BONUS_PENALTY_COLUMNS]
 
-    @functools.lru_cache
     def get_fielding_penalties(self) -> pd.DataFrame:
         """
         Returns the penalty meta-data associated with fielding
@@ -132,7 +152,6 @@ class RewardsConfiguration:
         """
         return self.fielding_df[self.fielding_df[self.REWARD_TYPE_COLUMN] == self.PENALTY][self.BONUS_PENALTY_COLUMNS]
 
-    @functools.lru_cache
     def get_batting_bonus(self) -> pd.DataFrame:
         """
         Returns the bonus meta-data associated with batting
@@ -140,7 +159,6 @@ class RewardsConfiguration:
         """
         return self.batting_df[self.batting_df[self.REWARD_TYPE_COLUMN] == self.BONUS][self.BONUS_PENALTY_COLUMNS]
 
-    @functools.lru_cache
     def get_bowling_bonus(self) -> pd.DataFrame:
         """
         Returns the bonus meta-data associated with bowling
@@ -148,7 +166,6 @@ class RewardsConfiguration:
         """
         return self.bowling_df[self.bowling_df[self.REWARD_TYPE_COLUMN] == self.BONUS][self.BONUS_PENALTY_COLUMNS]
 
-    @functools.lru_cache
     def get_fielding_bonus(self) -> pd.DataFrame:
         """
         Returns the bonus meta-data associated with fielding
@@ -214,20 +231,32 @@ class RewardsConfiguration:
         self.fielding_df.to_csv(self.rewards_file, index=False, mode='a', header=False)
         self.read_csv()
 
+        self.get_fielding_base_rewards_for_dismissal.cache_clear()
+        self.get_batting_base_rewards_for_dismissal.cache_clear()
+        self.get_batting_base_rewards_for_runs.cache_clear()
+        self.get_bowling_base_rewards_for_runs.cache_clear()
+        self.get_bowling_base_rewards_for_extras.cache_clear()
+        self.get_bowling_rewards_for_wickets.cache_clear()
+        self.get_bowling_bonus_penalty_details.cache_clear()
+        self.get_batting_bonus_penalty_details.cache_clear()
+
+
     @functools.lru_cache
     def get_fielding_base_rewards_for_dismissal(self, fielding_outcome):
-        fielding_rewards = self.get_fielding_base_rewards()
-        if fielding_outcome in [self.FIELDING_CATCH, self.FIELDING_STUMP, self.FIELDING_DRO, self.FIELDING_IDRO]:
-            return fielding_rewards[fielding_rewards['outcome_index'] == fielding_outcome].iloc[0][1]
+
+        key = self.build_cache_key(play_type='fielding', reward_type='base_reward', outcome_type=fielding_outcome)
+        if key in self.cache.keys():
+            received_value = self.cache[key].reward_amount
         else:
-            return 0
+            received_value = 0
+        return received_value
 
     @functools.lru_cache
     def get_batting_base_rewards_for_dismissal(self):
-        batting_rewards_df = self.get_batting_base_rewards()
-        return batting_rewards_df[batting_rewards_df['outcome_index'] == 'Dismissal'].iloc[0][1]
+        key = self.build_cache_key(play_type='batting', reward_type='base_reward', outcome_type='Dismissal')
+        received_value = self.cache[key].reward_amount
+        return received_value
 
-    @functools.lru_cache
     def get_label_for_runs(self, runs):
         label = "Dot ball"
         if runs == 1:
@@ -244,7 +273,6 @@ class RewardsConfiguration:
             label = "Six"
         return label
 
-    @functools.lru_cache
     def get_label_for_wickets(self, wickets):
         if wickets == 1:
             label = "1 Wicket"
@@ -254,36 +282,44 @@ class RewardsConfiguration:
 
     @functools.lru_cache
     def get_batting_base_rewards_for_runs(self, runs):
-        batting_rewards_df = self.get_batting_base_rewards()
-        return batting_rewards_df[batting_rewards_df['outcome_index'] == self.get_label_for_runs(runs)].iloc[0][1]
+
+        key = self.build_cache_key(play_type='batting', reward_type='base_reward',
+                                   outcome_type=self.get_label_for_runs(runs))
+        received_value = self.cache[key].reward_amount
+        return received_value
 
     @functools.lru_cache
     def get_bowling_base_rewards_for_runs(self, runs):
-        bowling_rewards_df = self.get_bowling_base_rewards()
-        return bowling_rewards_df[bowling_rewards_df['outcome_index'] == self.get_label_for_runs(runs)].iloc[0][1]
+        key = self.build_cache_key(play_type='bowling', reward_type='base_reward',
+                                   outcome_type=self.get_label_for_runs(runs))
+        received_value = self.cache[key].reward_amount
+        return received_value
 
     @functools.lru_cache
     def get_bowling_base_rewards_for_extras(self, extra):
-        bowling_rewards_df = self.get_bowling_base_rewards()
-        return bowling_rewards_df[bowling_rewards_df['outcome_index'] == extra].iloc[0][1]
+        key = self.build_cache_key(play_type='bowling', reward_type='base_reward', outcome_type=extra)
+        received_value = self.cache[key].reward_amount
+        return received_value
 
     @functools.lru_cache
     def get_bowling_rewards_for_wickets(self, wicket):
-        bowling_rewards_df = self.get_bowling_base_rewards()
-        wicket_label = self.get_label_for_wickets(wicket)
-        return bowling_rewards_df[bowling_rewards_df['outcome_index'] == wicket_label].iloc[0][1]
+        key = self.build_cache_key(play_type='bowling', reward_type='base_reward',
+                                   outcome_type=self.get_label_for_wickets(wicket))
+        received_value = self.cache[key].reward_amount
+
+        return received_value
 
     @functools.lru_cache
     def get_bowling_bonus_penalty_details(self):
-        bowling_bonus_df = self.get_bowling_bonus()
-        bowling_penalty_df = self.get_bowling_penalties()
 
-        bonus_cap = float(bowling_bonus_df.iloc[0][self.BONUS_PENALTY_CAP_FLOOR_COLUMN].strip('%')) / 100
-        bonus_rate = float(bowling_bonus_df.iloc[0][self.BONUS_PENALTY_THRESHOLD_COLUMN].strip('%')) / 100
+        key = self.build_cache_key(play_type='bowling', reward_type='bonus', outcome_type='ER Bonus')
+        received_bonus_cap = self.cache[key].bonus_penalty_cap_floor
+        received_bonus_rate = self.cache[key].bonus_penalty_threshold
 
-        penalty_floor = float(bowling_penalty_df.iloc[0][self.BONUS_PENALTY_CAP_FLOOR_COLUMN].strip('%')) / 100
-        penalty_rate = float(bowling_penalty_df.iloc[0][self.BONUS_PENALTY_THRESHOLD_COLUMN].strip('%')) / 100
-        return bonus_cap, bonus_rate, penalty_floor, penalty_rate
+        key = self.build_cache_key(play_type='bowling', reward_type='penalty', outcome_type='ER Penalty')
+        received_penalty_floor = self.cache[key].bonus_penalty_cap_floor
+        received_penalty_rate = self.cache[key].bonus_penalty_threshold
+        return received_bonus_cap, received_bonus_rate, received_penalty_floor, received_penalty_rate
 
     def get_bowling_bonus_penalty_for_economy_rate(self, bowler_economy_rate, inning_economy_rate, base_reward):
         bowler_base_reward = abs(base_reward)
@@ -302,15 +338,16 @@ class RewardsConfiguration:
 
     @functools.lru_cache
     def get_batting_bonus_penalty_details(self):
-        batting_bonus_df = self.get_batting_bonus()
-        batting_penalty_df = self.get_batting_penalties()
 
-        bonus_cap = float(batting_bonus_df.iloc[0][self.BONUS_PENALTY_CAP_FLOOR_COLUMN].strip('%')) / 100
-        bonus_rate = float(batting_bonus_df.iloc[0][self.BONUS_PENALTY_THRESHOLD_COLUMN].strip('%')) / 100
+        key = self.build_cache_key(play_type='batting', reward_type='bonus', outcome_type='SR Bonus')
+        received_bonus_cap = self.cache[key].bonus_penalty_cap_floor
+        received_bonus_rate = self.cache[key].bonus_penalty_threshold
 
-        penalty_floor = float(batting_penalty_df.iloc[0][self.BONUS_PENALTY_CAP_FLOOR_COLUMN].strip('%')) / 100
-        penalty_rate = float(batting_penalty_df.iloc[0][self.BONUS_PENALTY_THRESHOLD_COLUMN].strip('%')) / 100
-        return bonus_cap, bonus_rate, penalty_floor, penalty_rate
+        key = self.build_cache_key(play_type='batting', reward_type='penalty', outcome_type='SR Penalty')
+        received_penalty_floor = self.cache[key].bonus_penalty_cap_floor
+        received_penalty_rate = self.cache[key].bonus_penalty_threshold
+
+        return received_bonus_cap, received_bonus_rate, received_penalty_floor, received_penalty_rate
 
     def get_batting_bonus_penalty_for_strike_rate(self, batting_strike_rate, innings_strike_rate, base_reward):
         batting_base_reward = abs(base_reward)

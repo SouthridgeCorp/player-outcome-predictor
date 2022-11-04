@@ -5,7 +5,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 
 import pandas as pd
 from simulators.utils.outcomes_calculator import bowling_outcome, batting_outcome, fielding_outcome, \
-    set_base_rewards, set_bonus_penalty
+    set_base_rewards, set_bonus_penalty, get_all_outcomes_by_ball_and_innnings
 from simulators.utils.match_state_utils import setup_data_labels, initialise_match_state, \
     setup_data_labels_with_training, add_missing_columns, calculate_ball_by_ball_stats
 from simulators.utils.utils import aggregate_base_rewards
@@ -57,23 +57,14 @@ class PerfectSimulator:
         :return: pd.DataFrame listing bowling outcomes for each ball in each innings in training/testing matches for
         selected tournaments
         """
-        logging.info("Getting Innings data")
-        innings_df = self.data_selection.get_innings_for_selected_matches(is_testing)
-        index_columns = ['match_key', 'inning', 'over', 'ball']
-        extra_columns = ['batter_runs', 'extras', 'total_runs', 'non_boundary', 'is_wicket', 'dismissal_kind',
-                         'is_direct_runout', 'byes', 'legbyes', 'noballs', 'penalty', 'wides', 'player_dismissed',
-                         'bowler', 'batter', 'fielder', 'non_striker', 'batting_team', 'bowling_team']
+        bowling_outcomes_df = get_all_outcomes_by_ball_and_innnings(self.data_selection, is_testing)
 
-        bowling_outcomes_df = innings_df.filter(index_columns + extra_columns, axis=1)
+        bowling_outcomes_df.drop('batter_outcome_index', axis=1, inplace=True)
 
-        logging.info("Applying outcomes")
-        bowling_outcomes_df['bowling_outcome_index'] = innings_df.apply(lambda x: bowling_outcome(x), axis=1)
-        bowling_outcomes_df = self.data_selection.merge_with_players(bowling_outcomes_df, 'bowler', source_left=True)
-        bowling_outcomes_df.set_index(index_columns, inplace=True, verify_integrity=True)
-        bowling_outcomes_df = bowling_outcomes_df.sort_values(index_columns)
+        bowling_outcomes_df.drop('non_striker_outcome_index', axis=1, inplace=True)
 
-        bowling_outcomes_df.drop('name', axis=1, inplace=True)
-        logging.info("DONE WITH BOWLING INFO")
+        bowling_outcomes_df.drop('fielding_outcome_index', axis=1, inplace=True)
+
         return bowling_outcomes_df
 
     def get_match_state_by_ball_and_innings(self,
@@ -146,8 +137,7 @@ class PerfectSimulator:
         match_state_df = calculate_ball_by_ball_stats(match_state_df, index_columns)
         return match_state_df
 
-    def get_batting_outcomes_by_ball_and_innings(self,
-                                                 is_testing: bool, bowling_df_ref=None) -> pd.DataFrame:
+    def get_batting_outcomes_by_ball_and_innings(self, is_testing: bool) -> pd.DataFrame:
         """
         Returns a dataframe representing mutually exclusive outcomes for a batter, composed of
         - [0, 1-b, 2-b, 3-b, 4-b, 5-b, 6-b, W, E]
@@ -166,21 +156,18 @@ class PerfectSimulator:
         :return: pd.DataFrame listing batting outcomes for each ball in each innings in training/testing matches for
         selected tournaments
         """
-        if bowling_df_ref is not None:
-            df = bowling_df_ref.copy()
-        else:
-            df = self.get_bowling_outcomes_by_ball_and_innings(is_testing)
 
-        df['batter_outcome_index'], df['non_striker_outcome_index'] = zip(
-            *df.apply(lambda x: batting_outcome(x), axis=1))
+        df = get_all_outcomes_by_ball_and_innnings(self.data_selection, is_testing)
 
         df.drop('bowler', axis=1, inplace=True)
         df.drop('bowling_outcome_index', axis=1, inplace=True)
 
+        df.drop('fielder', axis=1, inplace=True)
+        df.drop('fielding_outcome_index', axis=1, inplace=True)
+
         return df
 
-    def get_fielding_outcomes_by_ball_and_innings(self,
-                                                  is_testing: bool, bowling_df_ref=None) -> pd.DataFrame:
+    def get_fielding_outcomes_by_ball_and_innings(self, is_testing: bool) -> pd.DataFrame:
         """
         Returns a dataframe representing mutually exclusive outcomes for a fielder, composed of
             - [w-c,w-s,w-dro,w-idro,nfo]
@@ -198,21 +185,20 @@ class PerfectSimulator:
         :return: pd.DataFrame listing fielding outcomes for each ball in each innings in training/testing matches for
         selected tournaments
         """
-
-        if bowling_df_ref is not None:
-            df = bowling_df_ref.copy()
-        else:
-            df = self.get_bowling_outcomes_by_ball_and_innings(is_testing)
-
-        df['fielding_outcome_index'] = df.apply(lambda x: fielding_outcome(x), axis=1)
+        df = get_all_outcomes_by_ball_and_innnings(self.data_selection, is_testing)
 
         df.drop('bowler', axis=1, inplace=True)
         df.drop('bowling_outcome_index', axis=1, inplace=True)
 
+        df.drop('batter', axis=1, inplace=True)
+        df.drop('batter_outcome_index', axis=1, inplace=True)
+
+        df.drop('non_striker', axis=1, inplace=True)
+        df.drop('non_striker_outcome_index', axis=1, inplace=True)
+
         return df
 
-    def get_outcomes_by_ball_and_innings(self,
-                                         is_testing: bool) -> pd.DataFrame:
+    def get_outcomes_by_ball_and_innings(self, is_testing: bool) -> pd.DataFrame:
         """Returns a dataframe representing all outcomes at a ball and innings level for the train/test dataset
         df schema:
             index: [match_key, innings, over_number, ball_number]
@@ -227,17 +213,7 @@ class PerfectSimulator:
         See `outcomes_by_ball_and_innings` subgraph of the computational model
         :param is_testing: Set True if testing data is needed, else set False
         :return: pd.DataFrame as above"""
-        logging.info("Getting bowling outcomes")
-        bowling_df = self.get_bowling_outcomes_by_ball_and_innings(is_testing)
-        logging.info("Getting batting outcomes")
-        batting_df = self.get_batting_outcomes_by_ball_and_innings(is_testing, bowling_df)
-        logging.info("Getting fielding outcomes")
-        fielding_df = self.get_fielding_outcomes_by_ball_and_innings(is_testing, bowling_df)
-
-        df = pd.merge(pd.merge(bowling_df,
-                               batting_df[['batter_outcome_index', 'non_striker_outcome_index']], left_index=True,
-                               right_index=True),
-                      fielding_df[['fielding_outcome_index']], left_index=True, right_index=True)
+        df = get_all_outcomes_by_ball_and_innnings(self.data_selection, is_testing)
         return df
 
     def get_outcomes_by_player_and_innings(self,
@@ -262,7 +238,6 @@ class PerfectSimulator:
         logging.info("DONE Getting innings basic info")
         innings_df = pd.merge(innings_df, matches_df[['key', 'tournament_key', 'stage']],
                               left_on='match_key', right_on='key')
-
 
         logging.info("Building batter list")
         outcomes_list = []
@@ -298,6 +273,7 @@ class PerfectSimulator:
 
         outcomes_df = pd.merge(outcomes_df, matches_df[['key', 'tournament_key', 'stage']],
                                left_on='match_key', right_on='key')
+        outcomes_df.drop('key', axis=1, inplace=True)
 
         outcomes_df.set_index(index_columns, inplace=True, verify_integrity=True)
         outcomes_df = outcomes_df.sort_values(index_columns)

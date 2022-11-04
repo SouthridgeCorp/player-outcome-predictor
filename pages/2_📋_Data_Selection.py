@@ -86,11 +86,11 @@ def app():
     with st.expander("Expand to see the list"):
         st.dataframe(tournaments.df, use_container_width=True)
 
-    st.header("Player Universe Selected")
-    with st.expander("Expand to see the player universe"):
-        pu = data_selection.get_frequent_players_universe()
-        if pu.empty:
-            st.write("Please select the target tournaments before calculating the player universe")
-        else:
-            st.dataframe(pu, use_container_width=True)
+    #st.header("Player Universe Selected")
+    #with st.expander("Expand to see the player universe"):
+        #pu = data_selection.get_frequent_players_universe()
+        #if pu.empty:
+         #   st.write("Please select the target tournaments before calculating the player universe")
+        #else:
+         #   st.dataframe(pu, use_container_width=True)
 app()

@@ -1,11 +1,9 @@
 import streamlit as st
 
-from utils.config_utils import create_utils_object
 import utils.page_utils as page_utils
 from simulators.perfect_simulator import Granularity, PerfectSimulator
 from utils.app_utils import data_selection_instance, rewards_instance
-import os
-import pandas as pd
+
 
 
 def data_selection_summary(tournaments):
@@ -29,7 +27,7 @@ def data_selection_summary(tournaments):
 
 
 @st.cache
-def get_perfect_simulator_data(perfect_simulator, granularity):
+def get_perfect_simulator_data(perfect_simulator, granularity, rewards_config):
     return perfect_simulator.get_simulation_evaluation_metrics_by_granularity(True, granularity)
 
 
@@ -53,7 +51,7 @@ def app():
 
         evaluation_column, top_players_column = st.columns(2)
         with st.spinner("Calculating Simulation Metrics.."):
-            perfect_simulator_df = get_perfect_simulator_data(perfect_simulator, granularity)
+            perfect_simulator_df = get_perfect_simulator_data(perfect_simulator, granularity, rewards)
 
         with st.spinner('Calculating Error Measures'):
             errors_df = perfect_simulator.get_error_measures(True, perfect_simulator_df, granularity,

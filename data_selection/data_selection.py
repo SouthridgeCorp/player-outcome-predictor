@@ -96,8 +96,8 @@ class DataSelection:
         for tournament in self.historical_data_helper.tournaments.get_selected_tournaments():
             matches = self.historical_data_helper.tournaments.matches(tournament)
             match_keys = matches.get_selected_match_keys(start_date, end_date)
-            for key in match_keys:
-                innings_list.append(self.historical_data_helper.tournaments.innings(tournament).get_innings(key))
+            innings_list.append(self.historical_data_helper.tournaments.innings(tournament).
+                                get_innings_from_match_list(match_keys))
 
         innings_df = pd.concat(innings_list)
 
