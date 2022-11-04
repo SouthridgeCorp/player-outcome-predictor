@@ -3,6 +3,7 @@ import pytest
 from test.data_selection.conftest import prepare_for_tests, setup_training_and_testing
 import pandas as pd
 
+
 @pytest.mark.parametrize(
     'test_case',
     get_test_cases('app_config', 'TestPerfectSimulator'),
@@ -66,6 +67,7 @@ class TestPerfectSimulator:
             outcome_index = TestPerfectSimulator.get_bowler_penalty_for_runs(row)
 
         return outcome_index
+
     @pytest.mark.parametrize('is_testing', [True, False])
     def test_get_bowling_outcomes_by_ball_and_innings(self, perfect_simulator, setup_and_teardown, is_testing):
         prepare_for_tests(perfect_simulator.data_selection, is_testing)
@@ -81,8 +83,6 @@ class TestPerfectSimulator:
     @pytest.mark.parametrize('is_testing', [True, False])
     def test_get_match_state_by_ball_and_innings(self, perfect_simulator, setup_and_teardown, is_testing):
         setup_training_and_testing(perfect_simulator.data_selection, is_testing)
-        innings_df = perfect_simulator.data_selection.get_innings_for_selected_matches(is_testing)
-        matches_df = perfect_simulator.data_selection.get_selected_matches(is_testing)
 
         match_state_df = perfect_simulator.get_match_state_by_ball_and_innings(is_testing)
         player_universe_df = perfect_simulator.data_selection.get_frequent_players_universe()
@@ -90,11 +90,6 @@ class TestPerfectSimulator:
         player_ids = player_universe_df[player_universe_df['featured_player'] == True].index.tolist()
 
         columns = list(match_state_df.columns.values)
-
-        # Verify count of batter_* columns per team
-        team1_list = list(matches_df['team1'])
-        team2_list = list(matches_df['team2'])
-        teams_set = set(team1_list + team2_list)
 
         venue_set = set(perfect_simulator.data_selection.get_selected_venues(is_testing=False))
         batter_column_count = 0
@@ -159,7 +154,7 @@ class TestPerfectSimulator:
                     assert team2_wickets == 9
 
     def bowling_to_batting_outcomes_converter(df, innings_df):
-        df['batting_outcome_index_expected']= df.apply(
+        df['batting_outcome_index_expected'] = df.apply(
             lambda x: TestPerfectSimulator.convert_bowling_to_batting_df(x, innings_df), axis=1)
 
     def convert_bowling_to_batting_df(row, innings_df):
@@ -167,7 +162,7 @@ class TestPerfectSimulator:
         index = row.name
         batter = row['batter']
         dismissed = innings_df.loc(axis=0)[index]['player_dismissed']
-        batting_outcome_index ="0"
+        batting_outcome_index = "0"
         if bowling_outcome_index.startswith("W"):
             if dismissed == batter:
                 batting_outcome_index = "W"
@@ -251,7 +246,8 @@ class TestPerfectSimulator:
 
         df = perfect_simulator.get_outcomes_by_ball_and_innings(is_testing)
 
-        expected_columns = ['batter_runs', 'extras', 'total_runs', 'non_boundary', 'is_wicket', 'dismissal_kind',
+        expected_columns = ['batter', 'batting_team', 'batter_runs', 'extras', 'total_runs', 'non_boundary',
+                            'is_wicket', 'dismissal_kind', 'bowling_team', 'fielder',
                             'is_direct_runout', 'byes', 'legbyes', 'noballs', 'penalty', 'wides', 'player_dismissed',
                             'bowler', 'non_striker', 'bowling_outcome_index', 'batter_outcome_index',
                             'non_striker_outcome_index', 'fielding_outcome_index']
@@ -259,7 +255,7 @@ class TestPerfectSimulator:
         received_columns = df.columns.values.tolist()
         received_columns.sort()
 
-        assert expected_columns == received_columns
+        assert expected_columns == received_columns, f"Expected: {expected_columns}\nReceived: {received_columns}"
 
     def test_get_outcomes_by_player_and_innings(self, perfect_simulator, setup_and_teardown):
         is_testing = False
@@ -267,12 +263,14 @@ class TestPerfectSimulator:
 
         df = perfect_simulator.get_outcomes_by_player_and_innings(is_testing)
 
-        expected_columns = ['strike_rate', 'economy_rate', 'wickets_taken']
+        expected_columns = ['batting_total_runs', 'economy_rate', 'number_of_overs', 'stage', 'strike_rate',
+                            'total_balls', 'total_runs', 'tournament_key', 'wickets_taken']
+
         expected_columns.sort()
         received_columns = df.columns.values.tolist()
         received_columns.sort()
 
-        assert expected_columns == received_columns
+        assert expected_columns == received_columns, f"Expected: {expected_columns}\nReceived: {received_columns}"
 
         strike_rate_df = df[(df["strike_rate"].notna())]
 
@@ -284,8 +282,7 @@ class TestPerfectSimulator:
         assert economy_rate_df['strike_rate'].isna().unique().tolist() == [True]
         assert economy_rate_df['wickets_taken'].isna().unique().tolist() == [False]
 
-
-        assert expected_columns == received_columns
+        assert expected_columns == received_columns, f"Expected: {expected_columns}\nReceived: {received_columns}"
 
     @pytest.mark.parametrize('is_testing', [True, False])
     def test_get_outcomes_by_team_and_innings(self, perfect_simulator, is_testing):
@@ -293,12 +290,13 @@ class TestPerfectSimulator:
 
         df = perfect_simulator.get_outcomes_by_team_and_innings(is_testing)
 
-        expected_columns = ["economy_rate", "strike_rate"]
+        expected_columns = ['inning_batting_total_runs', 'inning_economy_rate', 'inning_number_of_overs',
+                            'inning_strike_rate', 'inning_total_balls', 'inning_total_runs']
         expected_columns.sort()
         received_columns = df.columns.values.tolist()
         received_columns.sort()
 
-        assert expected_columns == received_columns
+        assert expected_columns == received_columns, f"Expected: {expected_columns}\nReceived: {received_columns}"
 
     def get_expected_batting_rewards(self, batting_outcome):
         expected_base_reward = 0
@@ -384,7 +382,50 @@ class TestPerfectSimulator:
             received_fielding_reward = row['fielding_base_rewards']
             assert expected_fielding_reward == received_fielding_reward, f"Input: {row}"
 
-
         non_striker_df = base_rewards_df[(base_rewards_df["player_dismissed"].notna())
                                          & (base_rewards_df["player_dismissed"] == base_rewards_df['non_striker'])]
         assert non_striker_df['non_striker_base_rewards'].unique().tolist() == [-5]
+
+        for index, row in bonus_penalty_df:
+            print ('hello')
+
+    @pytest.mark.parametrize('is_testing', [True, False])
+    @pytest.mark.parametrize('granularity, expected_columns',
+                             [('tournament', ['player_key', 'tournament_key', 'bowling_rewards',
+                                              'batting_rewards', 'fielding_rewards',
+                                              'total_rewards']),
+                              ('tournament_stage', ['player_key', 'tournament_key', 'stage', 'bowling_rewards',
+                                                    'batting_rewards', 'fielding_rewards', 'total_rewards']),
+                              ('match', ['player_key', 'tournament_key', 'stage', 'match_key', 'bowling_rewards',
+                                         'batting_rewards', 'fielding_rewards', 'total_rewards']),
+                              ('innings', ['player_key', 'tournament_key', 'stage', 'match_key', 'inning',
+                                           'bowling_rewards', 'batting_rewards', 'fielding_rewards', 'total_rewards'])])
+    def test_get_simulation_evaluation_metrics_by_granularity(self, perfect_simulator, is_testing, granularity,
+                                                              expected_columns):
+
+        prepare_for_tests(perfect_simulator.data_selection, is_testing)
+        rewards_df = perfect_simulator.get_simulation_evaluation_metrics_by_granularity(is_testing, granularity)
+
+        rewards_df = rewards_df.reset_index()
+        received_columns = rewards_df.columns.values.tolist()
+        received_columns.sort()
+
+        expected_columns.sort()
+
+        assert (expected_columns == received_columns)
+
+
+    @pytest.mark.parametrize('is_testing', [True, False])
+    @pytest.mark.parametrize('granularity', ['tournament', 'tournament_stage', 'match', 'innings'])
+    def test_get_error_measures(self, perfect_simulator, is_testing, granularity):
+
+        prepare_for_tests(perfect_simulator.data_selection, is_testing)
+        rewards_df = perfect_simulator.get_simulation_evaluation_metrics_by_granularity(is_testing, granularity)
+
+        error_df = perfect_simulator.get_error_measures(is_testing, rewards_df, granularity)
+
+        columns_to_compare = ['batting_rewards', 'bowling_rewards', 'fielding_rewards', 'total_rewards']
+
+        for column in columns_to_compare:
+            assert error_df[f'{column}_mean_absolute_error'].unique() == 0.0
+            assert error_df[f'{column}_mean_absolute_percentage_error'].unique() == 0.0

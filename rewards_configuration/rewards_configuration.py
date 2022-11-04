@@ -255,6 +255,71 @@ class RewardsConfiguration:
         wicket_label = self.get_label_for_wickets(wicket)
         return bowling_rewards_df[bowling_rewards_df['outcome_index'] == wicket_label].iloc[0][1]
 
+    def get_bowling_bonus_penalty_for_economy_rate(self, bowler_economy_rate, inning_economy_rate, base_reward):
+        bowler_base_reward = abs(base_reward)
+        bowler_bonus = 0.0
+        bowler_penalty = 0.0
+        bowling_bonus_df = self.get_bowling_bonus()
+        bowling_penalty_df = self.get_bowling_penalties()
+
+        bonus_cap = float(bowling_bonus_df.iloc[0][self.BONUS_PENALTY_CAP_FLOOR_COLUMN].strip('%')) / 100
+        bonus_rate = float(bowling_bonus_df.iloc[0][self.BONUS_PENALTY_THRESHOLD_COLUMN].strip('%')) / 100
+
+        penalty_floor = float(bowling_penalty_df.iloc[0][self.BONUS_PENALTY_CAP_FLOOR_COLUMN].strip('%')) / 100
+        penalty_rate = float(bowling_penalty_df.iloc[0][self.BONUS_PENALTY_THRESHOLD_COLUMN].strip('%')) / 100
+        if bowler_economy_rate < (inning_economy_rate * bonus_rate):
+            bowler_bonus = max(0, (bonus_rate - bowler_economy_rate / inning_economy_rate)) * bowler_base_reward
+            bowler_bonus = min(bowler_bonus, bonus_cap * bowler_base_reward)
+        elif bowler_economy_rate > (inning_economy_rate * penalty_rate):
+            bowler_penalty = abs(min(0, (penalty_rate - bowler_economy_rate / inning_economy_rate))
+                                 * bowler_base_reward)
+            bowler_penalty = min(bowler_penalty, penalty_floor * bowler_base_reward)
+        return bowler_bonus, bowler_penalty
+
+    def get_batting_bonus_penalty_for_strike_rate(self, batting_strike_rate, innings_strike_rate, base_reward):
+        batting_base_reward = abs(base_reward)
+        batting_bonus = 0.0
+        batting_penalty = 0.0
+        batting_bonus_df = self.get_batting_bonus()
+        batting_penalty_df = self.get_batting_penalties()
+
+        bonus_cap = float(batting_bonus_df.iloc[0][self.BONUS_PENALTY_CAP_FLOOR_COLUMN].strip('%')) / 100
+        bonus_rate = float(batting_bonus_df.iloc[0][self.BONUS_PENALTY_THRESHOLD_COLUMN].strip('%')) / 100
+
+        penalty_floor = float(batting_penalty_df.iloc[0][self.BONUS_PENALTY_CAP_FLOOR_COLUMN].strip('%')) / 100
+        penalty_rate = float(batting_penalty_df.iloc[0][self.BONUS_PENALTY_THRESHOLD_COLUMN].strip('%')) / 100
+
+        if batting_strike_rate > (innings_strike_rate * bonus_rate):
+            batting_bonus = max(0, (batting_strike_rate / innings_strike_rate) - bonus_rate) * batting_base_reward
+            batting_bonus = min(batting_bonus, bonus_cap * batting_base_reward)
+        elif batting_strike_rate < (innings_strike_rate * penalty_rate):
+            batting_penalty = abs(min(0, (batting_strike_rate / innings_strike_rate) - penalty_rate)
+                                 * batting_base_reward)
+            batting_penalty = min(batting_penalty, penalty_floor * batting_base_reward)
+        return batting_bonus, batting_penalty
+
+
+    def get_batting_bonus_penalty_for_economy_rate(self, bowler_economy_rate, inning_economy_rate, bowler_base_reward):
+        bowler_bonus = 0.0
+        bowler_penalty = 0.0
+        bowling_bonus_df = self.get_bowling_bonus()
+        bowling_penalty_df = self.get_bowling_penalties()
+
+        bonus_cap = float(bowling_bonus_df.iloc[0][self.BONUS_PENALTY_CAP_FLOOR_COLUMN].strip('%')) / 100
+        bonus_rate = float(bowling_bonus_df.iloc[0][self.BONUS_PENALTY_THRESHOLD_COLUMN].strip('%')) / 100
+
+        penalty_floor = float(bowling_penalty_df.iloc[0][self.BONUS_PENALTY_CAP_FLOOR_COLUMN].strip('%')) / 100
+        penalty_rate = float(bowling_penalty_df.iloc[0][self.BONUS_PENALTY_THRESHOLD_COLUMN].strip('%')) / 100
+        if bowler_economy_rate < (inning_economy_rate * bonus_rate):
+            bowler_bonus = max(0, (bonus_rate - bowler_economy_rate / inning_economy_rate)) * bowler_base_reward
+            if bowler_bonus > bonus_cap * bowler_base_reward:
+                bowler_bonus = bonus_cap * bowler_base_reward
+        elif bowler_economy_rate > (inning_economy_rate * penalty_rate):
+            bowler_penalty = min(0, (bowler_economy_rate / inning_economy_rate - penalty_rate)) * bowler_base_reward
+            if bowler_penalty < penalty_floor * bowler_base_reward:
+                bowler_penalty = penalty_floor * bowler_base_reward
+
+        return bowler_bonus, bowler_penalty
 
 
 def get_rewards(static_data_config: ConfigUtils) -> RewardsConfiguration:

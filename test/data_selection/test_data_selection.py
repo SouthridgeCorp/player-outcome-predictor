@@ -51,10 +51,14 @@ class TestDataSelection:
         expected_columns = ['match_key', 'inning', 'over', 'ball', 'batting_team', 'batter', 'bowler', 'non_striker',
                             'batter_runs', 'extras', 'total_runs', 'non_boundary', 'is_wicket', 'dismissal_kind',
                             'player_dismissed', 'fielder', 'is_direct_runout', 'byes', 'legbyes', 'noballs', 'penalty',
-                            'wides']
+                            'wides', 'team1', 'team2', 'bowling_team']
+        expected_columns.sort()
+
+        received_columns = innings.columns.values.tolist()
+        received_columns.sort()
         assert len(innings) == 11123
-        assert innings.columns.values.tolist() == expected_columns, \
-            f"Received columns {innings.columns.tolist()}; expected {expected_columns}"
+        assert received_columns == expected_columns, \
+            f"Received columns {received_columns}; expected {expected_columns}"
 
     def test_player_universe(self, setup_and_teardown, data_selection_instance: DataSelection):
         test_case, config_instance = setup_and_teardown
@@ -77,7 +81,7 @@ class TestDataSelection:
                         team_set.add(team1)
                         team_set.add(team2)
 
-        expected_columns = ["name", "player_key", "featured_player", "best_rank"]
+        expected_columns = ["name", "featured_player", "best_rank"]
         for team in team_set:
             expected_columns.append(f"{team}_num_matches_played")
             expected_columns.append(f"{team}_num_matches_played_rank")
@@ -86,13 +90,11 @@ class TestDataSelection:
         received_columns = list(df.columns.values)
         received_columns.sort()
         assert received_columns == expected_columns, \
-            f"Received columns {df.columns.tolist()}; expected {expected_columns}"
+            f"Received columns {received_columns}; expected {expected_columns}"
 
         baseline_file = test_case['baseline_file']
         expected_df = pd.read_csv(baseline_file)
-        expected_df.set_index("player_key")
-        expected_df = expected_df.astype(str)
-        df = df.astype(str)
+        expected_df.set_index("player_key", inplace=True)
 
         for column in expected_columns:
             pd.testing.assert_series_equal(df[column], expected_df[column])

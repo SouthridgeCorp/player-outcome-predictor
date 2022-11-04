@@ -151,7 +151,6 @@ class DataSelection:
             return pd.DataFrame
 
         df = pd.DataFrame(player_list)
-        df.set_index('player_key')
 
         # Rank the columns
         columns = []

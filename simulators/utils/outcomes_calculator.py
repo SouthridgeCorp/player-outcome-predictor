@@ -77,6 +77,7 @@ def bowling_outcome(row):
 
     return outcome_index.rstrip(",")
 
+
 def set_bowling_base_rewards(row, rewards_configuration: RewardsConfiguration):
     total_runs = row["total_runs"]
     wides = row["wides"]
@@ -142,6 +143,7 @@ def fielding_outcome(row):
 
     return fielder_outcome_index
 
+
 def set_fielding_outcome(row, rewards_configuration: RewardsConfiguration):
     is_wicket = row["is_wicket"]
     dismissal_kind = row["dismissal_kind"]
@@ -153,7 +155,7 @@ def set_fielding_outcome(row, rewards_configuration: RewardsConfiguration):
     if pd.notna(fielder):
         if is_wicket == 1:
             if dismissal_kind == "stumped":
-                fielder_reward = rewards_configuration.\
+                fielder_reward = rewards_configuration. \
                     get_fielding_base_rewards_for_dismissal(RewardsConfiguration.FIELDING_STUMP)
             elif dismissal_kind == "caught":
                 fielder_reward = rewards_configuration. \
@@ -168,6 +170,7 @@ def set_fielding_outcome(row, rewards_configuration: RewardsConfiguration):
     return fielder_reward
 
     return fielder_outcome_index
+
 
 def set_batting_base_rewards(row, rewards_configuration: RewardsConfiguration):
     batter_runs = row["batter_runs"]
@@ -189,11 +192,59 @@ def set_batting_base_rewards(row, rewards_configuration: RewardsConfiguration):
 
     return batter_rewards, non_striker_rewards
 
-def set_bowling_bonus_wickets(row, rewards_configuration: RewardsConfiguration):
-    bowling_bonus_wickets = 0
 
+def set_base_rewards(row, rewards_configuration):
+    batter_rewards, non_striker_rewards = set_batting_base_rewards(row, rewards_configuration)
+    bowling_rewards = set_bowling_base_rewards(row, rewards_configuration)
+    fielding_rewards = set_fielding_outcome(row, rewards_configuration)
+
+    return batter_rewards, non_striker_rewards, bowling_rewards, fielding_rewards
+
+
+def set_bonus_penalty(row, rewards_configuration: RewardsConfiguration, team_stats_df):
+    bowling_bonus_wickets = 0.0
+    bowler_bonus = 0.0
+    bowler_penalty = 0.0
+    batting_bonus = 0.0
+    batting_penalty = 0.0
+
+    match_key = row.name[0]
+    inning = row.name[1]
+    team = row.name[2]
+
+    team_stats = team_stats_df.loc[(match_key, inning, team)]
     wickets_taken = row['wickets_taken']
     if pd.notna(wickets_taken) and wickets_taken > 0:
-        bowling_bonus_wickets = rewards_configuration.get_bowling_rewards_for_wickets(wickets_taken)
+        bowling_bonus_wickets = rewards_configuration.get_bowling_rewards_for_wickets(int(wickets_taken))
 
-    return bowling_bonus_wickets
+    bowling_base_rewards = row['bowling_base_rewards']
+    player_economy_rate = row['economy_rate']
+    player_total_overs = row['number_of_overs']
+    player_total_runs = row['total_runs']
+
+    if pd.notna(player_economy_rate):
+        innings_number_of_overs = team_stats['inning_number_of_overs']
+        inning_total_runs = team_stats['inning_total_runs']
+        inning_economy_rate = (inning_total_runs - player_total_runs) / (innings_number_of_overs - player_total_overs)
+        bowler_bonus, bowler_penalty = rewards_configuration.get_bowling_bonus_penalty_for_economy_rate(
+            player_economy_rate, inning_economy_rate, bowling_base_rewards)
+
+    player_strike_rate = row['strike_rate']
+    player_batting_runs = row['batting_total_runs']
+    player_total_balls = row['total_balls']
+    batting_base_rewards = row['batter_base_rewards']
+
+    if pd.notna(player_strike_rate):
+        inning_total_balls = team_stats['inning_total_balls']
+        inning_batting_runs = team_stats['inning_batting_total_runs']
+        inning_strike_rate = 100 * (inning_batting_runs - player_batting_runs) / \
+                             (inning_total_balls - player_total_balls)
+        batting_bonus, batting_penalty = rewards_configuration.get_batting_bonus_penalty_for_strike_rate(
+            player_strike_rate, inning_strike_rate, batting_base_rewards)
+
+    bowling_rewards = bowling_base_rewards + bowling_bonus_wickets + bowler_bonus - bowler_penalty
+    batting_rewards = batting_base_rewards + batting_bonus - batting_penalty
+    fielding_rewards = row['fielding_base_rewards']
+
+    return bowling_bonus_wickets, bowler_bonus, bowler_penalty, batting_bonus, batting_penalty, \
+           bowling_rewards, batting_rewards, fielding_rewards

@@ -125,7 +125,7 @@ def calculate_ball_by_ball_stats(match_state_df, index_columns):
             lambda x: total_runs_scored - x['current_total'] if x['inning'] == 2 else 0, axis=1)
         grouped_df = pd.concat([grouped_df, g_df])
 
-    grouped_df.set_index(index_columns, inplace=True)
+    grouped_df.set_index(index_columns, inplace=True, verify_integrity = True)
     grouped_df = grouped_df.sort_values(index_columns)
 
     match_state_df = pd.merge(match_state_df, grouped_df['runs_to_target'], left_index=True, right_index=True)
