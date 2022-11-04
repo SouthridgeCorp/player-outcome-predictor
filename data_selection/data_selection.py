@@ -36,6 +36,9 @@ class DataSelection:
                  historical_data_helper: Helper):
         self.historical_data_helper = historical_data_helper
 
+    def get_helper(self):
+        return self.historical_data_helper
+
     def get_selected_matches(self, is_testing: bool) -> pd.DataFrame:
         """
         Get all matches from selected tournaments filtered for is_testing

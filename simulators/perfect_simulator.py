@@ -5,9 +5,14 @@ from simulators.utils.outcomes_calculator import bowling_outcome, batting_outcom
     set_base_rewards, set_bonus_penalty
 from simulators.utils.match_state_utils import setup_data_labels, initialise_match_state, \
     setup_data_labels_with_training, add_missing_columns, calculate_ball_by_ball_stats
-from simulators.utils.utils import aggregate_base_rewards, get_index_columns
+from simulators.utils.utils import aggregate_base_rewards
 from sklearn.metrics import mean_absolute_error as mae, mean_absolute_percentage_error as mape
 
+class Granularity:
+    TOURNAMENT = "tournament"
+    STAGE = "stage"
+    MATCH = "match"
+    INNING = "inning"
 
 class PerfectSimulator:
 
@@ -415,10 +420,9 @@ class PerfectSimulator:
         rewards_df = pd.DataFrame()
 
         for g, g_df in bonus_penalty_df.groupby(group_by_columns):
-            input_dict = {}
-            input_dict['bowling_rewards'] = g_df['bowling_rewards'].sum()
-            input_dict['batting_rewards'] = g_df['batting_rewards'].sum()
-            input_dict['fielding_rewards'] = g_df['fielding_rewards'].sum()
+            input_dict = {'bowling_rewards': g_df['bowling_rewards'].sum(),
+                          'batting_rewards': g_df['batting_rewards'].sum(),
+                          'fielding_rewards': g_df['fielding_rewards'].sum()}
             input_dict['total_rewards'] = input_dict['bowling_rewards'] + input_dict['batting_rewards'] \
                                           + input_dict['fielding_rewards']
             i = 0
@@ -465,3 +469,16 @@ class PerfectSimulator:
                                                                                             received_column)
 
         return perfect_simulator_rewards_df
+
+
+def get_index_columns(granularity):
+    group_by_columns = ['player_key', 'tournament_key']
+
+    if granularity == Granularity.INNING:
+        group_by_columns = group_by_columns + ['stage', 'match_key', 'inning']
+    elif granularity == Granularity.MATCH:
+        group_by_columns = group_by_columns + ['stage', 'match_key']
+    elif granularity == Granularity.STAGE:
+        group_by_columns = group_by_columns + ['stage']
+
+    return group_by_columns

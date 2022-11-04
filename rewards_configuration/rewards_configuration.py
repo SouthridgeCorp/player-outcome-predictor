@@ -2,7 +2,6 @@ from utils.config_utils import ConfigUtils
 import pandas as pd
 import os
 import shutil
-import streamlit as st
 
 
 class RewardsConfiguration:
@@ -322,12 +321,3 @@ class RewardsConfiguration:
         return bowler_bonus, bowler_penalty
 
 
-def get_rewards(static_data_config: ConfigUtils) -> RewardsConfiguration:
-    """
-    Helper function to get a singleton instance of the rewards config. To only be used by
-    :param static_data_config: The config object to initialise the rewards config
-    :return: An instance of RewardsConfiguration
-    """
-    if 'RewardsConfig' not in st.session_state:
-        st.session_state['RewardsConfig'] = RewardsConfiguration(static_data_config)
-    return st.session_state['RewardsConfig']

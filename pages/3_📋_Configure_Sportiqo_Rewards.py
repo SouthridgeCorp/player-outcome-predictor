@@ -1,7 +1,7 @@
 import streamlit as st
 import utils.page_utils as page_utils
-import utils.config_utils
-from rewards_configuration.rewards_configuration import RewardsConfiguration, get_rewards
+from rewards_configuration.rewards_configuration import RewardsConfiguration
+from utils.app_utils import rewards_instance
 from utils.aggrid_utis import AgGridTable
 import pandas as pd
 from st_aggrid import AgGrid
@@ -98,9 +98,7 @@ def display_grid(base_rewards_function, bonus_function, penalty_function, set_re
 def app():
     page_utils.setup_page(" Configure Sportiqo Rewards ")
 
-    config_utils = utils.config_utils.create_utils_object()
-
-    rewards_config = get_rewards(config_utils)
+    rewards_config = rewards_instance()
 
     batting, bowling, fielding = st.columns(3)
 

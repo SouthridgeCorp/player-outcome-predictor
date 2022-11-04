@@ -386,7 +386,13 @@ class TestPerfectSimulator:
                                          & (base_rewards_df["player_dismissed"] == base_rewards_df['non_striker'])]
         assert non_striker_df['non_striker_base_rewards'].unique().tolist() == [-5]
 
-        for index, row in bonus_penalty_df:
+        for index, row in bonus_penalty_df.iterrows():
+            if pd.isna(row['bowling_rewards']):
+                assert pd.isna(row['bowling_base_rewards'] + row['bowling_bonus_wickets'] \
+                                            + row['bowling_bonus'] - row['bowling_penalty'])
+            else:
+                assert row['bowling_rewards'] == row['bowling_base_rewards'] + row['bowling_bonus_wickets'] \
+                                                + row['bowling_bonus'] - row['bowling_penalty']
             print ('hello')
 
     @pytest.mark.parametrize('is_testing', [True, False])

@@ -85,6 +85,13 @@ class Tournaments:
         """
         return self.selected
 
+    def get_selected_tournament_names(self) -> list:
+        """
+        Gets the list of selected tournaments
+        :return: A list of tournaments
+        """
+        return self.df[self.df["key"].isin(self.selected)]["name"].tolist()
+
     def set_selected_tournament_names(self, selected_names: list):
         """
         Set the selected tournament details based on user selection

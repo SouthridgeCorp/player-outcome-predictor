@@ -1,10 +1,75 @@
 import streamlit as st
+
+import utils.app_utils
 import utils.page_utils as page_utils
-import utils.config_utils as config_utils
+from simulators.perfect_simulator import Granularity, PerfectSimulator
+from utils.app_utils import data_selection_instance, rewards_instance
+
+def data_selection_summary(tournaments):
+    selected_tournaments, training, testing = st.columns(3)
+
+    with selected_tournaments:
+        st.subheader("Selected Tournaments:")
+        st.write(tournaments.get_selected_tournaments())
+
+    with training:
+        st.subheader("Training Details:")
+        training_start_date, training_end_date = tournaments.get_start_end_dates(False)
+        st.write(f"Start Date: {training_start_date}")
+        st.write(f"End Date: {training_end_date}")
+
+    with testing:
+        st.subheader("Testing Details:")
+        testing_start_date, testing_end_date = tournaments.get_start_end_dates(True)
+        st.write(f"Start Date: {testing_start_date}")
+        st.write(f"End Date: {testing_end_date}")
 
 def app():
+    data_selection = data_selection_instance()
+    tournaments = data_selection.get_helper().tournaments
+    rewards = rewards_instance()
 
-    page_utils.setup_page(" Configure Sportiqo Rewards ")
+    page_utils.setup_page(" Review Perfect Simulation ")
+
+    data_selection_summary(tournaments)
+
+    granularity_list = ['None', Granularity.TOURNAMENT, Granularity.STAGE, Granularity.MATCH, Granularity.INNING]
+    granularity = st.selectbox("Please select the granularity for reviewing Simulator stats", granularity_list)
+
+    if granularity == 'None':
+        st.write("Please select a valid Granularity")
+    else:
+
+        perfect_simulator = PerfectSimulator(data_selection, rewards)
+
+        evaluation_column, top_players_column = st.columns(2)
+        with st.spinner("Calculating Simulation Metrics.."):
+            perfect_simulator_df = perfect_simulator.get_simulation_evaluation_metrics_by_granularity(True, granularity)
+
+        with st.spinner('Calculating Error Measures'):
+            errors_df = perfect_simulator.get_error_measures(True, perfect_simulator_df, granularity)
+
+        with st.spinner("Calculating Top Players.."):
+            perfect_simulator_df = perfect_simulator_df.reset_index()
+            perfect_simulator_df = data_selection.merge_with_players(perfect_simulator_df, 'player_key')
+            perfect_simulator_df = perfect_simulator_df.sort_values('total_rewards', ascending=False)
+
+        with evaluation_column:
+            with st.spinner("Writing Evaluation & Error Metrics.."):
+                st.subheader('Evaluation & Error Metrics')
+                st.write(errors_df)
+
+        with top_players_column:
+            with st.spinner("Writing Top Players"):
+                st.subheader('Top 10 Players')
+                st.write(perfect_simulator_df[['player_key', 'name', 'total_rewards']])
+
+
+
+
+
+
+
     st.markdown('''
 ## Review Perfect Simulation Tab [v0.2]:
 

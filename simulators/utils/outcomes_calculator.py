@@ -143,6 +143,11 @@ def fielding_outcome(row):
 
     return fielder_outcome_index
 
+def update_fielding_outcome(df):
+    mask = (df['dismissal_kind'] == 'stumped') and (df['fielder'].notna())
+    df.loc[mask, 'new_fielding_outcome_index'] = "stumped"
+
+
 
 def set_fielding_outcome(row, rewards_configuration: RewardsConfiguration):
     is_wicket = row["is_wicket"]
