@@ -1,6 +1,9 @@
 import pandas as pd
 
-def initialise_match_state(data_selection, is_testing: bool) -> pd.DataFrame:
+# This class contains a bunch of functions which are used to calculate the dataframe in
+# get_match_state_by_ball_and_innings()
+
+def initialise_match_state(data_selection, is_testing: bool) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
     innings_df = data_selection.get_innings_for_selected_matches(is_testing)
     matches_df = data_selection.get_selected_matches(is_testing)
     player_universe_df = data_selection.get_frequent_players_universe()
@@ -24,6 +27,7 @@ def initialise_match_state(data_selection, is_testing: bool) -> pd.DataFrame:
     match_state_df.drop('key', axis=1, inplace=True)
 
     return match_state_df, player_universe_df, index_columns
+
 
 def identify_featured_player(row, is_batter):
     if is_batter:
@@ -50,6 +54,7 @@ def setup_data_labels(match_state_df):
     match_state_df.drop('team1', axis=1, inplace=True)
     match_state_df.drop('team2', axis=1, inplace=True)
 
+
 def get_ball_number(row):
     ball_number = row["ball"]
     if ball_number > 6:
@@ -75,6 +80,7 @@ def identiy_bowling_team(row):
     else:
         return team1
 
+
 def setup_data_labels_with_training(data_selection, match_state_df):
     training_teams = data_selection.get_selected_teams(is_testing=False)
 
@@ -92,6 +98,7 @@ def setup_data_labels_with_training(data_selection, match_state_df):
 
     return training_teams, venues
 
+
 def calculate_labels_from_reference_data(row, column_name, output_label_suffix, not_found_suffix, reference_list):
     value_found = row[column_name]
     if value_found in reference_list:
@@ -107,6 +114,8 @@ def add_missing_columns(df, column, default_value):
 
 def calculate_ball_by_ball_stats(match_state_df, index_columns):
     grouped_df = pd.DataFrame()
+
+    # Calculate total stats at a match & innings level
     for g, g_df in match_state_df.groupby(['match_key', 'inning']):
         g_df['total_balls_bowled'] = g_df.reset_index().index
         g_df['wickets_fallen'] = g_df['is_wicket'].cumsum()
@@ -117,6 +126,7 @@ def calculate_ball_by_ball_stats(match_state_df, index_columns):
     match_state_df = pd.merge(match_state_df, grouped_df['wickets_fallen'], left_index=True, right_index=True)
     match_state_df = pd.merge(match_state_df, grouped_df['current_total'], left_index=True, right_index=True)
 
+    # Calculate runs to target
     grouped_df = pd.DataFrame()
     for g, g_df in match_state_df.groupby(['match_key']):
         g_df = g_df.reset_index()
@@ -125,7 +135,7 @@ def calculate_ball_by_ball_stats(match_state_df, index_columns):
             lambda x: total_runs_scored - x['current_total'] if x['inning'] == 2 else 0, axis=1)
         grouped_df = pd.concat([grouped_df, g_df])
 
-    grouped_df.set_index(index_columns, inplace=True, verify_integrity = True)
+    grouped_df.set_index(index_columns, inplace=True, verify_integrity=True)
     grouped_df = grouped_df.sort_values(index_columns)
 
     match_state_df = pd.merge(match_state_df, grouped_df['runs_to_target'], left_index=True, right_index=True)

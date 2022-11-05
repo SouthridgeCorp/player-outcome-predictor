@@ -368,7 +368,7 @@ class TestPerfectSimulator:
     def test_base_rewards(self, perfect_simulator, is_testing):
         prepare_for_tests(perfect_simulator.data_selection, is_testing)
 
-        base_rewards_df, bonus_penalty_df = perfect_simulator.get_rewards_components(is_testing)
+        base_rewards_df, bonus_penalty_df = perfect_simulator.get_rewards_components(is_testing, generate_labels=True)
 
         for index, row in base_rewards_df.iterrows():
             expected_batting_reward = self.get_expected_batting_rewards(row['batter_outcome_index'])

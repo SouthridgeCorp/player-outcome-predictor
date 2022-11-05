@@ -1,15 +1,16 @@
 import pandas as pd
 from rewards_configuration.rewards_configuration import RewardsConfiguration
-import logging
 
 
-def get_bowler_penalty_for_runs(row):
+def get_bowler_outcome_label_for_runs(row):
+    """
+    Calculates the bowler outcome string for runs
+    """
     total_runs = row["total_runs"]
     batter_runs = row["batter_runs"]
     extras = row["extras"]
     wides = row["wides"]
     no_ball = row["noballs"]
-    non_boundary = row["non_boundary"]
 
     outcome_index = ""
     if total_runs == 0:
@@ -32,8 +33,10 @@ def get_bowler_penalty_for_runs(row):
     return outcome_index
 
 
-def bowling_outcome(row):
-    total_runs = row["total_runs"]
+def get_bowling_outcome_label(row):
+    """
+    Calculate the bowling outcome label for a ball / innings. Labels can be 1-b, W-idro etc.
+    """
     batter_runs = row["batter_runs"]
     extras = row["extras"]
     is_wicket = row["is_wicket"]
@@ -79,7 +82,10 @@ def bowling_outcome(row):
     return outcome_index.rstrip(",")
 
 
-def set_bowling_base_rewards(row, rewards_configuration: RewardsConfiguration):
+def get_bowling_base_rewards(row, rewards_configuration: RewardsConfiguration):
+    """
+    Gets the bowling base rewards for an outcome
+    """
     total_runs = row["total_runs"]
     wides = row["wides"]
     no_ball = row["noballs"]
@@ -95,7 +101,10 @@ def set_bowling_base_rewards(row, rewards_configuration: RewardsConfiguration):
     return bowling_rewards
 
 
-def batting_outcome(row):
+def get_batting_outcome_labels(row):
+    """
+    Calculate the batting outcome label for a ball / innings. Labels can be 1-b, W etc.
+    """
     batter_runs = row["batter_runs"]
     is_wicket = row["is_wicket"]
     extras = row["extras"]
@@ -122,7 +131,10 @@ def batting_outcome(row):
     return batter_outcome_index.rstrip(","), non_striker_outcome_index
 
 
-def fielding_outcome(row):
+def get_fielding_outcome_labels(row):
+    """
+    Calculate the fielding outcome label for a ball / innings. Labels can be W-bs, W-idro etc.
+    """
     is_wicket = row["is_wicket"]
     dismissal_kind = row["dismissal_kind"]
     is_direct_runout = row["is_direct_runout"]
@@ -145,15 +157,21 @@ def fielding_outcome(row):
     return fielder_outcome_index
 
 
-def outcomes(row):
-    bowling_outcomes = bowling_outcome(row)
-    batting_outcomes, non_striker_outcomes = batting_outcome(row)
-    fielding_outcomes = fielding_outcome(row)
+def get_outcome_labels(row):
+    """
+    Get all the labels corresponding to the outcomes row
+    """
+    bowling_outcomes = get_bowling_outcome_label(row)
+    batting_outcomes, non_striker_outcomes = get_batting_outcome_labels(row)
+    fielding_outcomes = get_fielding_outcome_labels(row)
 
     return bowling_outcomes, batting_outcomes, non_striker_outcomes, fielding_outcomes
 
 
-def set_fielding_outcome(row, rewards_configuration: RewardsConfiguration):
+def get_fielding_base_rewards(row, rewards_configuration: RewardsConfiguration):
+    """
+    Gets the fielding base rewards for an outcome
+    """
     is_wicket = row["is_wicket"]
     dismissal_kind = row["dismissal_kind"]
     is_direct_runout = row["is_direct_runout"]
@@ -178,10 +196,11 @@ def set_fielding_outcome(row, rewards_configuration: RewardsConfiguration):
                         get_fielding_base_rewards_for_dismissal(RewardsConfiguration.FIELDING_DRO)
     return fielder_reward
 
-    return fielder_outcome_index
 
-
-def set_batting_base_rewards(row, rewards_configuration: RewardsConfiguration):
+def get_batting_base_rewards(row, rewards_configuration: RewardsConfiguration):
+    """
+    Gets the batting base rewards for an outcome
+    """
     batter_runs = row["batter_runs"]
     is_wicket = row["is_wicket"]
     extras = row["extras"]
@@ -202,16 +221,23 @@ def set_batting_base_rewards(row, rewards_configuration: RewardsConfiguration):
     return batter_rewards, non_striker_rewards
 
 
-def set_base_rewards(row, rewards_configuration):
-    batter_rewards, non_striker_rewards = set_batting_base_rewards(row, rewards_configuration)
+def get_base_rewards(row, rewards_configuration):
+    """
+    Get all the base rewards for the player specified by the row
+    """
+    batter_rewards, non_striker_rewards = get_batting_base_rewards(row, rewards_configuration)
 
-    bowling_rewards = set_bowling_base_rewards(row, rewards_configuration)
+    bowling_rewards = get_bowling_base_rewards(row, rewards_configuration)
 
-    fielding_rewards = set_fielding_outcome(row, rewards_configuration)
+    fielding_rewards = get_fielding_base_rewards(row, rewards_configuration)
 
     return batter_rewards, non_striker_rewards, bowling_rewards, fielding_rewards
 
-def set_bonus_penalty(row, rewards_configuration: RewardsConfiguration):
+
+def get_bonus_penalty(row, rewards_configuration: RewardsConfiguration):
+    """
+    Get all the bonus and penalty values for the player specified by the row
+    """
     bowling_bonus_wickets = 0.0
     bowler_bonus = 0.0
     bowler_penalty = 0.0
@@ -261,7 +287,9 @@ def set_bonus_penalty(row, rewards_configuration: RewardsConfiguration):
 
 
 def get_all_outcomes_by_ball_and_innnings(data_selection, is_testing, apply_labels=True):
-    logging.info("Getting Innings data")
+    """
+    Put together all the fields needed to calculate outcomes in one place, may also create outcome labels.
+    """
     innings_df = data_selection.get_innings_for_selected_matches(is_testing)
     index_columns = ['match_key', 'inning', 'over', 'ball']
     extra_columns = ['batter_runs', 'extras', 'total_runs', 'non_boundary', 'is_wicket', 'dismissal_kind',
@@ -271,15 +299,13 @@ def get_all_outcomes_by_ball_and_innnings(data_selection, is_testing, apply_labe
     outcomes_df = innings_df.filter(index_columns + extra_columns, axis=1)
 
     if apply_labels:
-        logging.info("Applying outcomes")
         outcomes_df['bowling_outcome_index'], outcomes_df['batter_outcome_index'], \
         outcomes_df['non_striker_outcome_index'], outcomes_df['fielding_outcome_index'] \
-            = zip(*innings_df.apply(lambda x: outcomes(x), axis=1))
+            = zip(*innings_df.apply(lambda x: get_outcome_labels(x), axis=1))
 
     outcomes_df = data_selection.merge_with_players(outcomes_df, 'bowler', source_left=True)
     outcomes_df.set_index(index_columns, inplace=True, verify_integrity=True)
     outcomes_df = outcomes_df.sort_values(index_columns)
 
     outcomes_df.drop('name', axis=1, inplace=True)
-    logging.info("DONE WITH BOWLING INFO")
     return outcomes_df

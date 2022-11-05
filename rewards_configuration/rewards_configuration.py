@@ -4,7 +4,12 @@ import os
 import shutil
 import functools
 
+
 class RewardsStructure:
+    """
+    Internal structure to store all rewards configuration for a single play / outcome in one place. To only be used by
+    RewardsConfiguration class
+    """
     def __init__(self, reward_amount, bonus_penalty_threshold, bonus_penalty_cap_floor):
         self.reward_amount = reward_amount
         self.bonus_penalty_threshold = float(bonus_penalty_threshold.strip('%')) / 100 \
@@ -57,7 +62,6 @@ class RewardsConfiguration:
     NO_BALL = "No ball"
     WIDE = "Wide"
 
-
     # Meta-data about columns to be used for display / slicing
     NON_EDITABLE_OUTPUT_COLUMNS = [OUTCOME_INDEX_COLUMN]
     BASE_REWARD_OUTPUT_COLUMNS = [OUTCOME_INDEX_COLUMN, REWARD_AMOUNT_COLUMN]
@@ -93,6 +97,8 @@ class RewardsConfiguration:
 
         self.cache = {}
 
+        # Build an internal cache for get_outcome_labels since it is expensive to look up the dataframe for each reward
+        # calculation
         for index, row in self.df.iterrows():
             play_type = row[RewardsConfiguration.PLAY_TYPE_COLUMN]
             reward_type = row[RewardsConfiguration.REWARD_TYPE_COLUMN]
@@ -104,8 +110,6 @@ class RewardsConfiguration:
             bonus_penalty_cap_floor = row[RewardsConfiguration.BONUS_PENALTY_CAP_FLOOR_COLUMN]
 
             self.cache[key] = RewardsStructure(reward_amount, bonus_penalty_threshold, bonus_penalty_cap_floor)
-
-
 
     def get_batting_base_rewards(self) -> pd.DataFrame:
         """
@@ -240,9 +244,14 @@ class RewardsConfiguration:
         self.get_bowling_bonus_penalty_details.cache_clear()
         self.get_batting_bonus_penalty_details.cache_clear()
 
-
     @functools.lru_cache
-    def get_fielding_base_rewards_for_dismissal(self, fielding_outcome):
+    def get_fielding_base_rewards_for_dismissal(self, fielding_outcome: str):
+        """
+        Get base rewards for the specified fielding outcome. This function is cached and must be un-cached when the
+        rewards config changes.
+        :param fielding_outcome: String, must be one of the pre-defined Fielding options defined in this class else the
+        function will error out
+        """
 
         key = self.build_cache_key(play_type='fielding', reward_type='base_reward', outcome_type=fielding_outcome)
         if key in self.cache.keys():
@@ -253,11 +262,18 @@ class RewardsConfiguration:
 
     @functools.lru_cache
     def get_batting_base_rewards_for_dismissal(self):
+        """
+        Get base rewards for the batting dismissals. This function is cached and must be un-cached when the
+        rewards config changes.
+        """
         key = self.build_cache_key(play_type='batting', reward_type='base_reward', outcome_type='Dismissal')
         received_value = self.cache[key].reward_amount
         return received_value
 
-    def get_label_for_runs(self, runs):
+    def get_label_for_runs(self, runs: int):
+        """
+        Get the text label corresponding to an int run
+        """
         label = "Dot ball"
         if runs == 1:
             label = "Single"
@@ -269,11 +285,14 @@ class RewardsConfiguration:
             label = "Four"
         elif runs == 5:
             label = "Five"
-        elif runs >= 6: # Any runs conceded > 6 treated with the same penalty / rewards
+        elif runs >= 6:  # Any runs conceded > 6 treated with the same penalty / rewards
             label = "Six"
         return label
 
-    def get_label_for_wickets(self, wickets):
+    def get_label_for_wickets(self, wickets: int):
+        """
+        Returns a text label corresponding to the wicket
+        """
         if wickets == 1:
             label = "1 Wicket"
         else:
@@ -282,6 +301,10 @@ class RewardsConfiguration:
 
     @functools.lru_cache
     def get_batting_base_rewards_for_runs(self, runs):
+        """
+        Get batting base rewards for the specified number of runs. This function is cached and must be un-cached when
+        the rewards config changes.
+        """
 
         key = self.build_cache_key(play_type='batting', reward_type='base_reward',
                                    outcome_type=self.get_label_for_runs(runs))
@@ -290,6 +313,10 @@ class RewardsConfiguration:
 
     @functools.lru_cache
     def get_bowling_base_rewards_for_runs(self, runs):
+        """
+        Get bowling base rewards for the specified number of runs. This function is cached and must be un-cached when
+        the rewards config changes.
+        """
         key = self.build_cache_key(play_type='bowling', reward_type='base_reward',
                                    outcome_type=self.get_label_for_runs(runs))
         received_value = self.cache[key].reward_amount
@@ -297,12 +324,20 @@ class RewardsConfiguration:
 
     @functools.lru_cache
     def get_bowling_base_rewards_for_extras(self, extra):
+        """
+        Get bowling base rewards for the specified extras. This function is cached and must be un-cached when
+        the rewards config changes.
+        """
         key = self.build_cache_key(play_type='bowling', reward_type='base_reward', outcome_type=extra)
         received_value = self.cache[key].reward_amount
         return received_value
 
     @functools.lru_cache
     def get_bowling_rewards_for_wickets(self, wicket):
+        """
+        Get bowling base rewards for the specified number of wickets. This function is cached and must be un-cached when
+        the rewards config changes.
+        """
         key = self.build_cache_key(play_type='bowling', reward_type='base_reward',
                                    outcome_type=self.get_label_for_wickets(wicket))
         received_value = self.cache[key].reward_amount
@@ -311,6 +346,9 @@ class RewardsConfiguration:
 
     @functools.lru_cache
     def get_bowling_bonus_penalty_details(self):
+        """
+        Get bowling bonus / penalty values from the rewards config
+        """
 
         key = self.build_cache_key(play_type='bowling', reward_type='bonus', outcome_type='ER Bonus')
         received_bonus_cap = self.cache[key].bonus_penalty_cap_floor
@@ -322,6 +360,10 @@ class RewardsConfiguration:
         return received_bonus_cap, received_bonus_rate, received_penalty_floor, received_penalty_rate
 
     def get_bowling_bonus_penalty_for_economy_rate(self, bowler_economy_rate, inning_economy_rate, base_reward):
+        """
+        Calculate the bowler bonus or penalty when comparing their ER with the innings ER
+        """
+
         bowler_base_reward = abs(base_reward)
         bowler_bonus = 0.0
         bowler_penalty = 0.0
@@ -338,6 +380,9 @@ class RewardsConfiguration:
 
     @functools.lru_cache
     def get_batting_bonus_penalty_details(self):
+        """
+        Get batting bonus / penalty values from the rewards config
+        """
 
         key = self.build_cache_key(play_type='batting', reward_type='bonus', outcome_type='SR Bonus')
         received_bonus_cap = self.cache[key].bonus_penalty_cap_floor
@@ -350,6 +395,9 @@ class RewardsConfiguration:
         return received_bonus_cap, received_bonus_rate, received_penalty_floor, received_penalty_rate
 
     def get_batting_bonus_penalty_for_strike_rate(self, batting_strike_rate, innings_strike_rate, base_reward):
+        """
+        Calculate the batter bonus or penalty when comparing their SR with the innings SR
+        """
         batting_base_reward = abs(base_reward)
         batting_bonus = 0.0
         batting_penalty = 0.0
@@ -364,8 +412,3 @@ class RewardsConfiguration:
             batting_penalty = abs(min(0, ratio - penalty_rate) * batting_base_reward)
             batting_penalty = min(batting_penalty, penalty_floor * batting_base_reward)
         return batting_bonus, batting_penalty
-
-
-
-
-
