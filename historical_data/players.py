@@ -14,6 +14,7 @@ class Players:
         Merges the player details with the source column to create a combined dataframe
         :param source_df: The dataframe to merge with
         :param source_key: The key for the source df
+        :param source_left: The direction in which the source df should be merged
         :return: The merged df
         """
         if source_left:

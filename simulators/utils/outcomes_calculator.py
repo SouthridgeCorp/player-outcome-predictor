@@ -2,6 +2,7 @@ import pandas as pd
 from rewards_configuration.rewards_configuration import RewardsConfiguration
 import logging
 
+
 def get_bowler_penalty_for_runs(row):
     total_runs = row["total_runs"]
     batter_runs = row["batter_runs"]
@@ -151,6 +152,7 @@ def outcomes(row):
 
     return bowling_outcomes, batting_outcomes, non_striker_outcomes, fielding_outcomes
 
+
 def set_fielding_outcome(row, rewards_configuration: RewardsConfiguration):
     is_wicket = row["is_wicket"]
     dismissal_kind = row["dismissal_kind"]
@@ -199,6 +201,7 @@ def set_batting_base_rewards(row, rewards_configuration: RewardsConfiguration):
 
     return batter_rewards, non_striker_rewards
 
+
 def set_base_rewards(row, rewards_configuration):
     batter_rewards, non_striker_rewards = set_batting_base_rewards(row, rewards_configuration)
 
@@ -208,8 +211,7 @@ def set_base_rewards(row, rewards_configuration):
 
     return batter_rewards, non_striker_rewards, bowling_rewards, fielding_rewards
 
-
-def set_bonus_penalty(row, rewards_configuration: RewardsConfiguration, team_stats_df):
+def set_bonus_penalty(row, rewards_configuration: RewardsConfiguration):
     bowling_bonus_wickets = 0.0
     bowler_bonus = 0.0
     bowler_penalty = 0.0
@@ -220,7 +222,6 @@ def set_bonus_penalty(row, rewards_configuration: RewardsConfiguration, team_sta
     inning = row.name[1]
     team = row.name[2]
 
-    team_stats = team_stats_df.loc[(match_key, inning, team)]
     wickets_taken = row['wickets_taken']
     if pd.notna(wickets_taken) and wickets_taken > 0:
         bowling_bonus_wickets = rewards_configuration.get_bowling_rewards_for_wickets(int(wickets_taken))
@@ -231,8 +232,8 @@ def set_bonus_penalty(row, rewards_configuration: RewardsConfiguration, team_sta
     player_total_runs = row['total_runs']
 
     if pd.notna(player_economy_rate):
-        innings_number_of_overs = team_stats['inning_number_of_overs']
-        inning_total_runs = team_stats['inning_total_runs']
+        innings_number_of_overs = row['inning_number_of_overs']
+        inning_total_runs = row['inning_total_runs']
         denominator = (innings_number_of_overs - player_total_overs)
         inning_economy_rate = (inning_total_runs - player_total_runs) / denominator if denominator != 0 else denominator
         bowler_bonus, bowler_penalty = rewards_configuration.get_bowling_bonus_penalty_for_economy_rate(
@@ -243,10 +244,9 @@ def set_bonus_penalty(row, rewards_configuration: RewardsConfiguration, team_sta
     player_total_balls = row['total_balls']
     batting_base_rewards = row['batter_base_rewards']
 
-
     if pd.notna(player_strike_rate):
-        inning_total_balls = team_stats['inning_total_balls']
-        inning_batting_runs = team_stats['inning_batting_total_runs']
+        inning_total_balls = row['inning_total_balls']
+        inning_batting_runs = row['inning_batting_total_runs']
         denominator = (inning_total_balls - player_total_balls)
         inning_strike_rate = 100 * (inning_batting_runs - player_batting_runs) / denominator if denominator != 0 else 0
         batting_bonus, batting_penalty = rewards_configuration.get_batting_bonus_penalty_for_strike_rate(
@@ -256,12 +256,11 @@ def set_bonus_penalty(row, rewards_configuration: RewardsConfiguration, team_sta
     batting_rewards = batting_base_rewards + batting_bonus - batting_penalty
     fielding_rewards = row['fielding_base_rewards']
 
-
     return bowling_bonus_wickets, bowler_bonus, bowler_penalty, batting_bonus, batting_penalty, \
            bowling_rewards, batting_rewards, fielding_rewards
 
 
-def get_all_outcomes_by_ball_and_innnings(data_selection, is_testing):
+def get_all_outcomes_by_ball_and_innnings(data_selection, is_testing, apply_labels=True):
     logging.info("Getting Innings data")
     innings_df = data_selection.get_innings_for_selected_matches(is_testing)
     index_columns = ['match_key', 'inning', 'over', 'ball']
@@ -271,10 +270,11 @@ def get_all_outcomes_by_ball_and_innnings(data_selection, is_testing):
 
     outcomes_df = innings_df.filter(index_columns + extra_columns, axis=1)
 
-    logging.info("Applying outcomes")
-    outcomes_df['bowling_outcome_index'],  outcomes_df['batter_outcome_index'], \
-    outcomes_df['non_striker_outcome_index'], outcomes_df['fielding_outcome_index'] \
-        = zip(*innings_df.apply(lambda x: outcomes(x), axis=1))
+    if apply_labels:
+        logging.info("Applying outcomes")
+        outcomes_df['bowling_outcome_index'], outcomes_df['batter_outcome_index'], \
+        outcomes_df['non_striker_outcome_index'], outcomes_df['fielding_outcome_index'] \
+            = zip(*innings_df.apply(lambda x: outcomes(x), axis=1))
 
     outcomes_df = data_selection.merge_with_players(outcomes_df, 'bowler', source_left=True)
     outcomes_df.set_index(index_columns, inplace=True, verify_integrity=True)

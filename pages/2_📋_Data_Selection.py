@@ -4,13 +4,22 @@ import streamlit as st
 from utils.app_utils import data_selection_instance
 import time
 
+
 def on_date_change(tournaments, key, is_testing):
+    """
+    Callback function to persist the value of changing dates via the slider
+    """
     start_date, end_date = st.session_state[key]
     tournaments.set_start_end_dates(start_date, end_date, is_testing=is_testing)
 
+
 def on_tournament_change(tournaments):
+    """
+    Callback function to persist the value of changing tournaments through the multi-select dropdown
+    """
     values = st.session_state.tournaments
     tournaments.set_selected_tournament_names(values)
+
 
 def set_start_end_date(is_testing, tournaments):
     """
@@ -72,8 +81,7 @@ def app():
         default_values = tournaments.get_selected_tournament_names()
         st.multiselect("Please select tournaments for training & testing", tournaments.df["name"].to_list(),
                        default=default_values, on_change=on_tournament_change, args=([tournaments])
-                       ,key="tournaments")
-
+                       , key="tournaments")
 
     with training_column:
         set_start_end_date(False, tournaments)
@@ -86,11 +94,13 @@ def app():
     with st.expander("Expand to see the list"):
         st.dataframe(tournaments.df, use_container_width=True)
 
-    #st.header("Player Universe Selected")
-    #with st.expander("Expand to see the player universe"):
-        #pu = data_selection.get_frequent_players_universe()
-        #if pu.empty:
-         #   st.write("Please select the target tournaments before calculating the player universe")
-        #else:
-         #   st.dataframe(pu, use_container_width=True)
+    # st.header("Player Universe Selected")
+    # with st.expander("Expand to see the player universe"):
+    # pu = data_selection.get_frequent_players_universe()
+    # if pu.empty:
+    #   st.write("Please select the target tournaments before calculating the player universe")
+    # else:
+    #   st.dataframe(pu, use_container_width=True)
+
+
 app()

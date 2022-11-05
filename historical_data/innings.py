@@ -21,7 +21,7 @@ class Innings:
     def get_innings_from_match_list(self, match_keys):
         """
         Return the innings (ball-by-ball) data corresponding to a match
-        :param match_key: The match key to look for
+        :param match_keys: The list of match keys to look for
         :return: A dataframe with ball-by-ball innings details for the match
         """
         return self.df[(self.df["match_key"].isin(match_keys))]

@@ -6,6 +6,10 @@ from utils.config_utils import create_utils_object, ConfigUtils
 
 
 def data_selection_instance():
+    """
+    Helper function to get a singleton instance of the data_selection config. To only be used within streamlit
+    :return: An instance of DataSelection
+    """
     if 'DataSelection' not in st.session_state:
         config_utils = create_utils_object()
         # get the helper from the singleton instance
@@ -18,8 +22,7 @@ def data_selection_instance():
 
 def rewards_instance() -> RewardsConfiguration:
     """
-    Helper function to get a singleton instance of the rewards config. To only be used by
-    :param static_data_config: The config object to initialise the rewards config
+    Helper function to get a singleton instance of the rewards config. To only be used within streamlit
     :return: An instance of RewardsConfiguration
     """
     if 'RewardsConfig' not in st.session_state:

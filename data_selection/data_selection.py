@@ -36,7 +36,11 @@ class DataSelection:
                  historical_data_helper: Helper):
         self.historical_data_helper = historical_data_helper
 
-    def get_helper(self):
+    def get_helper(self) -> Helper:
+        """
+        Returns the underlying Helper object
+        :return: Helper instance
+        """
         return self.historical_data_helper
 
     def get_selected_matches(self, is_testing: bool) -> pd.DataFrame:
@@ -61,7 +65,7 @@ class DataSelection:
         """
         Get all playing_xis from matches in selected tournaments filtered for is_testing
         :param is_testing: Set True if testing data is needed, else set False
-        :return: pd.DataFrame listing all playing_xis from matches inselected tournaments in training/testing window
+        :return: pd.DataFrame listing all playing_xis from matches in selected tournaments in training/testing window
         """
         playing_xi_list = []
         start_date, end_date = self.historical_data_helper.tournaments.get_start_end_dates(is_testing)
@@ -86,7 +90,7 @@ class DataSelection:
         """
         Get ball_by_ball pre-processed innings data from matches in selected tournaments filtered for is_testing
         :param is_testing: Set True if testing data is needed, else set False
-        :return: pd.DataFrame listing all balls in all innings from matches inselected tournaments in training/testing
+        :return: pd.DataFrame listing all balls in all innings from matches in selected tournaments in training/testing
         window
         """
 
@@ -104,7 +108,10 @@ class DataSelection:
         matches_df = self.get_selected_matches(is_testing)
         innings_df = pd.merge(innings_df, matches_df[["key", "team1", "team2"]], left_on="match_key", right_on="key")
         innings_df.drop('key', axis=1, inplace=True)
-        innings_df['bowling_team'] = innings_df.apply(lambda x: identify_bowling_team(x), axis=1)
+
+        innings_df['bowling_team'] = innings_df['team1']
+        mask = innings_df['team1'] == innings_df['batting_team']
+        innings_df.loc[mask, 'bowling_team'] = innings_df['team2']
 
         return innings_df
 
@@ -151,7 +158,7 @@ class DataSelection:
             player_list.append(player_info_dict[player_key].get_dictionary())
 
         if len(player_list) == 0:
-            return pd.DataFrame
+            return pd.DataFrame()
 
         df = pd.DataFrame(player_list)
 
@@ -170,11 +177,20 @@ class DataSelection:
 
         return df
 
-    def merge_with_players(self, source_df, key, source_left=False):
+    def merge_with_players(self, source_df: pd.DataFrame, key: str, source_left: bool = False) -> pd.DataFrame:
+        """
+        Merges the provided dataframe with the players_df
+        :param source_df The dataframe to be merged with players
+        :param key The key for the source df
+        :param source_left merge left vs right
+        :return The merged dataframe
+        """
         return self.historical_data_helper.players.merge_with_players(source_df, key, source_left)
 
-    def get_selected_teams(self, is_testing:bool) -> list:
-
+    def get_selected_teams(self, is_testing: bool) -> list:
+        """
+        Get a list of selected teams from the underlying helper
+        """
         start_date, end_date = self.historical_data_helper.tournaments.get_start_end_dates(is_testing)
         selected_teams = []
         for tournament in self.historical_data_helper.tournaments.get_selected_tournaments():
@@ -183,8 +199,10 @@ class DataSelection:
 
         return list(set(selected_teams))
 
-    def get_selected_venues(self, is_testing:bool) -> list:
-
+    def get_selected_venues(self, is_testing: bool) -> list:
+        """
+        Get a list of selected venues from the underlying helper
+        """
         start_date, end_date = self.historical_data_helper.tournaments.get_start_end_dates(is_testing)
         selected_venues = []
         for tournament in self.historical_data_helper.tournaments.get_selected_tournaments():
@@ -192,13 +210,3 @@ class DataSelection:
             selected_venues += match.get_selected_venues(start_date, end_date)
 
         return list(set(selected_venues))
-
-
-def identify_bowling_team(row):
-    team1 = row["team1"]
-    team2 = row["team2"]
-    batting_team = row["batting_team"]
-    if batting_team == team1:
-        return team2
-    else:
-        return team1

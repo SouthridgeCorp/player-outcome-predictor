@@ -60,6 +60,8 @@ class TestDataSelection:
         assert received_columns == expected_columns, \
             f"Received columns {received_columns}; expected {expected_columns}"
 
+        assert not innings['batting_team'].equals(innings['bowling_team'])
+
     def test_player_universe(self, setup_and_teardown, data_selection_instance: DataSelection):
         test_case, config_instance = setup_and_teardown
         input_dir = config_instance.get_input_directory()

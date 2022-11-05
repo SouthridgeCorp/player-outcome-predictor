@@ -1,6 +1,7 @@
-from data_selection.data_selection import DataSelection, identify_bowling_team
+from data_selection.data_selection import DataSelection
 from rewards_configuration.rewards_configuration import RewardsConfiguration
 import warnings
+
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 import pandas as pd
@@ -13,12 +14,12 @@ from sklearn.metrics import mean_absolute_error as mae, mean_absolute_percentage
 import logging
 
 
-
 class Granularity:
     TOURNAMENT = "tournament"
     STAGE = "tournament_stage"
     MATCH = "match"
     INNING = "innings"
+
 
 class PerfectSimulator:
 
@@ -198,7 +199,7 @@ class PerfectSimulator:
 
         return df
 
-    def get_outcomes_by_ball_and_innings(self, is_testing: bool) -> pd.DataFrame:
+    def get_outcomes_by_ball_and_innings(self, is_testing: bool, apply_labels=True) -> pd.DataFrame:
         """Returns a dataframe representing all outcomes at a ball and innings level for the train/test dataset
         df schema:
             index: [match_key, innings, over_number, ball_number]
@@ -213,7 +214,7 @@ class PerfectSimulator:
         See `outcomes_by_ball_and_innings` subgraph of the computational model
         :param is_testing: Set True if testing data is needed, else set False
         :return: pd.DataFrame as above"""
-        df = get_all_outcomes_by_ball_and_innnings(self.data_selection, is_testing)
+        df = get_all_outcomes_by_ball_and_innnings(self.data_selection, is_testing, apply_labels)
         return df
 
     def get_outcomes_by_player_and_innings(self,
@@ -234,7 +235,6 @@ class PerfectSimulator:
         innings_df = self.data_selection.get_innings_for_selected_matches(is_testing)
         matches_df = self.data_selection.get_selected_matches(is_testing)
 
-
         logging.info("DONE Getting innings basic info")
         innings_df = pd.merge(innings_df, matches_df[['key', 'tournament_key', 'stage']],
                               left_on='match_key', right_on='key')
@@ -249,9 +249,7 @@ class PerfectSimulator:
                                   'player_key': g[3], 'strike_rate': batting_strike_rate,
                                   'total_balls': total_balls_bowled, 'batting_total_runs': total_runs_made})
 
-
         logging.info("DONE Getting innings batting info & starting bowling info")
-
 
         for g, g_df in innings_df.groupby(['match_key', 'inning', 'bowling_team', 'bowler']):
             number_of_overs = len(g_df['over'].unique())
@@ -264,7 +262,6 @@ class PerfectSimulator:
             outcomes_list.append({'match_key': g[0], 'inning': g[1], 'team': g[2],
                                   'player_key': g[3], 'economy_rate': economy_rate, 'wickets_taken': number_of_wickets,
                                   'number_of_overs': number_of_overs, 'total_runs': total_runs_made})
-
 
         logging.info("DONE Getting innings bowling info")
 
@@ -279,7 +276,6 @@ class PerfectSimulator:
         outcomes_df = outcomes_df.sort_values(index_columns)
 
         logging.info("DONE with innings basic info")
-
 
         return outcomes_df
 
@@ -350,7 +346,7 @@ class PerfectSimulator:
         :return: pd.DataFrame as above"""
 
         logging.info("Getting Outcome by Ball & Innings")
-        outcomes_df = self.get_outcomes_by_ball_and_innings(is_testing)
+        outcomes_df = self.get_outcomes_by_ball_and_innings(is_testing, False)
         logging.info("DONE Getting Outcome by Ball & Innings")
 
         logging.info(f"Getting Base Rewards: {outcomes_df.shape}")
@@ -368,7 +364,6 @@ class PerfectSimulator:
         logging.info("Getting Team Stats")
         team_stats_df = self.get_outcomes_by_team_and_innings(is_testing, bonus_penalty_df)
         logging.info("DONE Getting Team Stats")
-
 
         # Calculate cumulative base rewards per player
 
@@ -408,13 +403,18 @@ class PerfectSimulator:
 
         logging.info(f"Getting Total Rewards {bonus_penalty_df.shape}")
 
-        #bonus_penalty_df = pd.merge(bonus_penalty_df, team_stats_df, left_on=["match_key", "inning", "team"],
-         #                           right_index=True)
+        bonus_penalty_df = pd.merge(bonus_penalty_df,
+                                    team_stats_df[['inning_number_of_overs', 'inning_total_runs',
+                                                   'inning_total_balls', 'inning_batting_total_runs']],
+                                    left_on=['match_key', 'inning', 'team'], right_index=True)
+
         bonus_penalty_df['bowling_bonus_wickets'], bonus_penalty_df['bowling_bonus'], \
         bonus_penalty_df['bowling_penalty'], bonus_penalty_df['batting_bonus'], \
         bonus_penalty_df['batting_penalty'], bonus_penalty_df['bowling_rewards'], \
         bonus_penalty_df['batting_rewards'], bonus_penalty_df['fielding_rewards'] = zip(*bonus_penalty_df.apply(
-            lambda x: set_bonus_penalty(x, self.rewards_configuration, team_stats_df), axis=1))
+            lambda x: set_bonus_penalty(x, self.rewards_configuration), axis=1))
+
+
         logging.info("DONE Getting Total Rewards")
 
         return outcomes_df, bonus_penalty_df
@@ -448,7 +448,7 @@ class PerfectSimulator:
         group_by_columns = get_index_columns(granularity)
         rewards_df = pd.DataFrame()
 
-        logging.info("Total Rewards Components")
+        logging.info(f"Total Rewards Components {bonus_penalty_df.shape}")
         for g, g_df in bonus_penalty_df.groupby(group_by_columns):
             input_dict = {'bowling_rewards': g_df['bowling_rewards'].sum(),
                           'batting_rewards': g_df['batting_rewards'].sum(),
@@ -471,7 +471,7 @@ class PerfectSimulator:
                            is_testing: bool,
                            contender_simulation_evaluation_metrics: pd.DataFrame,
                            granularity,
-                           perfect_simulator_rewards_ref = None) -> pd.DataFrame:
+                           perfect_simulator_rewards_ref=None) -> pd.DataFrame:
         """Returns a dataframe representing error measures between this simulator's simulation_evaluation_metrics
         and a contender simulators simulation evaluation metrics.
         df schema:
@@ -493,7 +493,8 @@ class PerfectSimulator:
         if perfect_simulator_rewards_ref is not None:
             perfect_simulator_rewards_df = perfect_simulator_rewards_ref.copy()
         else:
-            perfect_simulator_rewards_df = self.get_simulation_evaluation_metrics_by_granularity(is_testing, granularity)
+            perfect_simulator_rewards_df = self.get_simulation_evaluation_metrics_by_granularity(is_testing,
+                                                                                                 granularity)
 
         columns_to_compare = ['batting_rewards', 'bowling_rewards', 'fielding_rewards', 'total_rewards']
 
