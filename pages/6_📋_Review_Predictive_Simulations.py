@@ -4,6 +4,11 @@ import utils.config_utils as config_utils
 
 def app():
 
+
+    st.header("Explanability")
+
+    st.subheader("What does the toss winner usually do?")
+
     page_utils.setup_page(" Review Predictive Simulation ")
     st.markdown('''
 ## Review Predictive Simulations Tab [v0.4]:

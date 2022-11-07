@@ -12,6 +12,9 @@ repo_path="resources/test/app_config/rewards_configuration"
 generated_path="data/generated/test/rewards"
 file_name = "rewards.csv"
 
+[player_outcome_predictor.predictive_simulator]
+number_of_scenarios=1
+
 [feedback_form]
 storage_method = "local"
 storage_dir = "data"
