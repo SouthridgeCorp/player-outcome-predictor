@@ -1,3 +1,5 @@
+import datetime
+
 import pandas as pd
 
 
@@ -19,7 +21,7 @@ class Matches:
         """
         return len(self.df["key"])
 
-    def get_selected_matches(self, start_date, end_date):
+    def get_selected_matches(self, start_date: datetime.date, end_date: datetime.date):
         """
         Find all matches between the specified date range
         :param start_date: The start of the date range
@@ -37,3 +39,47 @@ class Matches:
         """
         selected_df = self.get_selected_matches(start_date, end_date)
         return len(selected_df.index)
+
+    def get_selected_match_keys(self, start_date: datetime.date, end_date: datetime.date) -> list:
+        """
+        Get a list of match keys corresponding to the start & end date windows
+        :param start_date: The starting date of the window
+        :param end_date: The ending state of the window
+        :return: A list of keys
+        """
+        selected_df = self.get_selected_matches(start_date, end_date)
+        return selected_df["key"].tolist()
+
+    def get_teams(self, match_key: str) -> (str, str):
+        """
+        Get the teams playing in a match
+        :param match_key: The identifier for the match in question
+        :return: A tuple containing team 1 & team 2
+        """
+        match_df = self.df[self.df["key"] == int(match_key)]
+        assert len(match_df.index) == 1
+        team1 = match_df.iloc[0]["team1"]
+        team2 = match_df.iloc[0]["team2"]
+        return team1, team2
+
+    def get_selected_teams(self, start_date: datetime.date, end_date: datetime.date) -> list:
+        """
+        Get a list of teams corresponding to the start & end date windows
+        :param start_date: The starting date of the window
+        :param end_date: The ending state of the window
+        :return: A list of keys
+        """
+        selected_df = self.get_selected_matches(start_date, end_date)
+        team_list = list(selected_df["team1"])
+        team_list += list(selected_df["team2"])
+        return list(set(team_list))
+
+    def get_selected_venues(self, start_date: datetime.date, end_date: datetime.date) -> list:
+        """
+        Get a list of venues corresponding to the start & end date windows
+        :param start_date: The starting date of the window
+        :param end_date: The ending state of the window
+        :return: A list of keys
+        """
+        selected_df = self.get_selected_matches(start_date, end_date)
+        return list(set(list(selected_df["venue"])))

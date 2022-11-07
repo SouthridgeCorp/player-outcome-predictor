@@ -3,7 +3,7 @@ environment = "test"
 user_personas = ["cluster_1_persona_1", "cluster_1_persona_2","cluster_2_persona_1", "cluster_2_persona_2"]
 
 [player_outcome_predictor.historical_data]
-input_directory = "resources/test/app_config/match_data/cricsheet/"
+input_directory = "data/generated/test/match_data/cricsheet/"
 tournament_file_name = "tournaments.csv"
 player_file_name = "players.csv"
 

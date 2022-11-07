@@ -5,6 +5,9 @@ class PlayingXI:
     """
     Class representing the PlayingXI related to a tournament
     """
+    PLAYER_KEY_COLUMN = "player_key"
+    TEAM_COLUMN = "team"
+    MATCH_KEY_COLUMN = "match_key",
 
     def __init__(self, base_path, tournament):
         playing_xi_file_name = f"{base_path}/{tournament}/playing_xi.csv"

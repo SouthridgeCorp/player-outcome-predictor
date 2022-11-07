@@ -1,0 +1,146 @@
+key,tournament_key,city,date,player_of_match,venue,season,team1,team2,match_number,group,stage,toss_winner,toss_decision,winner,result_if_no_winner,method,eliminator,bowl_out,result,result_margin
+1152569,bbl,Melbourne,2019-02-17,DCn44,Docklands Stadium,2018/19,Melbourne Stars,Melbourne Renegades,,,Final,Melbourne Stars,field,Melbourne Renegades,,,,,runs,13.0
+1114889,bbl,Perth,2018-01-20,AAr66,W.A.C.A. Ground,2017/18,Perth Scorchers,Hobart Hurricanes,34,,,Perth Scorchers,field,Perth Scorchers,,,,,wickets,5.0
+1114866,bbl,Launceston,2017-12-30,JBr85,Aurora Stadium,2017/18,Hobart Hurricanes,Sydney Thunder,11,,,Hobart Hurricanes,field,Sydney Thunder,,,,,runs,57.0
+756775,bbl,,2015-01-22,JSk97,Sydney Cricket Ground,2014/15,Sydney Sixers,Sydney Thunder,,,,Sydney Sixers,field,Sydney Sixers,,,,,wickets,4.0
+654095,bbl,,2014-02-04,CBe62,Melbourne Cricket Ground,2013/14,Melbourne Stars,Hobart Hurricanes,,,Semi Final,Melbourne Stars,bat,Hobart Hurricanes,,,,,wickets,7.0
+756763,bbl,Melbourne,2015-01-03,MBr128,Docklands Stadium,2014/15,Melbourne Renegades,Melbourne Stars,,,,Melbourne Renegades,field,Melbourne Stars,,,,,runs,112.0
+654083,bbl,Melbourne,2014-01-18,MHs138,Docklands Stadium,2013/14,Melbourne Renegades,Sydney Sixers,,,,Melbourne Renegades,field,Sydney Sixers,,,,,runs,2.0
+1152528,bbl,Geelong,2019-01-03,JWd150,"Simonds Stadium, South Geelong, Victoria",2018/19,Melbourne Renegades,Adelaide Strikers,18,,,Melbourne Renegades,field,Adelaide Strikers,,,,,runs,32.0
+1269695,bbl,Melbourne,2022-01-22,JIs162,"Docklands Stadium, Melbourne",2021/22,Perth Scorchers,Sydney Sixers,,,Qualifier,Perth Scorchers,bat,Perth Scorchers,,,,,runs,48.0
+1114870,bbl,Melbourne,2018-01-02,MSn174,Melbourne Cricket Ground,2017/18,Melbourne Stars,Brisbane Heat,15,,,Brisbane Heat,field,Brisbane Heat,,,,,wickets,9.0
+1152553,bbl,Perth,2019-01-28,CTn64,Perth Stadium,2018/19,Perth Scorchers,Melbourne Renegades,43,,,Perth Scorchers,field,Melbourne Renegades,,,,,runs,78.0
+1152512,bbl,Melbourne,2018-12-20,USi154,Docklands Stadium,2018/19,Melbourne Renegades,Perth Scorchers,2,,,Melbourne Renegades,field,Melbourne Renegades,,,,,wickets,4.0
+756759,bbl,Perth,2015-01-01,JKs107,Western Australia Cricket Association Ground,2014/15,Perth Scorchers,Sydney Thunder,,,,Sydney Thunder,bat,Sydney Thunder,,,,,runs,20.0
+1114885,bbl,Melbourne,2018-01-16,NLn106,Melbourne Cricket Ground,2017/18,Melbourne Stars,Sydney Sixers,30,,,Sydney Sixers,field,Sydney Sixers,,,,,wickets,8.0
+1152565,bbl,Canberra,2019-02-09,PCs198,Manuka Oval,2018/19,Sydney Thunder,Hobart Hurricanes,55,,,Sydney Thunder,field,Sydney Thunder,,D/L,,,wickets,4.0
+756779,bbl,Hobart,2015-01-11,JBf167,Bellerive Oval,2014/15,Hobart Hurricanes,Perth Scorchers,,,,Perth Scorchers,bat,Perth Scorchers,,,,,runs,18.0
+654099,bbl,Perth,2014-02-07,GHg215,Western Australia Cricket Association Ground,2013/14,Perth Scorchers,Hobart Hurricanes,,,Final,Perth Scorchers,bat,Perth Scorchers,,,,,runs,39.0
+1152524,bbl,Adelaide,2018-12-31,PSe219,Adelaide Oval,2018/19,Adelaide Strikers,Sydney Thunder,14,,,Adelaide Strikers,bat,Adelaide Strikers,,,,,runs,20.0
+1114893,bbl,Perth,2018-01-25,AVs72,W.A.C.A. Ground,2017/18,Perth Scorchers,Adelaide Strikers,38,,,Perth Scorchers,field,Perth Scorchers,,,,,wickets,4.0
+1195585,bbl,Carrara,2019-12-27,JWs124,Carrara Oval,2019/20,Melbourne Stars,Adelaide Strikers,13,,,Melbourne Stars,field,Adelaide Strikers,,,,,runs,5.0
+756743,bbl,Perth,2014-12-22,JBf167,Western Australia Cricket Association Ground,2014/15,Perth Scorchers,Adelaide Strikers,,,,Perth Scorchers,bat,Adelaide Strikers,,,,,wickets,1.0
+1152549,bbl,Moe,2019-01-23,BDk45,Ted Summerton Reserve,2018/19,Melbourne Stars,Adelaide Strikers,39,,,Adelaide Strikers,field,Melbourne Stars,,,,,runs,44.0
+756755,bbl,Melbourne,2014-12-30,JPn130,Docklands Stadium,2014/15,Melbourne Renegades,Sydney Thunder,,,,Melbourne Renegades,field,Melbourne Renegades,,,,,wickets,8.0
+1152548,bbl,Sydney,2019-01-22,HGy65,Sydney Showground Stadium,2018/19,Sydney Thunder,Melbourne Renegades,38,,,Sydney Thunder,field,Melbourne Renegades,,,,,runs,12.0
+1195584,bbl,Perth,2019-12-26,TCn236,Perth Stadium,2019/20,Perth Scorchers,Sydney Sixers,12,,,Perth Scorchers,field,Sydney Sixers,,,,,runs,48.0
+756739,bbl,,2014-12-20,DSy241,Melbourne Cricket Ground,2014/15,Melbourne Stars,Hobart Hurricanes,,,,Melbourne Stars,field,Hobart Hurricanes,,,,,runs,52.0
+1269698,bbl,Melbourne,2022-01-28,LEs22,"Docklands Stadium, Melbourne",2021/22,Perth Scorchers,Sydney Sixers,,,Final,Sydney Sixers,field,Perth Scorchers,,,,,runs,79.0
+1114892,bbl,Canberra,2018-01-24,KRn63,Manuka Oval,2017/18,Sydney Thunder,Melbourne Renegades,37,,,Sydney Thunder,field,Melbourne Renegades,,,,,runs,9.0
+1152525,bbl,Carrara,2019-01-01,CLn177,Carrara Oval,2018/19,Brisbane Heat,Sydney Sixers,15,,,Sydney Sixers,field,Sydney Sixers,,,,,wickets,5.0
+756781,bbl,Brisbane,2015-01-11,DBr105,"Brisbane Cricket Ground, Woolloongabba",2014/15,Brisbane Heat,Sydney Sixers,,,,Sydney Sixers,field,Sydney Sixers,,,,,wickets,6.0
+1152564,bbl,Adelaide,2019-02-09,JWs124,Adelaide Oval,2018/19,Adelaide Strikers,Perth Scorchers,54,,,Perth Scorchers,bat,Adelaide Strikers,,,,,wickets,5.0
+1114884,bbl,Hobart,2018-01-15,DCn44,Bellerive Oval,2017/18,Hobart Hurricanes,Brisbane Heat,29,,,Brisbane Heat,bat,Hobart Hurricanes,,,,,wickets,6.0
+1152513,bbl,Canberra,2018-12-21,DSs206,Manuka Oval,2018/19,Sydney Thunder,Melbourne Stars,3,,,Melbourne Stars,field,Sydney Thunder,,D/L,,,runs,15.0
+1152552,bbl,Melbourne,2019-01-27,MSs46,Melbourne Cricket Ground,2018/19,Melbourne Stars,Brisbane Heat,42,,,Brisbane Heat,field,Melbourne Stars,,,,,runs,5.0
+1114871,bbl,Geelong,2018-01-03,AFh57,"Simonds Stadium, South Geelong, Victoria",2017/18,Melbourne Renegades,Sydney Sixers,16,,,Melbourne Renegades,field,Melbourne Renegades,,,,,wickets,8.0
+1269694,bbl,Melbourne,2022-01-19,CBe62,Melbourne Cricket Ground,2021/22,Sydney Thunder,Melbourne Renegades,55,,,Melbourne Renegades,field,Sydney Thunder,,,,,runs,1.0
+756735,bbl,,2014-12-18,TLn189,Adelaide Oval,2014/15,Adelaide Strikers,Melbourne Stars,,,,Melbourne Stars,bat,Adelaide Strikers,,,,,wickets,8.0
+1152529,bbl,Hobart,2019-01-04,DSt78,Bellerive Oval,2018/19,Hobart Hurricanes,Sydney Sixers,19,,,Hobart Hurricanes,field,Hobart Hurricanes,,,,,wickets,5.0
+1114888,bbl,Melbourne,2018-01-20,SWn88,Melbourne Cricket Ground,2017/18,Melbourne Stars,Sydney Thunder,33,,,Sydney Thunder,field,Sydney Thunder,,,,,wickets,7.0
+1114867,bbl,Adelaide,2017-12-31,MNr159,Adelaide Oval,2017/18,Adelaide Strikers,Brisbane Heat,12,,,Adelaide Strikers,bat,Adelaide Strikers,,,,,runs,56.0
+1152568,bbl,Melbourne,2019-02-15,DCn44,Docklands Stadium,2018/19,Melbourne Renegades,Sydney Sixers,,,Semi Final,Melbourne Renegades,field,Melbourne Renegades,,,,,wickets,3.0
+1114883,bbl,Sydney,2018-01-13,CGn93,Sydney Cricket Ground,2017/18,Sydney Sixers,Sydney Thunder,28,,,Sydney Sixers,field,Sydney Sixers,,,,,wickets,8.0
+1152563,bbl,Brisbane,2019-02-08,BCg0,"Brisbane Cricket Ground, Woolloongabba",2018/19,Brisbane Heat,Melbourne Stars,53,,,Brisbane Heat,field,Brisbane Heat,,,,,wickets,10.0
+756769,bbl,,2015-01-06,GHg215,Adelaide Oval,2014/15,Adelaide Strikers,Perth Scorchers,,,,Adelaide Strikers,field,Perth Scorchers,,,,,runs,18.0
+654089,bbl,Hobart,2014-01-23,BDk45,Bellerive Oval,2013/14,Hobart Hurricanes,Brisbane Heat,,,,Hobart Hurricanes,bat,Hobart Hurricanes,,,,,runs,40.0
+1152522,bbl,Melbourne,2018-12-29,BMi247,Docklands Stadium,2018/19,Melbourne Renegades,Sydney Sixers,12,,,Melbourne Renegades,field,Sydney Sixers,,,,,runs,33.0
+1114895,bbl,Brisbane,2018-01-27,TCr61,"Brisbane Cricket Ground, Woolloongabba",2017/18,Brisbane Heat,Melbourne Renegades,40,,,Brisbane Heat,field,Melbourne Renegades,,,,,runs,26.0
+1195583,bbl,Hobart,2019-12-24,RMh211,Bellerive Oval,2019/20,Hobart Hurricanes,Melbourne Renegades,11,,,Melbourne Renegades,bat,Hobart Hurricanes,,,,,wickets,7.0
+756745,bbl,Hobart,2014-12-23,MHs138,Bellerive Oval,2014/15,Hobart Hurricanes,Sydney Sixers,,,,Hobart Hurricanes,bat,Sydney Sixers,,,,,wickets,7.0
+1114856,bbl,Sydney,2017-12-19,SWn88,Sydney Showground Stadium,2017/18,Sydney Thunder,Sydney Sixers,1,,,Sydney Thunder,field,Sydney Thunder,,,,,wickets,5.0
+1152559,bbl,Sydney,2019-02-02,DHs110,Sydney Cricket Ground,2018/19,Sydney Sixers,Sydney Thunder,49,,,Sydney Sixers,field,Sydney Sixers,,D/L,,,wickets,9.0
+1152518,bbl,Sydney,2018-12-24,JBr85,Sydney Showground Stadium,2018/19,Sydney Thunder,Sydney Sixers,8,,,Sydney Sixers,field,Sydney Thunder,,,,,runs,21.0
+756753,bbl,,2014-12-29,ATe166,Sydney Cricket Ground,2014/15,Sydney Sixers,Perth Scorchers,,,,Perth Scorchers,bat,Perth Scorchers,,,,,runs,36.0
+1114860,bbl,Sydney,2017-12-23,ATr71,Sydney Cricket Ground,2017/18,Sydney Sixers,Perth Scorchers,5,,,Perth Scorchers,field,Perth Scorchers,,,,,wickets,6.0
+756773,bbl,Perth,2015-01-08,MCy192,Western Australia Cricket Association Ground,2014/15,Perth Scorchers,Brisbane Heat,,,,Brisbane Heat,bat,Perth Scorchers,,,,,wickets,8.0
+654093,bbl,,2014-01-27,JHs118,Melbourne Cricket Ground,2013/14,Melbourne Stars,Perth Scorchers,,,,Melbourne Stars,bat,Melbourne Stars,,,,,runs,20.0
+756765,bbl,Brisbane,2015-01-04,THd229,"Brisbane Cricket Ground, Woolloongabba",2014/15,Brisbane Heat,Adelaide Strikers,,,,Adelaide Strikers,field,Adelaide Strikers,,,,,wickets,5.0
+654085,bbl,,2014-01-21,LWt115,Melbourne Cricket Ground,2013/14,Melbourne Stars,Hobart Hurricanes,,,,Melbourne Stars,field,Melbourne Stars,,,,,wickets,5.0
+1114876,bbl,Hobart,2018-01-08,SBs263,Bellerive Oval,2017/18,Hobart Hurricanes,Sydney Sixers,21,,,Hobart Hurricanes,bat,Hobart Hurricanes,,,,,runs,5.0
+756749,bbl,Sydney,2014-12-27,ABd108,Stadium Australia,2014/15,Sydney Thunder,Sydney Sixers,,,,Sydney Thunder,field,Sydney Sixers,,,,,runs,16.0
+1152555,bbl,Sydney,2019-01-29,BDs173,Sydney Cricket Ground,2018/19,Sydney Sixers,Adelaide Strikers,45,,,Sydney Sixers,field,Sydney Sixers,,,,,wickets,8.0
+571259,bbl,Brisbane,2013-01-07,MLb98,"Brisbane Cricket Ground, Woolloongabba",2012/13,Brisbane Heat,Sydney Sixers,,,,Brisbane Heat,bat,Sydney Sixers,,,,,wickets,5.0
+1152514,bbl,Sydney,2018-12-22,SOe103,Sydney Cricket Ground,2018/19,Sydney Sixers,Perth Scorchers,4,,,Sydney Sixers,bat,Sydney Sixers,,,,,runs,17.0
+1195576,bbl,Alice Springs,2019-12-20,QAd212,Traeger Park,2019/20,Hobart Hurricanes,Sydney Sixers,4,,,Hobart Hurricanes,bat,Hobart Hurricanes,,,,,runs,25.0
+1152515,bbl,Carrara,2018-12-22,DSt78,Carrara Oval,2018/19,Brisbane Heat,Hobart Hurricanes,5,,,Brisbane Heat,field,Hobart Hurricanes,,,,,runs,15.0
+1195577,bbl,Carrara,2019-12-20,GMl48,Carrara Oval,2019/20,Brisbane Heat,Melbourne Stars,5,,,Brisbane Heat,field,Melbourne Stars,,,,,runs,22.0
+1152554,bbl,Hobart,2019-01-29,DSt78,Bellerive Oval,2018/19,Hobart Hurricanes,Brisbane Heat,44,,,Hobart Hurricanes,field,Hobart Hurricanes,,,,,wickets,9.0
+1114898,bbl,Adelaide,2018-02-04,JWd150,Adelaide Oval,2017/18,Adelaide Strikers,Hobart Hurricanes,,,Final,Adelaide Strikers,bat,Adelaide Strikers,,,,,runs,25.0
+1114877,bbl,Perth,2018-01-08,ATr71,W.A.C.A. Ground,2017/18,Perth Scorchers,Melbourne Renegades,22,,,Perth Scorchers,field,Perth Scorchers,,,,,wickets,5.0
+571262,bbl,,2013-01-10,SMh185,Adelaide Oval,2012/13,Adelaide Strikers,Perth Scorchers,,,,Perth Scorchers,bat,Perth Scorchers,,,,,runs,98.0
+1114861,bbl,Melbourne,2017-12-23,JWh153,Docklands Stadium,2017/18,Melbourne Renegades,Brisbane Heat,6,,,Melbourne Renegades,field,Melbourne Renegades,,,,,wickets,7.0
+1152519,bbl,Perth,2018-12-26,JRn165,Perth Stadium,2018/19,Perth Scorchers,Adelaide Strikers,9,,,Perth Scorchers,field,Perth Scorchers,,,,,wickets,7.0
+1152558,bbl,Brisbane,2019-02-01,MURn19,"Brisbane Cricket Ground, Woolloongabba",2018/19,Brisbane Heat,Perth Scorchers,48,,,Brisbane Heat,field,Brisbane Heat,,,,,wickets,6.0
+1114857,bbl,Brisbane,2017-12-20,MSs46,"Brisbane Cricket Ground, Woolloongabba",2017/18,Brisbane Heat,Melbourne Stars,2,,,Melbourne Stars,field,Brisbane Heat,,,,,runs,15.0
+1195582,bbl,Adelaide,2019-12-23,JWd150,Adelaide Oval,2019/20,Adelaide Strikers,Perth Scorchers,10,,,Perth Scorchers,field,Adelaide Strikers,,D/L,,,runs,15.0
+1114894,bbl,Melbourne,2018-01-27,KPn133,Melbourne Cricket Ground,2017/18,Melbourne Stars,Hobart Hurricanes,39,,,Melbourne Stars,field,Melbourne Stars,,,,,wickets,3.0
+1023647,bbl,Brisbane,2017-01-25,MHs138,"Brisbane Cricket Ground, Woolloongabba",2016/17,Brisbane Heat,Sydney Sixers,,,Semi Final,Sydney Sixers,field,,tie,,Sydney Sixers,,,
+1152523,bbl,Launceston,2018-12-30,RMh211,Aurora Stadium,2018/19,Hobart Hurricanes,Perth Scorchers,13,,,Hobart Hurricanes,field,Hobart Hurricanes,,,,,wickets,6.0
+1152562,bbl,Hobart,2019-02-07,MWe77,Bellerive Oval,2018/19,Hobart Hurricanes,Melbourne Renegades,52,,,Melbourne Renegades,field,Hobart Hurricanes,,,,,runs,16.0
+1114882,bbl,Alice Springs,2018-01-13,AAr66,Traeger Park,2017/18,Adelaide Strikers,Perth Scorchers,27,,,Perth Scorchers,field,Perth Scorchers,,,,,wickets,6.0
+756751,bbl,Brisbane,2014-12-28,RDd253,"Brisbane Cricket Ground, Woolloongabba",2014/15,Brisbane Heat,Melbourne Stars,,,,Melbourne Stars,field,Brisbane Heat,,,,,runs,1.0
+1195578,bbl,Canberra,2019-12-21,,Manuka Oval,2019/20,Sydney Thunder,Adelaide Strikers,6,,,Sydney Thunder,field,,no result,,,,,
+756747,bbl,Perth,2014-12-26,MKr68,Western Australia Cricket Association Ground,2014/15,Perth Scorchers,Melbourne Renegades,,,,Perth Scorchers,bat,Perth Scorchers,,,,,runs,35.0
+1195581,bbl,Sydney,2019-12-22,CLn177,Sydney Cricket Ground,2019/20,Sydney Sixers,Brisbane Heat,9,,,Sydney Sixers,field,Brisbane Heat,,,,,runs,48.0
+1114878,bbl,Adelaide,2018-01-09,THd229,Adelaide Oval,2017/18,Adelaide Strikers,Melbourne Stars,23,,,Melbourne Stars,bat,Adelaide Strikers,,,,,wickets,8.0
+1114897,bbl,Adelaide,2018-02-02,THd229,Adelaide Oval,2017/18,Adelaide Strikers,Melbourne Renegades,,,Semi Final,Adelaide Strikers,bat,Adelaide Strikers,,,,,runs,1.0
+1152520,bbl,Sydney,2018-12-27,PHb47,Sydney Cricket Ground,2018/19,Sydney Sixers,Melbourne Stars,10,,,Melbourne Stars,field,Melbourne Stars,,,,,wickets,5.0
+1152561,bbl,Perth,2019-02-03,ATr71,Perth Stadium,2018/19,Perth Scorchers,Melbourne Stars,51,,,Melbourne Stars,field,Perth Scorchers,,,,,runs,27.0
+1114881,bbl,Melbourne,2018-01-12,KPn133,Docklands Stadium,2017/18,Melbourne Renegades,Melbourne Stars,26,,,Melbourne Renegades,field,Melbourne Stars,,,,,runs,23.0
+1195574,bbl,Sydney,2019-12-18,JPe169,Sydney Cricket Ground,2019/20,Sydney Sixers,Perth Scorchers,2,,,Sydney Sixers,field,Sydney Sixers,,,,,wickets,8.0
+1152516,bbl,Adelaide,2018-12-23,DCn44,Adelaide Oval,2018/19,Adelaide Strikers,Melbourne Renegades,6,,,Melbourne Renegades,field,Melbourne Renegades,,,,,wickets,5.0
+1114858,bbl,Hobart,2017-12-21,DBo51,Bellerive Oval,2017/18,Hobart Hurricanes,Melbourne Renegades,3,,,Melbourne Renegades,field,Melbourne Renegades,,,,,wickets,7.0
+1152557,bbl,Launceston,2019-01-31,JWd150,Aurora Stadium,2018/19,Hobart Hurricanes,Adelaide Strikers,47,,,Adelaide Strikers,field,Adelaide Strikers,,,,,wickets,7.0
+1114874,bbl,Melbourne,2018-01-06,MNi152,Melbourne Cricket Ground,2017/18,Melbourne Stars,Melbourne Renegades,19,,,Melbourne Renegades,field,Melbourne Renegades,,,,,wickets,6.0
+654087,bbl,,2014-01-22,DBo51,Adelaide Oval,2013/14,Adelaide Strikers,Melbourne Renegades,,,,Melbourne Renegades,bat,Melbourne Renegades,,,,,runs,1.0
+756767,bbl,,2015-01-05,JFr134,Melbourne Cricket Ground,2014/15,Melbourne Stars,Sydney Sixers,,,,Melbourne Stars,field,,tie,,Melbourne Stars,,,
+654091,bbl,Sydney,2014-01-25,NLn106,Stadium Australia,2013/14,Sydney Thunder,Sydney Sixers,,,,Sydney Sixers,field,Sydney Sixers,,,,,wickets,8.0
+1114862,bbl,Perth,2017-12-26,HCt70,W.A.C.A. Ground,2017/18,Perth Scorchers,Melbourne Stars,7,,,Melbourne Stars,field,Perth Scorchers,,,,,runs,13.0
+1114863,bbl,Brisbane,2017-12-27,ARs179,"Brisbane Cricket Ground, Woolloongabba",2017/18,Brisbane Heat,Sydney Thunder,8,,,Sydney Thunder,bat,Brisbane Heat,,D/L,,,wickets,6.0
+1023649,bbl,Perth,2017-01-28,JRn165,Western Australia Cricket Association Ground,2016/17,Perth Scorchers,Sydney Sixers,,,Final,Perth Scorchers,field,Perth Scorchers,,,,,wickets,9.0
+571260,bbl,,2013-01-08,CGe312,Melbourne Cricket Ground,2012/13,Melbourne Stars,Sydney Thunder,,,,Melbourne Stars,bat,Melbourne Stars,,,,,runs,13.0
+1114875,bbl,Sydney,2018-01-07,RKn38,Sydney Showground Stadium,2017/18,Sydney Thunder,Adelaide Strikers,20,,,Adelaide Strikers,bat,Adelaide Strikers,,,,,runs,25.0
+1152556,bbl,Melbourne,2019-01-30,CBe62,Docklands Stadium,2018/19,Melbourne Renegades,Sydney Thunder,46,,,Melbourne Renegades,bat,Melbourne Renegades,,,,,runs,27.0
+1114859,bbl,Adelaide,2017-12-22,RKn38,Adelaide Oval,2017/18,Adelaide Strikers,Sydney Thunder,4,,,Adelaide Strikers,bat,Adelaide Strikers,,,,,runs,53.0
+1195575,bbl,Geelong,2019-12-19,AHs242,"Simonds Stadium, South Geelong, Victoria",2019/20,Melbourne Renegades,Sydney Thunder,3,,,Melbourne Renegades,bat,Sydney Thunder,,,,,wickets,6.0
+1152517,bbl,Hobart,2018-12-24,DSt78,Bellerive Oval,2018/19,Hobart Hurricanes,Melbourne Stars,7,,,Hobart Hurricanes,field,Hobart Hurricanes,,,,,wickets,6.0
+1114880,bbl,Sydney,2018-01-11,UKa205,Sydney Showground Stadium,2017/18,Sydney Thunder,Perth Scorchers,25,,,Sydney Thunder,bat,Sydney Thunder,,,,,runs,3.0
+1152560,bbl,Adelaide,2019-02-03,MRw261,Adelaide Oval,2018/19,Adelaide Strikers,Brisbane Heat,50,,,Brisbane Heat,field,Brisbane Heat,,,,,wickets,6.0
+1152521,bbl,Hobart,2018-12-28,MWe77,Bellerive Oval,2018/19,Hobart Hurricanes,Sydney Thunder,11,,,Hobart Hurricanes,field,Hobart Hurricanes,,,,,wickets,7.0
+1114879,bbl,Brisbane,2018-01-10,DSt78,"Brisbane Cricket Ground, Woolloongabba",2017/18,Brisbane Heat,Hobart Hurricanes,24,,,Hobart Hurricanes,bat,Hobart Hurricanes,,,,,runs,3.0
+1114896,bbl,Perth,2018-02-01,MWe77,Perth Stadium,2017/18,Perth Scorchers,Hobart Hurricanes,,,Semi Final,Perth Scorchers,field,Hobart Hurricanes,,,,,runs,71.0
+1195580,bbl,Moe,2019-12-22,HRf295,Ted Summerton Reserve,2019/20,Melbourne Stars,Hobart Hurricanes,8,,,Melbourne Stars,bat,Melbourne Stars,,,,,runs,52.0
+1195579,bbl,Perth,2019-12-21,MMh163,Perth Stadium,2019/20,Perth Scorchers,Melbourne Renegades,7,,,Melbourne Renegades,field,Perth Scorchers,,,,,runs,11.0
+1152547,bbl,Adelaide,2019-01-21,MWe77,Adelaide Oval,2018/19,Adelaide Strikers,Hobart Hurricanes,37,,,Adelaide Strikers,bat,Hobart Hurricanes,,,,,wickets,10.0
+1152551,bbl,Perth,2019-01-24,CFn89,Perth Stadium,2018/19,Perth Scorchers,Sydney Thunder,41,,,Sydney Thunder,field,Sydney Thunder,,,,,wickets,6.0
+1114872,bbl,Hobart,2018-01-04,DSt78,Bellerive Oval,2017/18,Hobart Hurricanes,Adelaide Strikers,17,,,Hobart Hurricanes,bat,Hobart Hurricanes,,,,,runs,7.0
+1269697,bbl,Sydney,2022-01-26,HKr172,Sydney Cricket Ground,2021/22,Adelaide Strikers,Sydney Sixers,,,Challenger,Sydney Sixers,field,Sydney Sixers,,,,,wickets,4.0
+654081,bbl,,2014-01-18,DVi279,Adelaide Oval,2013/14,Adelaide Strikers,Brisbane Heat,,,,Brisbane Heat,bat,Brisbane Heat,,,,,runs,32.0
+756761,bbl,Hobart,2015-01-02,TPe121,Bellerive Oval,2014/15,Hobart Hurricanes,Brisbane Heat,,,,Hobart Hurricanes,field,Hobart Hurricanes,,,,,wickets,6.0
+654097,bbl,,2014-02-05,CSs216,Sydney Cricket Ground,2013/14,Sydney Sixers,Perth Scorchers,,,Semi Final,Sydney Sixers,field,Perth Scorchers,,D/L,,,runs,5.0
+756777,bbl,,2015-01-10,GMl48,Melbourne Cricket Ground,2014/15,Melbourne Stars,Melbourne Renegades,,,,Melbourne Renegades,bat,Melbourne Stars,,,,,wickets,3.0
+1114864,bbl,Sydney,2017-12-28,ACy155,Sydney Cricket Ground,2017/18,Sydney Sixers,Adelaide Strikers,9,,,Sydney Sixers,field,Adelaide Strikers,,,,,runs,6.0
+756757,bbl,,2014-12-31,TLn189,Adelaide Oval,2014/15,Adelaide Strikers,Hobart Hurricanes,,,,Hobart Hurricanes,bat,Adelaide Strikers,,,,,wickets,8.0
+756741,bbl,Sydney,2014-12-21,JKs107,Stadium Australia,2014/15,Sydney Thunder,Brisbane Heat,,,,Brisbane Heat,field,Sydney Thunder,,,,,runs,56.0
+1114891,bbl,Sydney,2018-01-23,JDy202,Sydney Cricket Ground,2017/18,Sydney Sixers,Melbourne Stars,36,,,Sydney Sixers,field,Sydney Sixers,,,,,wickets,5.0
+1152526,bbl,Melbourne,2019-01-01,MSs46,Melbourne Cricket Ground,2018/19,Melbourne Stars,Melbourne Renegades,16,,,Melbourne Stars,field,Melbourne Stars,,,,,wickets,7.0
+1152530,bbl,Carrara,2019-01-05,MSs46,Carrara Oval,2018/19,Melbourne Stars,Sydney Thunder,20,,,Sydney Thunder,bat,Melbourne Stars,,,,,wickets,8.0
+1152567,bbl,Hobart,2019-02-14,DWl54,Bellerive Oval,2018/19,Hobart Hurricanes,Melbourne Stars,,,Semi Final,Melbourne Stars,field,Melbourne Stars,,,,,wickets,6.0
+1114868,bbl,Sydney,2018-01-01,DSt78,Sydney Showground Stadium,2017/18,Sydney Thunder,Hobart Hurricanes,13,,,Sydney Thunder,field,Hobart Hurricanes,,,,,runs,9.0
+1114887,bbl,Sydney,2018-01-18,SAt102,Sydney Cricket Ground,2017/18,Sydney Sixers,Brisbane Heat,32,,,Sydney Sixers,field,Sydney Sixers,,,,,wickets,9.0
+1114869,bbl,Perth,2018-01-01,MKr68,W.A.C.A. Ground,2017/18,Perth Scorchers,Sydney Sixers,14,,,Perth Scorchers,field,Perth Scorchers,,,,,wickets,6.0
+1114886,bbl,Adelaide,2018-01-17,ACy155,Adelaide Oval,2017/18,Adelaide Strikers,Hobart Hurricanes,31,,,Adelaide Strikers,bat,Adelaide Strikers,,,,,runs,11.0
+1152566,bbl,Melbourne,2019-02-10,GMl48,Melbourne Cricket Ground,2018/19,Melbourne Stars,Sydney Sixers,56,,,Sydney Sixers,field,Melbourne Stars,,,,,runs,94.0
+1152531,bbl,Perth,2019-01-05,MURn19,Perth Stadium,2018/19,Perth Scorchers,Brisbane Heat,21,,,Brisbane Heat,field,Brisbane Heat,,,,,wickets,5.0
+756783,bbl,,2015-01-12,,Adelaide Oval,2014/15,Adelaide Strikers,Sydney Thunder,,,,Sydney Thunder,field,,no result,,,,,
+1152527,bbl,Sydney,2019-01-02,CFn89,Sydney Showground Stadium,2018/19,Sydney Thunder,Perth Scorchers,17,,,Sydney Thunder,bat,Sydney Thunder,,,,,runs,1.0
+1114890,bbl,Melbourne,2018-01-22,CIm156,Docklands Stadium,2017/18,Melbourne Renegades,Adelaide Strikers,35,,,Melbourne Renegades,field,Adelaide Strikers,,,,,runs,26.0
+1114865,bbl,Melbourne,2017-12-29,MJn76,Docklands Stadium,2017/18,Melbourne Renegades,Perth Scorchers,10,,,Perth Scorchers,field,Perth Scorchers,,,,,wickets,3.0
+654079,bbl,Perth,2014-01-16,CSs216,Western Australia Cricket Association Ground,2013/14,Perth Scorchers,Adelaide Strikers,,,,Perth Scorchers,bat,Perth Scorchers,,,,,runs,5.0
+756737,bbl,,2014-12-19,NMn49,Sydney Cricket Ground,2014/15,Sydney Sixers,Melbourne Renegades,,,,Sydney Sixers,field,Sydney Sixers,,,,,wickets,8.0
+1269696,bbl,Melbourne,2022-01-23,ICn316,Melbourne Cricket Ground,2021/22,Adelaide Strikers,Sydney Thunder,,,Knockout,Adelaide Strikers,bat,Adelaide Strikers,,,,,runs,6.0
+1114873,bbl,Brisbane,2018-01-05,BCg0,"Brisbane Cricket Ground, Woolloongabba",2017/18,Brisbane Heat,Perth Scorchers,18,,,Perth Scorchers,field,Brisbane Heat,,,,,runs,49.0
+1152550,bbl,Sydney,2019-01-23,JPe169,Sydney Cricket Ground,2018/19,Sydney Sixers,Hobart Hurricanes,40,,,Sydney Sixers,field,Sydney Sixers,,,,,wickets,9.0
+1195573,bbl,Brisbane,2019-12-17,CFn89,"Brisbane Cricket Ground, Woolloongabba",2019/20,Brisbane Heat,Sydney Thunder,1,,,Sydney Thunder,bat,Sydney Thunder,,,,,runs,29.0
+1152511,bbl,Brisbane,2018-12-19,RKn38,"Brisbane Cricket Ground, Woolloongabba",2018/19,Brisbane Heat,Adelaide Strikers,1,,,Adelaide Strikers,field,Adelaide Strikers,,,,,wickets,5.0

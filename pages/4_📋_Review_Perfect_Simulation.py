@@ -1,49 +1,104 @@
 import streamlit as st
+
 import utils.page_utils as page_utils
-import utils.config_utils as config_utils
+from simulators.perfect_simulator import Granularity, PerfectSimulator
+from utils.app_utils import data_selection_instance, rewards_instance
+from historical_data.tournaments import Tournaments
+from rewards_configuration.rewards_configuration import RewardsConfiguration
+import pandas as pd
+
+
+def data_selection_summary(tournaments: Tournaments):
+    """
+    Builds out the summary of data selection fields
+    """
+    selected_tournaments, training, testing = st.columns(3)
+
+    with selected_tournaments:
+        st.subheader("Selected Tournaments:")
+        st.write(tournaments.get_selected_tournament_names())
+
+    with training:
+        st.subheader("Training Details:")
+        training_start_date, training_end_date = tournaments.get_start_end_dates(False)
+        st.write(f"Start Date: {training_start_date}")
+        st.write(f"End Date: {training_end_date}")
+
+    with testing:
+        st.subheader("Testing Details:")
+        testing_start_date, testing_end_date = tournaments.get_start_end_dates(True)
+        st.write(f"Start Date: {testing_start_date}")
+        st.write(f"End Date: {testing_end_date}")
+
+
+@st.cache
+def get_perfect_simulator_data(perfect_simulator: PerfectSimulator, granularity: str,
+                               rewards_config: RewardsConfiguration) -> pd.DataFrame:
+    """
+    Cached function call to get the simulation evaluation metrics
+    :param perfect_simulator: the simulator instance to query
+    :param granularity: One of the possible granularities to slice the data in
+    :param rewards_config: The underlying reward config. Note this is not used by the function, but included to ensure
+    the cache resets if there is a change in rewards
+    :return The dataframe representing the perfect simulator data
+    """
+    return perfect_simulator.get_simulation_evaluation_metrics_by_granularity(True, granularity)
+
 
 def app():
+    data_selection = data_selection_instance()
+    tournaments = data_selection.get_helper().tournaments
+    rewards = rewards_instance()
 
-    page_utils.setup_page(" Configure Sportiqo Rewards ")
-    st.markdown('''
-## Review Perfect Simulation Tab [v0.2]:
+    page_utils.setup_page(" Review Perfect Simulation ")
 
-### Objective:
-- Lets the user review all the `error_measures` and `simulation_evaluation_metrics` for each innings, match, tournament_stage 
-and tournament in the `testing_window`, as projected by the `perfect_simulation_model`
+    # Show a summary of selected training & testing windows
+    data_selection_summary(tournaments)
 
-- The user will be able to view aggregations on both `error_measures` and `evaluation_metrics` at the following granularities:
-    - `by_player_and_innnings`
-    - `by_player_and_match`
-    - `by_player_and_tournament_stage`
-    - `by_player_and_tournament`
+    granularity_list = ['None', Granularity.TOURNAMENT, Granularity.STAGE, Granularity.MATCH, Granularity.INNING]
+    granularity = st.selectbox("Please select the granularity for reviewing Simulator stats", granularity_list)
 
-- Lets the user view the `top_k` best performing players in each team as measured by `evaluation_metrics.rewards_by_player`:
-    - `top_k_players_by_team_and_tournament`
-    - `top_k_batsmen_by_team_and_tournament`
-    - `top_k_bowlers_by_team_and_tournament`
+    if granularity == 'None':
+        st.write("Please select a valid Granularity")
+    else:
 
-### Definitions:
+        perfect_simulator = PerfectSimulator(data_selection, rewards)
 
-#### `perfect_simulation_model`:
+        with st.spinner("Calculating Simulation Metrics.."):
+            perfect_simulator_df = get_perfect_simulator_data(perfect_simulator, granularity, rewards)
 
-A retrospective simulationmodel that assumes full knowledge of everything that transpired in each ball, innings, match,
-tournament_stage and tournament to produce `simulation_evaluation_metrics`
+        with st.spinner('Calculating Error Measures'):
+            errors_df = perfect_simulator.get_error_measures(True, perfect_simulator_df, granularity,
+                                                             perfect_simulator_df)
 
-#### `simulation_evaluation_metrics`
+        with st.spinner("Calculating Top Players.."):
+            perfect_simulator_df = data_selection.merge_with_players(perfect_simulator_df, 'player_key')
 
-A data structure that is used to compare the outputs of two or more simiulations. It is composed of:
-- `rewards_by_player_and_innings`
-- `batting_rewards_by_player_and_innings`
-- `bowling_rewards_by_player_and_innings`
-- `fielding_rewards_by_player_and_innings`
+        number_of_players = st.slider("Select the number of top players to show:", min_value=0,
+                                      max_value=len(perfect_simulator_df.index), value=30)
 
-#### `error_measures`
+        st.subheader('Evaluation & Error Metrics')
+        st.dataframe(errors_df, use_container_width=True)
 
-Consists of the following metrics calculated for each `simulation_evaluation_metric` in the course of comparison:
-- `mean_absolute_error`
-- `mean_absolute_percentage_error`
+        top_players_column, top_batters_column, top_bowlers_column = st.columns(3)
 
-    ''')
+        with top_players_column:
+            perfect_simulator_df = perfect_simulator_df.sort_values('total_rewards', ascending=False)
+            st.subheader(f'Top {number_of_players} Players')
+            st.dataframe(perfect_simulator_df[['name', 'total_rewards']].head(number_of_players),
+                         use_container_width=True)
+
+        with top_bowlers_column:
+            perfect_simulator_df = perfect_simulator_df.sort_values('bowling_rewards', ascending=False)
+            st.subheader(f'Top {number_of_players} Bowlers')
+            st.dataframe(perfect_simulator_df[['name', 'bowling_rewards']].head(number_of_players),
+                         use_container_width=True)
+
+        with top_batters_column:
+            perfect_simulator_df = perfect_simulator_df.sort_values('batting_rewards', ascending=False)
+            st.subheader(f'Top {number_of_players} Batters')
+            st.dataframe(perfect_simulator_df[['name', 'batting_rewards']].head(number_of_players),
+                         use_container_width=True)
+
 
 app()
