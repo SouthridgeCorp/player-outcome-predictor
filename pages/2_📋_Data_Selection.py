@@ -1,8 +1,24 @@
+import utils.app_utils
 import utils.page_utils as page_utils
-import historical_data.singleton
 import streamlit as st
-import utils.config_utils
-from data_selection.data_selection import DataSelection
+from utils.app_utils import data_selection_instance
+import time
+
+
+def on_date_change(tournaments, key, is_testing):
+    """
+    Callback function to persist the value of changing dates via the slider
+    """
+    start_date, end_date = st.session_state[key]
+    tournaments.set_start_end_dates(start_date, end_date, is_testing=is_testing)
+
+
+def on_tournament_change(tournaments):
+    """
+    Callback function to persist the value of changing tournaments through the multi-select dropdown
+    """
+    values = st.session_state.tournaments
+    tournaments.set_selected_tournament_names(values)
 
 
 def set_start_end_date(is_testing, tournaments):
@@ -19,10 +35,14 @@ def set_start_end_date(is_testing, tournaments):
 
     st.header(f"Select the {mode} window")
 
+    start_date, end_date = tournaments.get_start_end_dates(is_testing)
+
+    key = f"{mode}_start"
     start_date, end_date = \
         st.slider("Select the {mode} window:", min_value=tournaments.first_match_date,
                   max_value=tournaments.last_match_date,
-                  value=(tournaments.first_match_date, tournaments.last_match_date), key=f"{mode}_start")
+                  value=(start_date, end_date), key=key, on_change=on_date_change,
+                  args=(tournaments, key, is_testing))
 
     if start_date > end_date:
         st.error('Error: End date must fall after start date.')
@@ -49,21 +69,19 @@ def app():
     :return: None
     """
     page_utils.setup_page("Data Selection")
-    config_utils = utils.config_utils.create_utils_object()
-
-    # get the helper from the singleton instance
-    helper = historical_data.singleton.get_helper(config_utils)
 
     # get a data selection instance from the singleton
-    data_selection = DataSelection(helper)
-    tournaments = helper.tournaments
+    data_selection = data_selection_instance()
+    tournaments = data_selection.get_helper().tournaments
 
     tournament_selector, training_column, testing_column = st.columns(3, gap="large")
 
     with tournament_selector:
         st.header("Select the Tournaments ")
-        tournaments.set_selected_tournament_names(st.multiselect("Please select tournaments for training & testing",
-                                                                 tournaments.df["name"].to_list()))
+        default_values = tournaments.get_selected_tournament_names()
+        st.multiselect("Please select tournaments for training & testing", tournaments.df["name"].to_list(),
+                       default=default_values, on_change=on_tournament_change, args=([tournaments])
+                       , key="tournaments")
 
     with training_column:
         set_start_end_date(False, tournaments)
@@ -76,9 +94,13 @@ def app():
     with st.expander("Expand to see the list"):
         st.dataframe(tournaments.df, use_container_width=True)
 
-    st.header("Player Universe Selected")
-    with st.expander("Expand to see the player universe"):
-        pu = data_selection.get_frequent_players_universe()
+    show_player_universe = st.checkbox("Show Player Universe")
+
+    if show_player_universe:
+
+        st.header("Player Universe Selected")
+        with st.spinner("Calculating Player Universe"):
+            pu = data_selection.get_frequent_players_universe()
         if pu.empty:
             st.write("Please select the target tournaments before calculating the player universe")
         else:
