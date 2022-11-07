@@ -100,3 +100,5 @@ class TestDataSelection:
 
         for column in expected_columns:
             pd.testing.assert_series_equal(df[column], expected_df[column])
+
+

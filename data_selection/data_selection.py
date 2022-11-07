@@ -165,8 +165,10 @@ class DataSelection:
         # Rank the columns
         columns = []
         for team in team_set:
+            df[f"{team}_num_matches_played"] = df[f"{team}_num_matches_played"].fillna(0)
+            df[f"{team}_num_matches_played"] = df[f"{team}_num_matches_played"].astype(int)
             df[f"{team}_num_matches_played_rank"] = df[f"{team}_num_matches_played"].rank(ascending=False, method="min")
-            columns.append(f"{team}_num_matches_played")
+            columns.append(f"{team}_num_matches_played_rank")
 
         # Calculate featured player
         df = df.assign(best_rank=lambda x: x[columns].min(axis=1))

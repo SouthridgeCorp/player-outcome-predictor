@@ -63,7 +63,6 @@ def app():
     else:
 
         perfect_simulator = PerfectSimulator(data_selection, rewards)
-        evaluation_column, top_players_column = st.columns(2)
 
         with st.spinner("Calculating Simulation Metrics.."):
             perfect_simulator_df = get_perfect_simulator_data(perfect_simulator, granularity, rewards)
@@ -74,17 +73,32 @@ def app():
 
         with st.spinner("Calculating Top Players.."):
             perfect_simulator_df = data_selection.merge_with_players(perfect_simulator_df, 'player_key')
-            perfect_simulator_df = perfect_simulator_df.sort_values('total_rewards', ascending=False)
 
-        with evaluation_column:
-            with st.spinner("Writing Evaluation & Error Metrics.."):
-                st.subheader('Evaluation & Error Metrics')
-                st.write(errors_df)
+        number_of_players = st.slider("Select the number of top players to show:", min_value=0,
+                                      max_value=len(perfect_simulator_df.index), value=30)
+
+        st.subheader('Evaluation & Error Metrics')
+        st.dataframe(errors_df, use_container_width=True)
+
+        top_players_column, top_batters_column, top_bowlers_column = st.columns(3)
 
         with top_players_column:
-            with st.spinner("Writing Top Players"):
-                st.subheader('Top 100 Players')
-                st.dataframe(perfect_simulator_df[['name', 'total_rewards']].head(100))
+            perfect_simulator_df = perfect_simulator_df.sort_values('total_rewards', ascending=False)
+            st.subheader(f'Top {number_of_players} Players')
+            st.dataframe(perfect_simulator_df[['name', 'total_rewards']].head(number_of_players),
+                         use_container_width=True)
+
+        with top_bowlers_column:
+            perfect_simulator_df = perfect_simulator_df.sort_values('bowling_rewards', ascending=False)
+            st.subheader(f'Top {number_of_players} Bowlers')
+            st.dataframe(perfect_simulator_df[['name', 'bowling_rewards']].head(number_of_players),
+                         use_container_width=True)
+
+        with top_batters_column:
+            perfect_simulator_df = perfect_simulator_df.sort_values('batting_rewards', ascending=False)
+            st.subheader(f'Top {number_of_players} Batters')
+            st.dataframe(perfect_simulator_df[['name', 'batting_rewards']].head(number_of_players),
+                         use_container_width=True)
 
 
 app()

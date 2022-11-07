@@ -58,7 +58,7 @@ def update_generated_data(play_type, reward_type, rewards_config, generated_file
             df_to_update.at[index, "reward_amount"] = new_value
             break
         generated_df.iat[0, 1] = new_value
-        rewards_config.get_base_rewards(generated_df, play_type)
+        rewards_config.set_base_rewards(generated_df, play_type)
     else:
         new_value = random.randint(1, 100)
         for index, row in df_to_update.iterrows():
