@@ -3,9 +3,8 @@ import utils.page_utils as page_utils
 from utils.app_utils import data_selection_instance
 import seaborn as sns
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-
-
+from simulators.utils.predictive_utils import calculate_probability_toss_winner_fields_first
+import pandas as pd
 def app():
     page_utils.setup_page(" Review Predictive Simulation ")
 
@@ -55,41 +54,8 @@ def app():
         st.bar_chart(ag, y='normalised_fielding')
 
     with group_by_team_venue:
-        #g = sns.JointGrid(data=all_matches_df, x="toss_winner", y="venue", marginal_ticks=True)
-
-        # Set a log scaling on the y axis
-        #g.ax_joint.set(yscale="log")
-
-        # Create an inset legend for the histogram colorbar
-        #cax = g.figure.add_axes([.15, .55, .02, .2])
-
-        # Add the joint and marginal histogram plots
-        #img = g.plot_joint(
-         #   sns.histplot, discrete=(True, False),
-         #   cmap="light:#03012d", pmax=.8, cbar=True
-        #)
-        #g.plot_marginals(sns.histplot, element="step", color="#03012d")
-
-        ag = matches_df.groupby(['toss_winner', 'venue', 'toss_decision']).count()['key'].unstack()
-        ag = ag.reset_index()
-
-        ag = ag.fillna(0)
-        ag['normalised_fielding'] = ag['field'] / (ag['field'] + ag['bat'])
-        ag.set_index(['toss_winner', 'venue'], inplace=True, verify_integrity=True)
-        ag = ag.drop(['field', 'bat'], axis=1)
-
-        #st.write(".....")
-        #f, ax2 = plt.subplots()
-        #sns.heatmap(ag, ax=ax2,  cmap="Blues", linecolor="white")
-        #st.write(f)
-
-        g = sns.JointGrid(data=ag, x="toss_winner", y="venue", marginal_ticks=True)
-
-        # Set a log scaling on the y axis
-        # g.ax_joint.set(yscale="log")
-
-        # Create an inset legend for the histogram colorbar
-        # cax = g.figure.add_axes([.15, .55, .02, .2])
+        probabilities = calculate_probability_toss_winner_fields_first(matches_df)
+        g = sns.JointGrid(data=probabilities, x="toss_winner", y="venue", marginal_ticks=True)
 
         # Add the joint and marginal histogram plots
         img = g.plot_joint(
