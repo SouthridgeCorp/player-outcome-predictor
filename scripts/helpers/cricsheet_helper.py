@@ -7,7 +7,7 @@ import pandas as pd
 # TODO: Fields to be parameterized
 BASE_INPUT_DIR_DEFAULT = "data/downloaded/cricsheet/"
 BASE_OUTPUT_DIR_DEFAULT = "data/generated/prod/match_data/cricsheet/"
-
+VENUE_MAP_PATH = "scripts/helpers/resources/venue_mapping.csv"
 
 class PlayerMap:
     """
@@ -228,6 +228,8 @@ def parse_json_match_data(input_file, tournament_key, match_dict_list, playing_x
     """
     with open(input_file, 'r') as json_file:
         data = json_file.read()
+
+    venue_mapping_df = pd.read_csv(VENUE_MAP_PATH)
     json_object = json.loads(data)
     gender = json_object["info"]["gender"]
     match_type = json_object["info"]["match_type"]
@@ -244,6 +246,24 @@ def parse_json_match_data(input_file, tournament_key, match_dict_list, playing_x
         set_json_value_if_exists(json_object["info"], match_dict, "player_of_match",
                                  "player_of_match", index=0, is_player=True, player_map=player_map)
         set_json_value_if_exists(json_object["info"], match_dict, "venue", "venue")
+
+        if "venue" in match_dict.keys():
+            venue = match_dict["venue"]
+            city = ""
+            if "city" in match_dict.keys():
+                city = match_dict["city"]
+
+            query_string = f'venue == "{venue}"'
+
+            if len(city) > 0:
+                query_string += f'and city == "{city}"'
+
+            mapped_venue_df = venue_mapping_df.query(query_string)
+            if not mapped_venue_df.empty:
+                mapped_venue = mapped_venue_df.iloc[0]['mapped_venue']
+                logging.debug(f"Mapping {city}: {venue} to {mapped_venue}")
+                match_dict['venue'] = mapped_venue
+
         set_json_value_if_exists(json_object["info"], match_dict, "season", "season")
         set_json_value_if_exists(json_object["info"], match_dict, "teams", "team1", index=0)
         set_json_value_if_exists(json_object["info"], match_dict, "teams", "team2", index=1)
