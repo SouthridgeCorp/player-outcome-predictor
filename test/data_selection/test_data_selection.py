@@ -1,7 +1,6 @@
 import pandas as pd
 import pytest
-from test.conftest import get_test_cases
-from historical_data.singleton import Helper
+from test.conftest import get_test_cases, tournaments_to_test
 from data_selection.data_selection import DataSelection
 from datetime import datetime
 import csv
@@ -100,5 +99,20 @@ class TestDataSelection:
 
         for column in expected_columns:
             pd.testing.assert_series_equal(df[column], expected_df[column])
+
+    def test_get_all_matches(self, data_selection_instance: DataSelection):
+
+        all_matches_df = data_selection_instance.get_all_matches()
+
+        assert len(all_matches_df.index) == 147
+
+        tournaments = all_matches_df['tournament_key'].unique().tolist()
+        tournaments.sort()
+
+        expected_tournaments = tournaments_to_test
+        expected_tournaments.sort()
+
+        assert tournaments == expected_tournaments
+
 
 

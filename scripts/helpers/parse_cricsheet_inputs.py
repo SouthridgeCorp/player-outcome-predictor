@@ -2,7 +2,7 @@ import logging
 
 from cricsheet_helper import parse_data
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 
 def main():
