@@ -83,3 +83,9 @@ class Matches:
         """
         selected_df = self.get_selected_matches(start_date, end_date)
         return list(set(list(selected_df["venue"])))
+
+    def get_match_df(self) -> pd.DataFrame:
+        """
+        Returns a copy of the underlying matches dataframe
+        """
+        return self.df.copy()

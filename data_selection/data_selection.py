@@ -212,3 +212,10 @@ class DataSelection:
             selected_venues += match.get_selected_venues(start_date, end_date)
 
         return list(set(selected_venues))
+
+    def get_all_matches(self) -> pd.DataFrame:
+        """
+        Get all matches that the tournaments object knows about
+        :return: pd.DataFrame listing all the matches information avaialble
+        """
+        return self.historical_data_helper.tournaments.get_all_matches()

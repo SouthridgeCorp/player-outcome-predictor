@@ -123,3 +123,16 @@ class Tournaments:
         :return: The PlayingXI object mapped to the tournament
         """
         return self.artefacts[tournament].playing_xi
+
+    def get_all_matches(self) -> pd.DataFrame:
+        """
+        Get all matches that we know about
+        :return: pd.DataFrame listing all the matches information avaialble
+        """
+        matches_list = []
+
+        for tournament in self.artefacts.keys():
+            matches_list.append(self.artefacts[tournament].matches.get_match_df())
+
+        return pd.concat(matches_list)
+
