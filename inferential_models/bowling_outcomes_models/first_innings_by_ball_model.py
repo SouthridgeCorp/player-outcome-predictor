@@ -3,7 +3,7 @@ import pandas as pd
 import pymc as pm
 from sklearn.preprocessing import OneHotEncoder
 import aesara.tensor as at
-
+from simulators.perfect_simulator import PerfectSimulator
 
 def sample_model(bowling_outcomes_by_ball_and_innings_df,
                  match_state_by_ball_and_innings_df,
@@ -55,3 +55,48 @@ def sample_model(bowling_outcomes_by_ball_and_innings_df,
             trace = pm.sample(chains=1,
                               draws=100)
             pm.sample_prior_predictive()
+
+
+class FirstInningsByBallModel:
+    """Class to instantiate a ball level outcomes predictor for the first innings"""
+
+    def __init__(self,
+                 perfect_simulator: PerfectSimulator):
+        perfect_simulator.data_selection.
+        self.all_bowling_outcomes_df = perfect_simulator.
+
+def real_model(bowling_outcomes_by_ball_and_innings_df,
+               match_state_by_ball_and_innings_df):
+    bowling_outcomes_categorical = pd.Categorical(bowling_outcomes_by_ball_and_innings_df.bowling_outcome_index)
+    #bowling_outcomes_idx, \
+    #bowling_outcomes = bowling_outcomes_by_ball_and_innings_df.bowling_outcome_index.factorize(sort=True)
+    bowling_outcomes_idx = bowling_outcomes_categorical.codes
+    bowling_outcomes = bowling_outcomes_categorical.categories
+    balls_idx, balls = bowling_outcomes_by_ball_and_innings_df.index.factorize(sort=True)
+    COORDS = {
+        "bowling_outcomes": bowling_outcomes,
+        "balls": balls.tolist()
+    }
+
+    with pm.Model(coords=COORDS) as first_innings_model:
+        bowling_outcomes_data = pm.MutableData("bowling_outcomes_data",
+                                               bowling_outcomes_idx)
+        intercept_mu = pm.Normal("intercept_mu", sigma=3.0)
+        intercept_sigma = pm.HalfNormal("intercept_sigma", sigma=1.0)
+        alpha_bowling_outcome_rv = pm.Normal('alpha_bowling_outcome',
+                                             mu=intercept_mu,
+                                             sigma=intercept_sigma,
+                                             dims='bowling_outcomes')
+        mu_bowling_outcome_rv = alpha_bowling_outcome_rv
+        probability_of_bowling_outcome = pm.Deterministic('probability_of_bowling_outcome',
+                                                          at.nnet.softmax(mu_bowling_outcome_rv))
+        bowling_outcomes_by_ball_and_innings_rv = pm.Categorical('bowling_outcomes_by_ball_and_innings_rv',
+                                                                 p=probability_of_bowling_outcome,
+                                                                 observed=bowling_outcomes_data,
+                                                                 dims = 'balls')
+        idata = pm.sample()
+        idata.extend(pm.sample_prior_predictive())
+        idata.extend(pm.sample_posterior_predictive(idata))
+        print(idata)
+
+    return
