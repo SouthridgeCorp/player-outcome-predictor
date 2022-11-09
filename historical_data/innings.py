@@ -1,6 +1,5 @@
 import pandas as pd
 
-
 class Innings:
     """
     A class to store all innings data corresponding to a tournament

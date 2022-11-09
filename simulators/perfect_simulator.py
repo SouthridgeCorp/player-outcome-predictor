@@ -105,7 +105,6 @@ class PerfectSimulator:
         #need for faster execution.
 
         match_state_df, player_universe_df, index_columns = initialise_match_state(self.data_selection, is_testing)
-
         setup_data_labels(match_state_df)
         training_teams, venues = setup_data_labels_with_training(self.data_selection, match_state_df)
 

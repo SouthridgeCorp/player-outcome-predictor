@@ -3,6 +3,7 @@ import pytest
 from test.data_selection.conftest import prepare_for_tests, setup_training_and_testing
 import pandas as pd
 import logging
+import datetime
 
 
 @pytest.mark.parametrize(
@@ -394,7 +395,7 @@ class TestPerfectSimulator:
             else:
                 assert row['bowling_rewards'] == row['bowling_base_rewards'] + row['bowling_bonus_wickets'] \
                                                 + row['bowling_bonus'] - row['bowling_penalty']
-            print ('hello')
+
 
     @pytest.mark.parametrize('is_testing', [True, False])
     @pytest.mark.parametrize('granularity, expected_columns',

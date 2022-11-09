@@ -50,14 +50,14 @@ class TestDataSelection:
         expected_columns = ['match_key', 'inning', 'over', 'ball', 'batting_team', 'batter', 'bowler', 'non_striker',
                             'batter_runs', 'extras', 'total_runs', 'non_boundary', 'is_wicket', 'dismissal_kind',
                             'player_dismissed', 'fielder', 'is_direct_runout', 'byes', 'legbyes', 'noballs', 'penalty',
-                            'wides', 'team1', 'team2', 'bowling_team']
+                            'wides', 'team1', 'team2', 'bowling_team', 'target_runs', 'target_overs']
         expected_columns.sort()
 
         received_columns = innings.columns.values.tolist()
         received_columns.sort()
         assert len(innings) == 11123
         assert received_columns == expected_columns, \
-            f"Received columns {received_columns}; expected {expected_columns}"
+            f"Received columns {received_columns};\nexpected {expected_columns}"
 
         assert not innings['batting_team'].equals(innings['bowling_team'])
 
