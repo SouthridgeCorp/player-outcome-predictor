@@ -2,7 +2,7 @@ import scripts.helpers.cricsheet_helper
 import pytest
 import test.conftest
 import csv
-import test.scripts.conftest as conftest
+import pandas as pd
 
 
 def validate_missing_columns(csv_file, list_of_columns_to_verify):
@@ -40,3 +40,12 @@ def test_data_generation(tournament, output_dir, tournaments_file, players_file,
         missing_columns, extra_columns = validate_missing_columns(file_column_tuple[0], file_column_tuple[1])
         assert len(missing_columns) == 0, f"Columns {missing_columns} missing in {file_column_tuple[0]}"
         assert len(extra_columns) == 0, f"Extra columns {extra_columns} present in {file_column_tuple[0]}"
+
+    innings_df = pd.read_csv(innings_file)
+
+    #innings 2
+    innings2_df = innings_df[innings_df['inning'] == 2]
+    assert -1 not in innings2_df['target_overs'].unique().tolist()
+    assert -1 not in innings2_df['target_runs'].unique().tolist()
+
+    assert len(innings_df[innings_df['batter'].isna()].index) == 0
