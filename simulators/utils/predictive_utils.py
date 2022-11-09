@@ -54,7 +54,9 @@ class PredictiveUtils:
         matches_df = pd.merge(matches_df, self.toss_winner_fields_first_probabilities_df,
                               left_on=["predicted_toss_winner", "venue"], right_index=True)
 
-        matches_df['predicted_toss_decision'] = matches_df.apply(
+        matches_df['predicted_toss_winner_fields_value'] =
+
+        matches_df['predicted_toss_winner_fields'] = matches_df.apply(
             lambda x: self.compute_toss_winner_action(x, scenario_number), axis=1)
         print("hello")
 
