@@ -1,5 +1,4 @@
 import pandas as pd
-import logging
 
 
 # This class contains a bunch of functions which are used to calculate the dataframe in
@@ -8,10 +7,8 @@ import logging
 def initialise_match_state(data_selection, is_testing: bool) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
     innings_df = data_selection.get_innings_for_selected_matches(is_testing)
     matches_df = data_selection.get_selected_matches(is_testing)
-    logging.info("Getting frequent players universe")
     player_universe_df = data_selection.get_frequent_players_universe()
 
-    logging.info("Merging with frequent players")
     index_columns = ['match_key', 'inning', 'over', 'ball']
     other_columns = ['batter', 'bowler', 'batting_team', 'total_runs', 'is_wicket', 'target_runs', 'target_overs']
     match_state_df = innings_df.filter(index_columns + other_columns, axis=1)
@@ -117,17 +114,12 @@ def setup_data_labels_with_references(match_state_df, column_name, reference_lis
     match_state_df.loc[mask, f'{column_name}_labels'] = column_name + "_" + match_state_df[column_name]
 
 def setup_data_labels_with_training(data_selection, match_state_df):
-    logging.info("Getting selections")
     training_teams = data_selection.get_selected_teams(is_testing=False)
     venues = data_selection.get_selected_venues(is_testing=False)
-
-    logging.info("Applying labels")
 
     setup_data_labels_with_references(match_state_df, 'batting_team', training_teams)
     setup_data_labels_with_references(match_state_df, 'bowling_team', training_teams)
     setup_data_labels_with_references(match_state_df, 'venue', venues)
-
-    logging.info("DONE with labels")
 
     return training_teams, venues
 
@@ -141,10 +133,6 @@ def calculate_ball_by_ball_stats(match_state_df, index_columns):
     grouped_df = pd.DataFrame()
 
     # Calculate total stats at a match & innings level
-    logging.info(f"Calculating match / inning stats: {match_state_df.shape}")
-
-    logging.info(f"Option 1")
-
     grouping = match_state_df.groupby(['match_key', 'inning'])
     match_state_df['total_balls_bowled'] = grouping['venue'].cumcount()
     match_state_df['current_total'] = grouping['total_runs'].cumsum()

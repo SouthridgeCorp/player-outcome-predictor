@@ -136,6 +136,8 @@ def parse_innings_data(json_innings, match_key, innings_list, player_map):
     for inning in json_innings:
         inning_count += 1  # Ensure we keep track of the innings number
         team = inning["team"]
+
+        # Get target runs & info if available
         target_map = {'target_runs': -1, 'target_overs': -1}
         if "target" in inning.keys():
             target = inning["target"]
