@@ -110,30 +110,26 @@ def identiy_bowling_team(row):
         return team1
 
 
+def setup_data_labels_with_references(match_state_df, column_name, reference_list):
+    match_state_df[f'{column_name}_labels'] = f"{column_name}_not_in_training"
+
+    mask = match_state_df[column_name].isin(reference_list)
+    match_state_df.loc[mask, f'{column_name}_labels'] = column_name + "_" + match_state_df[column_name]
+
 def setup_data_labels_with_training(data_selection, match_state_df):
+    logging.info("Getting selections")
     training_teams = data_selection.get_selected_teams(is_testing=False)
-
-    match_state_df['batting_team_labels'] \
-        = match_state_df.apply(
-        lambda x: calculate_labels_from_reference_data(x, "batting_team", "batting_team", "not_in_training",
-                                                       training_teams), axis=1)
-    match_state_df['bowling_team_labels'] = match_state_df.apply(
-        lambda x: calculate_labels_from_reference_data(x, "bowling_team", "bowling_team", "not_in_training",
-                                                       training_teams), axis=1)
-
     venues = data_selection.get_selected_venues(is_testing=False)
-    match_state_df['venue_labels'] = match_state_df.apply(
-        lambda x: calculate_labels_from_reference_data(x, "venue", "venue", "not_in_training", venues), axis=1)
+
+    logging.info("Applying labels")
+
+    setup_data_labels_with_references(match_state_df, 'batting_team', training_teams)
+    setup_data_labels_with_references(match_state_df, 'bowling_team', training_teams)
+    setup_data_labels_with_references(match_state_df, 'venue', venues)
+
+    logging.info("DONE with labels")
 
     return training_teams, venues
-
-
-def calculate_labels_from_reference_data(row, column_name, output_label_suffix, not_found_suffix, reference_list):
-    value_found = row[column_name]
-    if value_found in reference_list:
-        return f"{output_label_suffix}_{value_found}"
-    else:
-        return f"{output_label_suffix}_{not_found_suffix}"
 
 
 def add_missing_columns(df, column, default_value):

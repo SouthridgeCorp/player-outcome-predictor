@@ -9,6 +9,7 @@ BASE_INPUT_DIR_DEFAULT = "data/downloaded/cricsheet/"
 BASE_OUTPUT_DIR_DEFAULT = "data/generated/prod/match_data/cricsheet/"
 VENUE_MAP_PATH = "scripts/helpers/resources/venue_mapping.csv"
 
+
 class PlayerMap:
     """
     Utility class to help parse / update global player information.
@@ -220,7 +221,6 @@ def parse_innings_data(json_innings, match_key, innings_list, player_map):
                     ball_map["wides"] = ''
 
                 innings_list.append(ball_map)
-
 
 
 def parse_json_match_data(input_file, tournament_key, match_dict_list, playing_xi_dict_list, innings_list, player_map):

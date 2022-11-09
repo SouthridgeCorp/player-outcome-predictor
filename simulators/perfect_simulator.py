@@ -106,7 +106,7 @@ class PerfectSimulator:
         #TODO: this function needs a fair bit of performance optimisations - to be scheduled separately if there is a
         #need for faster execution.
 
-        logging.info("Initialising match state")
+        logging.info("****************Initialising match state")
 
         match_state_df, player_universe_df, index_columns = initialise_match_state(self.data_selection, is_testing)
 
@@ -115,6 +115,8 @@ class PerfectSimulator:
 
         logging.info("Setting up data labels with training")
         training_teams, venues = setup_data_labels_with_training(self.data_selection, match_state_df)
+
+        logging.info("Setting up dummies")
 
         match_state_df = pd.get_dummies(match_state_df, columns=['batting_labels', 'bowling_labels', 'venue_labels',
                                                                  'batting_team_labels', 'bowling_team_labels'],
