@@ -16,4 +16,3 @@ class PredictiveUtils:
         mask = matches_df['predicted_team_1_won_toss'] == 1
         matches_df.loc[mask, 'predicted_toss_winner'] = matches_df['team1']
         matches_df.loc[~mask, 'predicted_toss_winner'] = matches_df['team2']
-        print('Hello')

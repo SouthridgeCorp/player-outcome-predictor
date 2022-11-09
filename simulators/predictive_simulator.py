@@ -19,7 +19,5 @@ class PredictiveSimulator:
 
     def predict_selected_matches(self, scenario_number: int):
         self.matches_df.set_index('key', inplace=True)
-
         self.predictive_utils.predict_toss_winner(self.matches_df, scenario_number)
-
         return self.matches_df
