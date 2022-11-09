@@ -4,6 +4,8 @@ from data_selection.data_selection import DataSelection
 from rewards_configuration.rewards_configuration import RewardsConfiguration
 
 import pandas as pd
+import warnings
+warnings.filterwarnings('ignore')
 from simulators.utils.outcomes_calculator import get_base_rewards, get_bonus_penalty, \
     get_all_outcomes_by_ball_and_innnings
 from simulators.utils.match_state_utils import setup_data_labels, initialise_match_state, \
@@ -104,15 +106,22 @@ class PerfectSimulator:
         #TODO: this function needs a fair bit of performance optimisations - to be scheduled separately if there is a
         #need for faster execution.
 
+        logging.info("Initialising match state")
+
         match_state_df, player_universe_df, index_columns = initialise_match_state(self.data_selection, is_testing)
 
+        logging.info("Setting up data labels")
         setup_data_labels(match_state_df)
+
+        logging.info("Setting up data labels with training")
         training_teams, venues = setup_data_labels_with_training(self.data_selection, match_state_df)
 
         match_state_df = pd.get_dummies(match_state_df, columns=['batting_labels', 'bowling_labels', 'venue_labels',
                                                                  'batting_team_labels', 'bowling_team_labels'],
                                         prefix="", prefix_sep="")
         match_state_df = pd.get_dummies(match_state_df, columns=['over_number', 'ball_number_in_over'])
+
+        logging.info("Adding missing columns")
 
         columns_to_check = ['over_number_21', 'ball_number_in_over_7', 'batter_non_frequent_player',
                             'bowler_non_frequent_player', 'batting_team_not_in_training',
@@ -139,7 +148,9 @@ class PerfectSimulator:
         match_state_df.set_index(index_columns, inplace=True, verify_integrity=True)
         match_state_df = match_state_df.sort_values(index_columns)
 
+        logging.info("Calculating ball by ball stats")
         match_state_df = calculate_ball_by_ball_stats(match_state_df, index_columns)
+        logging.info("Done calculating match state")
         return match_state_df
 
     def get_batting_outcomes_by_ball_and_innings(self, is_testing: bool) -> pd.DataFrame:

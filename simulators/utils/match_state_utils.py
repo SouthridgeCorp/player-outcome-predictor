@@ -1,4 +1,6 @@
 import pandas as pd
+import logging
+
 
 # This class contains a bunch of functions which are used to calculate the dataframe in
 # get_match_state_by_ball_and_innings()
@@ -6,25 +8,29 @@ import pandas as pd
 def initialise_match_state(data_selection, is_testing: bool) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
     innings_df = data_selection.get_innings_for_selected_matches(is_testing)
     matches_df = data_selection.get_selected_matches(is_testing)
+    logging.info("Getting frequent players universe")
     player_universe_df = data_selection.get_frequent_players_universe()
 
+    logging.info("Merging with frequent players")
     index_columns = ['match_key', 'inning', 'over', 'ball']
-    other_columns = ['batter', 'bowler', 'batting_team', 'total_runs', 'is_wicket']
+    other_columns = ['batter', 'bowler', 'batting_team', 'total_runs', 'is_wicket', 'target_runs', 'target_overs']
     match_state_df = innings_df.filter(index_columns + other_columns, axis=1)
 
     match_state_df = pd.merge(match_state_df, player_universe_df[["featured_player"]],
-                              left_on="batter", right_index=True)
+                              left_on="batter", right_index=True, how='left')
 
     match_state_df.rename(columns={"featured_player": "batting_featured_player"}, inplace=True)
 
     match_state_df = pd.merge(match_state_df, player_universe_df[["featured_player"]],
-                              left_on="bowler", right_index=True)
+                              left_on="bowler", right_index=True, how='left')
 
     match_state_df.rename(columns={"featured_player": "bowling_featured_player"}, inplace=True)
 
     match_state_df = pd.merge(match_state_df, matches_df[["key", "team1", "team2", 'venue']],
-                              left_on="match_key", right_on="key")
+                              left_on="match_key", right_on="key", how='left')
     match_state_df.drop('key', axis=1, inplace=True)
+
+    match_state_df = match_state_df.fillna(False)
 
     return match_state_df, player_universe_df, index_columns
 
@@ -45,12 +51,35 @@ def identify_featured_player(row, is_batter):
         return f"{header}_non_frequent_player"
 
 
+def identify_featured_player_for_type(match_state_df, label_name, is_batter):
+    if is_batter:
+        header = 'batter'
+        featured_player_label = "batting_featured_player"
+    else:
+        header = 'bowler'
+        featured_player_label = "bowling_featured_player"
+
+    mask = match_state_df[featured_player_label] == True
+    match_state_df[label_name] = f"{header}_non_frequent_player"
+    match_state_df.loc[mask, label_name] = header + "_" + match_state_df[header]
+
+
 def setup_data_labels(match_state_df):
-    match_state_df['batting_labels'] = match_state_df.apply(lambda x: identify_featured_player(x, True), axis=1)
-    match_state_df['bowling_labels'] = match_state_df.apply(lambda x: identify_featured_player(x, False), axis=1)
-    match_state_df['bowling_team'] = match_state_df.apply(lambda x: identiy_bowling_team(x), axis=1)
-    match_state_df['over_number'] = match_state_df.apply(lambda x: get_over_number(x), axis=1)
-    match_state_df['ball_number_in_over'] = match_state_df.apply(lambda x: get_ball_number(x), axis=1)
+    identify_featured_player_for_type(match_state_df, "batting_labels", True)
+    identify_featured_player_for_type(match_state_df, "bowling_labels", False)
+
+    match_state_df['bowling_team'] = match_state_df['team1']
+    mask = match_state_df['team1'] == match_state_df['batting_team']
+    match_state_df.loc[mask, 'bowling_team'] = match_state_df['team2']
+
+    match_state_df['over_number'] = match_state_df['over'] + 1
+    mask = match_state_df['over_number'] > 21
+    match_state_df.loc[mask, 'over_number'] = 21
+
+    match_state_df['ball_number_in_over'] = match_state_df['ball']
+    mask = match_state_df['ball_number_in_over'] > 7
+    match_state_df.loc[mask, 'ball_number_in_over'] = 7
+
     match_state_df.drop('team1', axis=1, inplace=True)
     match_state_df.drop('team2', axis=1, inplace=True)
 
@@ -116,27 +145,17 @@ def calculate_ball_by_ball_stats(match_state_df, index_columns):
     grouped_df = pd.DataFrame()
 
     # Calculate total stats at a match & innings level
-    for g, g_df in match_state_df.groupby(['match_key', 'inning']):
-        g_df['total_balls_bowled'] = g_df.reset_index().index
-        g_df['wickets_fallen'] = g_df['is_wicket'].cumsum()
-        g_df['current_total'] = g_df['total_runs'].cumsum()
-        grouped_df = pd.concat([grouped_df, g_df])
+    logging.info(f"Calculating match / inning stats: {match_state_df.shape}")
 
-    match_state_df = pd.merge(match_state_df, grouped_df['total_balls_bowled'], left_index=True, right_index=True)
-    match_state_df = pd.merge(match_state_df, grouped_df['wickets_fallen'], left_index=True, right_index=True)
-    match_state_df = pd.merge(match_state_df, grouped_df['current_total'], left_index=True, right_index=True)
+    logging.info(f"Option 1")
 
-    # Calculate runs to target
-    grouped_df = pd.DataFrame()
-    for g, g_df in match_state_df.groupby(['match_key']):
-        g_df = g_df.reset_index()
-        total_runs_scored = g_df[g_df['inning'] == 1].iloc[-1]['current_total']
-        g_df['runs_to_target'] = g_df.apply(
-            lambda x: total_runs_scored - x['current_total'] if x['inning'] == 2 else 0, axis=1)
-        grouped_df = pd.concat([grouped_df, g_df])
+    grouping = match_state_df.groupby(['match_key', 'inning'])
+    match_state_df['total_balls_bowled'] = grouping['venue'].cumcount()
+    match_state_df['current_total'] = grouping['total_runs'].cumsum()
+    match_state_df['wickets_fallen'] = grouping['is_wicket'].cumsum()
 
-    grouped_df.set_index(index_columns, inplace=True, verify_integrity=True)
-    grouped_df = grouped_df.sort_values(index_columns)
+    match_state_df['runs_to_target'] = -1
+    mask = match_state_df['target_runs'] != -1
+    match_state_df.loc[mask, 'runs_to_target'] = match_state_df['target_runs'] - match_state_df['current_total']
 
-    match_state_df = pd.merge(match_state_df, grouped_df['runs_to_target'], left_index=True, right_index=True)
     return match_state_df

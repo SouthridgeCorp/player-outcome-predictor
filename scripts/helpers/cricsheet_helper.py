@@ -135,6 +135,13 @@ def parse_innings_data(json_innings, match_key, innings_list, player_map):
     for inning in json_innings:
         inning_count += 1  # Ensure we keep track of the innings number
         team = inning["team"]
+        target_map = {'target_runs': -1, 'target_overs': -1}
+        if "target" in inning.keys():
+            target = inning["target"]
+            set_json_value_if_exists(target, target_map, "overs", "target_overs")
+            set_json_value_if_exists(target, target_map, "runs", "target_runs")
+            target_map['target_overs'] = int(target_map['target_overs'])
+
         over_count = -1
         for over_row in inning["overs"]:
             over_count += 1  # Ensure we keep track of the over number
@@ -146,6 +153,7 @@ def parse_innings_data(json_innings, match_key, innings_list, player_map):
                 # Set all the basic values for a delivery
                 ball_map = {"match_key": match_key, "inning": inning_count, "over": over_count, "ball": ball_number,
                             "batting_team": team}
+                ball_map.update(target_map)
                 set_json_value_if_exists(delivery, ball_map, "batter", "batter", is_player=True, player_map=player_map)
                 set_json_value_if_exists(delivery, ball_map, "bowler", "bowler", is_player=True, player_map=player_map)
                 set_json_value_if_exists(delivery, ball_map, "non_striker", "non_striker",
@@ -212,6 +220,7 @@ def parse_innings_data(json_innings, match_key, innings_list, player_map):
                     ball_map["wides"] = ''
 
                 innings_list.append(ball_map)
+
 
 
 def parse_json_match_data(input_file, tournament_key, match_dict_list, playing_xi_dict_list, innings_list, player_map):

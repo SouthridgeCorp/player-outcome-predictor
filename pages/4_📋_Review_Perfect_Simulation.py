@@ -64,6 +64,26 @@ def app():
 
         perfect_simulator = PerfectSimulator(data_selection, rewards)
 
+        all_matches_df = data_selection.get_all_matches()
+        all_dates = all_matches_df.date.sort_values().tolist()
+        train_idx = 1000
+        train_start_date = all_dates[0]
+        train_end_date = all_dates[train_idx - 1]
+        tournaments.set_start_end_dates(train_start_date, train_end_date, False)
+
+        test_start_date = all_dates[train_idx]
+        test_end_date = all_dates[-1]
+        tournaments.set_start_end_dates(test_start_date, test_end_date, False)
+
+        test_outcomes_df = perfect_simulator.get_match_state_by_ball_and_innings(True)
+
+        st.write(test_outcomes_df)
+
+        pass
+
+
+
+
         with st.spinner("Calculating Simulation Metrics.."):
             perfect_simulator_df = get_perfect_simulator_data(perfect_simulator, granularity, rewards)
 

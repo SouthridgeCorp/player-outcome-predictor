@@ -14,7 +14,7 @@ def file_columns_tuple_list(tournaments_file, players_file, matches_file, inning
     innings_tuple = (innings_file, ["match_key", "inning", "over", "ball", "batting_team", "batter", "bowler",
                                     "non_striker", "batter_runs", "extras", "total_runs", "non_boundary", "is_wicket",
                                     "dismissal_kind", "player_dismissed", "fielder", "is_direct_runout", "byes",
-                                    "legbyes", "noballs", "penalty", "wides"])
+                                    "legbyes", "noballs", "penalty", "wides", "target_runs", "target_overs"])
 
     playing_xi_tuple = (playing_xi_file, ["team", "match_key", "player_key"])
 
