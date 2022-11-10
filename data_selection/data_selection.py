@@ -35,6 +35,8 @@ class DataSelection:
     def __init__(self,
                  historical_data_helper: Helper):
         self.historical_data_helper = historical_data_helper
+        self.simulated_matches = pd.DataFrame()
+        self.simulated_innings = pd.DataFrame()
 
     def get_helper(self) -> Helper:
         """
@@ -43,12 +45,20 @@ class DataSelection:
         """
         return self.historical_data_helper
 
+    def set_simulated_data(self, matches_df: pd.DataFrame, innings_df: pd.DataFrame):
+        self.simulated_matches = matches_df
+        self.simulated_matches = innings_df
+
     def get_selected_matches(self, is_testing: bool) -> pd.DataFrame:
         """
         Get all matches from selected tournaments filtered for is_testing
         :param is_testing: Set True if testing data is needed, else set False
         :return: pd.DataFrame listing all matches from selected tournaments in training/testing window
         """
+
+        if is_testing and not self.simulated_matches.empty:
+            return self.simulated_matches
+
         start_date, end_date = self.historical_data_helper.tournaments.get_start_end_dates(is_testing)
 
         selected_matches_list = []
@@ -93,6 +103,9 @@ class DataSelection:
         :return: pd.DataFrame listing all balls in all innings from matches in selected tournaments in training/testing
         window
         """
+
+        if is_testing and not self.simulated_innings.empty:
+            return self.simulated_innings
 
         innings_list = []
         start_date, end_date = self.historical_data_helper.tournaments.get_start_end_dates(is_testing)

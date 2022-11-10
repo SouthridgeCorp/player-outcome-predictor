@@ -26,8 +26,8 @@ def predictive_simulator(setup_and_teardown):
 
     data_selection = DataSelection(helper)
 
-    number_of_sequences = config_instance.get_predictive_simulator_info()
+    number_of_scenarios = config_instance.get_predictive_simulator_info()
 
-    simulator = PredictiveSimulator(data_selection, rewards_config, number_of_sequences)
+    simulator = PredictiveSimulator(data_selection, rewards_config, number_of_scenarios)
     yield simulator
 

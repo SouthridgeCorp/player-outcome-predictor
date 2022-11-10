@@ -3,68 +3,11 @@ import utils.page_utils as page_utils
 from utils.app_utils import data_selection_instance
 import seaborn as sns
 import matplotlib.pyplot as plt
-from simulators.utils.predictive_utils import calculate_probability_toss_winner_fields_first
 import pandas as pd
 def app():
     page_utils.setup_page(" Review Predictive Simulation ")
 
     data_selection = data_selection_instance()
-
-    st.header("Explanability")
-
-    matches_df = data_selection.get_all_matches()
-
-
-
-    st.subheader("When does the toss winner choose fielding?")
-
-    all_matches, group_by_venue = st.columns(2)
-    group_by_team, group_by_team_venue = st.columns(2)
-    sns.set()
-    with all_matches:
-        st.write("Across all matches")
-        fig, ax = plt.subplots()
-        ax.hist(matches_df['toss_decision'], density=True)
-        st.pyplot(fig)
-
-    with group_by_venue:
-        st.write("When grouped by venue")
-        sns.set_theme(style="ticks")
-        all_matches_df = matches_df.reset_index()
-        ag = all_matches_df.groupby(['toss_decision', 'venue']).count().unstack()
-        ag = ag.transpose()
-        ag = ag.fillna(0)
-        ag = ag.reset_index()
-        ag['normalised_fielding'] = ag['field'] / (ag['field'] + ag['bat'])
-        ag = ag[ag['level_0'] == 'index']
-        ag.set_index('venue', inplace=True, verify_integrity=True )
-        st.bar_chart(ag, y='normalised_fielding')
-
-    with group_by_team:
-        st.write("When grouped by team")
-        sns.set_theme(style="ticks")
-        all_matches_df = matches_df.reset_index()
-        ag = all_matches_df.groupby(['toss_decision', 'toss_winner']).count().unstack()
-        ag = ag.transpose()
-        ag = ag.fillna(0)
-        ag = ag.reset_index()
-        ag['normalised_fielding'] = ag['field'] / (ag['field'] + ag['bat'])
-        ag = ag[ag['level_0'] == 'index']
-        ag.set_index('toss_winner', inplace=True, verify_integrity=True)
-        st.bar_chart(ag, y='normalised_fielding')
-
-    with group_by_team_venue:
-        probabilities = calculate_probability_toss_winner_fields_first(matches_df)
-        g = sns.JointGrid(data=probabilities, x="toss_winner", y="venue", marginal_ticks=True)
-
-        # Add the joint and marginal histogram plots
-        img = g.plot_joint(
-           sns.histplot, discrete=(True, False),
-           cmap="light:#03012d", pmax=.8, cbar=True
-        )
-        g.plot_marginals(sns.histplot, element="step", color="#03012d")
-        st.pyplot(img)
-
 
 
     st.markdown('''
