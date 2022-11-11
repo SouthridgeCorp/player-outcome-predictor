@@ -24,3 +24,6 @@ class Innings:
         :return: A dataframe with ball-by-ball innings details for the match
         """
         return self.df[(self.df["match_key"].isin(match_keys))]
+
+    def get_data(self) -> pd.DataFrame:
+        return self.df.copy()

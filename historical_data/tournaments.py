@@ -136,3 +136,14 @@ class Tournaments:
 
         return pd.concat(matches_list)
 
+    def get_all_innings(self) -> pd.DataFrame:
+        """
+        Get all matches that we know about
+        :return: pd.DataFrame listing all the matches information avaialble
+        """
+        innings_list = []
+
+        for tournament in self.artefacts.keys():
+            innings_list.append(self.artefacts[tournament].innings.get_data())
+
+        return pd.concat(innings_list)

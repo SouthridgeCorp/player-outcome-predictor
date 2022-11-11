@@ -232,3 +232,22 @@ class DataSelection:
         :return: pd.DataFrame listing all the matches information avaialble
         """
         return self.historical_data_helper.tournaments.get_all_matches()
+
+    def get_all_innings_and_matches(self) -> (pd.DataFrame, pd.DataFrame):
+        """
+        Get all matches that the tournaments object knows about
+        :return: pd.DataFrame listing all the matches information avaialble
+        """
+        innings_df = self.historical_data_helper.tournaments.get_all_innings()
+        matches_df = self.get_all_matches()
+
+        innings_df = pd.merge(innings_df, matches_df[["key", "team1", "team2"]], left_on="match_key", right_on="key")
+        innings_df.drop('key', axis=1, inplace=True)
+
+        innings_df['bowling_team'] = innings_df['team1']
+        mask = innings_df['team1'] == innings_df['batting_team']
+        innings_df.loc[mask, 'bowling_team'] = innings_df['team2']
+
+        innings_df.drop(['team1', 'team2'], axis=1, inplace=True)
+
+        return innings_df, matches_df

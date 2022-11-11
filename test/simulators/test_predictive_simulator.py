@@ -1,6 +1,7 @@
 import pytest
 from test.conftest import get_test_cases
 from test.data_selection.conftest import prepare_for_tests, setup_training_and_testing
+from simulators.utils.predictive_utils import PredictiveUtils
 import pandas as pd
 
 
@@ -11,6 +12,12 @@ import pandas as pd
 )
 class TestPredictiveSimulator:
 
+    def test_bowling_probability_distribution(self, predictive_simulator):
+        utils = PredictiveUtils(predictive_simulator.data_selection)
+        utils.setup()
+
+        assert (utils.bowling_probabilities.sum(axis=1) > 0.9999).unique().tolist() == [True]
+
     def test_generate_scenario(self, predictive_simulator, setup_and_teardown):
         prepare_for_tests(predictive_simulator.data_selection, True)
 
@@ -19,7 +26,6 @@ class TestPredictiveSimulator:
 
         matches_df = predictive_simulator.data_selection.get_selected_matches(True)
         predictive_simulator.generate_scenario()
-        #predictive_simulator.generate_scenario()
         simulated_matches_df = predictive_simulator.simulated_matches_df
 
         assert len(simulated_matches_df.index) == len(matches_df.index) * number_of_scenarios
@@ -36,26 +42,44 @@ class TestPredictiveSimulator:
 
         for index, row in simulated_matches_df.iterrows():
             assert row['toss_winner'] in [row['team1'], row['team2']]
+            if row['toss_decision'] == 'bat':
+                assert row['batting_team'] == row['toss_winner']
+                assert row['bowling_team'] == row['toss_loser']
+            else:
+                assert row['bowling_team'] == row['toss_winner']
+                assert row['batting_team'] == row['toss_loser']
 
+        simulated_innings_df = predictive_simulator.simulated_innings_df
 
+        assert simulated_innings_df[simulated_innings_df['bowler'].isna()].empty
+        assert simulated_innings_df[simulated_innings_df['batter'].isna()].empty
+        assert simulated_innings_df[simulated_innings_df['non_striker'].isna()].empty
+        playing_xi_df = predictive_simulator.data_selection.get_playing_xi_for_selected_matches(True)
 
+        for (match_key, inning, scenario), innings_df in simulated_innings_df.\
+                groupby(['match_key', 'inning', 'scenario_number']):
+            batting_team = innings_df['batting_team'].unique().tolist()[0]
+            playing_xi = playing_xi_df.query(f'match_key == {match_key} and '
+                                            f'team == "{batting_team}"')['player_key'].to_list()
+            playing_xi.append('non_frequent_player')
+            batters = innings_df['batter'].unique().tolist()
+            non_strikers = innings_df['non_striker'].unique().tolist()
+            for item in batters:
+                assert item in playing_xi, f"Missing batter: {item}"
+            for item in non_strikers:
+                assert item in playing_xi, f"Missing non striker: {item}"
+            assert all(innings_df.query("bowler != 'non_frequent_player'").reset_index()
+                       .groupby(['bowler']).nunique()['over'] <= 4)
 
+            assert innings_df.iloc[-1]['previous_number_of_wickets'] + innings_df.iloc[-1]['is_wicket'] <= 10
 
-"""
-    @pytest.mark.parametrize('sequence_number', [1])
-    def test_predict_selected_matches(self, predictive_simulator, sequence_number):
-        prepare_for_tests(predictive_simulator.data_selection, True)
+            if len(innings_df.index) < 20 * 6:
+                if innings_df.iloc[-1]['previous_number_of_wickets'] + innings_df.iloc[-1]['is_wicket'] != 10:
+                    assert innings_df.iloc[-1]['previous_total'] + innings_df.iloc[-1]['batter_runs'] \
+                           + innings_df.iloc[-1]['extras'] >= innings_df.iloc[-1]['target_runs']
 
-        all_matches_df = predictive_simulator.data_selection.get_selected_matches(True)
-        predictive_simulator.predictive_utils.setup_with_matches(all_matches_df)
-        all_matches_df.set_index('key', inplace=True)
-
-
-        matches_df = predictive_simulator.predict_selected_matches(sequence_number, all_matches_df)
-        assert list(matches_df[matches_df['predicted_toss_winner'] == matches_df['team1']]
-                    ['predicted_team_1_won_toss'].unique()) == [1]
-        assert list(matches_df[matches_df['predicted_toss_winner'] != matches_df['team1']]
-                    ['predicted_team_1_won_toss'].unique()) == [0]
-        assert matches_df['predicted_toss_winner'].notna().unique().tolist() == [True]
-
-"""
+            mask = innings_df['is_wicket'] == 1
+            assert 'nan' not in innings_df.loc[mask]['dismissal_kind'].unique().tolist()
+            assert innings_df.loc[~mask]['dismissal_kind'].unique().tolist() == ['nan']
+            assert 'nan' not in innings_df.loc[mask]['player_dismissed'].unique().tolist()
+            assert innings_df.loc[~mask]['player_dismissed'].unique().tolist() == ['nan']
