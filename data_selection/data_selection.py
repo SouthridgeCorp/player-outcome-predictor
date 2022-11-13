@@ -47,7 +47,7 @@ class DataSelection:
 
     def set_simulated_data(self, matches_df: pd.DataFrame, innings_df: pd.DataFrame):
         self.simulated_matches = matches_df
-        self.simulated_matches = innings_df
+        self.simulated_innings = innings_df
 
     def get_selected_matches(self, is_testing: bool) -> pd.DataFrame:
         """

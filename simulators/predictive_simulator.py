@@ -1,10 +1,10 @@
-import scipy.stats as sps
 from data_selection.data_selection import DataSelection
 from rewards_configuration.rewards_configuration import RewardsConfiguration
 from simulators.utils.predictive_utils import PredictiveUtils, update_match_state
 from simulators.perfect_simulator import PerfectSimulator
-from simulators.utils.predictive_utils import MatchState
+from simulators.utils.predictive_match_state import MatchState
 import pandas as pd
+import logging
 
 
 class PredictiveSimulator:
@@ -29,6 +29,7 @@ class PredictiveSimulator:
 
         for i in range(0, self.number_of_scenarios):
             scenario = {'scenario_number': i,
+                        'key': matches_df['key'].values.tolist(),
                         'match_key': matches_df['key'].values.tolist(),
                         'tournament_key': matches_df['tournament_key'].values.tolist(),
                         'date': matches_df['date'].values.tolist(),
@@ -52,7 +53,7 @@ class PredictiveSimulator:
         simulated_innings_df = pd.DataFrame()
 
         match_state_dict = {}
-
+        logging.info(f"Starting to play {len(self.simulated_matches_df.index)} X {self.number_of_scenarios} matches")
         for inning in [1, 2]:
             over = -1
             ball = 0
@@ -62,6 +63,7 @@ class PredictiveSimulator:
                     over += 1
                     ball = 1
                     over_changed = True
+                    logging.info(f"Playing inning:{inning} and over: {over}")
                 else:
                     over_changed = False
                 if over == 20:
@@ -74,46 +76,75 @@ class PredictiveSimulator:
                             batting_team = match_df.iloc[0]['batting_team']
                             bowling_team = match_df.iloc[0]['bowling_team']
                             batting_playing_xi = playing_xi_df.query(f'match_key == {match_key} and '
-                                                                     f'team == "{batting_team}"')['player_key'].to_list()
+                                                                     f'team == "{batting_team}"')[
+                                'player_key'].to_list()
                             bowling_playing_xi = playing_xi_df.query(f'match_key == {match_key} and '
-                                                                     f'team == "{bowling_team}"')['player_key'].to_list()
+                                                                     f'team == "{bowling_team}"')[
+                                'player_key'].to_list()
                             match_state = MatchState(self.predictive_utils, scenario, match_key, bowling_team,
                                                      batting_team, batting_playing_xi, bowling_playing_xi)
                             match_state_dict[(scenario, match_key)] = match_state
 
                         match_state.set_innings(inning)
+
                         if over_changed:
                             match_state.change_over()
                         else:
                             match_state.bowl_one_ball()
 
-                match_state_per_scenario_list = []
-                for key in match_state_dict.keys():
-                    match_dict_list = match_state_dict[key].get_dict_list()
-                    for match_dict in match_dict_list:
-                        if len(match_dict.keys()) != 0:
-                            match_state_per_scenario_list.append(match_dict)
 
-                if len(match_state_per_scenario_list) > 0:
-                    match_state_df = pd.DataFrame(match_state_per_scenario_list)
-                    match_state_df.set_index(['scenario_number', 'match_key', 'inning', 'over', 'ball'], inplace=True,
-                                             verify_integrity=True)
+                simulated_innings_df = self.play_one_ball(match_state_dict, simulated_innings_df)
 
-                    self.predictive_utils.predict_ball_by_ball_outcome(match_state_df)
-
-                    match_state_df.apply(
-                        lambda x: update_match_state(x, match_state_dict), axis=1)
-                    simulated_innings_df = pd.concat([simulated_innings_df, match_state_df])
+                extras_list_to_consider = match_state_dict
+                while True:
+                    extras_list = {}
+                    for key in extras_list_to_consider.keys():
+                        if match_state_dict[key].was_previous_non_legal_delivery():
+                            extras_list[key] = match_state_dict[key]
+                            match_state_dict[key].bowl_one_ball()
 
 
-        #simulated_innings_df = pd.DataFrame(innings_list)
+                    if len(extras_list.keys()) == 0:
+                        break
+                    if extras_list == extras_list_to_consider:
+                        extras_list_to_consider = {}
+                    else:
+                        extras_list_to_consider = extras_list
+
+                    simulated_innings_df = self.play_one_ball(extras_list, simulated_innings_df)
+
+        return simulated_innings_df
+
+    def play_one_ball(self, match_state_dict, simulated_innings_df):
+        match_state_per_scenario_list = []
+        for key in match_state_dict.keys():
+            match_dict_list = match_state_dict[key].get_dict_list()
+            for match_dict in match_dict_list:
+                if len(match_dict.keys()) != 0:
+                    match_state_per_scenario_list.append(match_dict)
+
+        if len(match_state_per_scenario_list) > 0:
+            match_state_df = pd.DataFrame(match_state_per_scenario_list)
+            match_state_df.set_index(['scenario_number', 'match_key', 'inning', 'over', 'ball'], inplace=True,
+                                     verify_integrity=True)
+            match_state_df = match_state_df.sample(frac=1)
+            self.predictive_utils.predict_ball_by_ball_outcome(match_state_df)
+            match_state_df['total_runs'] = match_state_df['batter_runs'] + match_state_df['extras']
+
+            match_state_df['fielder'] = match_state_df.apply(
+                lambda x: update_match_state(x, match_state_dict), axis=1)
+            simulated_innings_df = pd.concat([simulated_innings_df, match_state_df])
         return simulated_innings_df
 
     def generate_scenario(self):
         self.predictive_utils.setup()
 
+        logging.info("***********************************")
 
+        logging.info("Generating Match data")
         self.simulated_matches_df = self.generate_matches()
+
+        logging.info("Generating Innings data")
         self.simulated_innings_df = self.generate_innings()
 
         self.simulated_matches_df = self.simulated_matches_df.reset_index()
@@ -126,4 +157,7 @@ class PredictiveSimulator:
 
         self.simulated_matches_df.set_index(['scenario_number', 'match_key'], inplace=True, verify_integrity=True)
         self.simulated_innings_df.set_index(['scenario_number', 'match_key', 'inning', 'over', 'ball'], inplace=True,
-                                             verify_integrity=True)
+                                            verify_integrity=True)
+
+        logging.info("Done Generating Match & Innings data")
+

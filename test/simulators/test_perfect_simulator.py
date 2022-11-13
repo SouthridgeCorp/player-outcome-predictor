@@ -27,13 +27,13 @@ class TestPerfectSimulator:
         else:
             # Assumption: If a batsman runs on a no-ball or wide, the no-ball takes precedence
             if extras > 0:
-                if no_ball == 1:
+                if no_ball >= 1:
                     if batter_runs > 0:
                         outcome_index += f"{batter_runs}-b,"
                     if extras > 0:
                         outcome_index += f"{extras}-"
                     outcome_index += f"nb"
-                elif wides == 1:
+                elif wides >= 1:
                     outcome_index = f"{total_runs}-w"
                 else:
                     outcome_index = f"{total_runs}-oe"
@@ -343,9 +343,9 @@ class TestPerfectSimulator:
 
         wides = row["wides"]
         no_ball = row["noballs"]
-        if no_ball == 1:
+        if no_ball >= 1:
             reward += -3
-        if wides == 1:
+        if wides >= 1:
             reward += -1
 
         return reward

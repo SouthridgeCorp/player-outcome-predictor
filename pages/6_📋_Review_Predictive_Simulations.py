@@ -1,13 +1,41 @@
 import streamlit as st
 import utils.page_utils as page_utils
-from utils.app_utils import data_selection_instance
-import seaborn as sns
-import matplotlib.pyplot as plt
-import pandas as pd
+from utils.app_utils import data_selection_instance, rewards_instance
+from simulators.predictive_simulator import PredictiveSimulator
+from simulators.perfect_simulator import PerfectSimulator, Granularity
 def app():
     page_utils.setup_page(" Review Predictive Simulation ")
 
     data_selection = data_selection_instance()
+    tournaments = data_selection.get_helper().tournaments
+    rewards = rewards_instance()
+
+    granularity_list = ['None', Granularity.TOURNAMENT, Granularity.STAGE, Granularity.MATCH, Granularity.INNING]
+    granularity = st.selectbox("Please select the granularity for reviewing Simulator stats", granularity_list)
+
+    if granularity == 'None':
+        st.write("Please select a valid Granularity")
+    else:
+
+        number_of_scenarios = 3
+        predictive_simulator = PredictiveSimulator(data_selection, rewards, number_of_scenarios)
+        perfect_simulator = PerfectSimulator(data_selection, rewards)
+        with st.spinner("Generating Scenarios"):
+            predictive_simulator.generate_scenario()
+
+        scenario = st.selectbox(
+            'Select a scenario:', range(0, number_of_scenarios))
+
+        with st.spinner('Calculating Error Measures'):
+            comparison_df = predictive_simulator.perfect_simulators[scenario].\
+                get_simulation_evaluation_metrics_by_granularity(True, granularity)
+            errors_df = perfect_simulator.get_error_measures(True, comparison_df, granularity)
+
+        st.write(errors_df)
+
+
+
+
 
 
     st.markdown('''

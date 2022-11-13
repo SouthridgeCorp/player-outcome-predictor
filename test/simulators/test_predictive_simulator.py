@@ -56,9 +56,13 @@ class TestPredictiveSimulator:
         assert simulated_innings_df[simulated_innings_df['non_striker'].isna()].empty
         playing_xi_df = predictive_simulator.data_selection.get_playing_xi_for_selected_matches(True)
 
+        assert len(simulated_innings_df[simulated_innings_df['player_dismissed']
+                                        == simulated_innings_df['non_striker']].index) > 0
+
         for (match_key, inning, scenario), innings_df in simulated_innings_df.\
                 groupby(['match_key', 'inning', 'scenario_number']):
             batting_team = innings_df['batting_team'].unique().tolist()[0]
+            bowling_team = innings_df['bowling_team'].unique().tolist()[0]
             playing_xi = playing_xi_df.query(f'match_key == {match_key} and '
                                             f'team == "{batting_team}"')['player_key'].to_list()
             playing_xi.append('non_frequent_player')
@@ -83,3 +87,38 @@ class TestPredictiveSimulator:
             assert innings_df.loc[~mask]['dismissal_kind'].unique().tolist() == ['nan']
             assert 'nan' not in innings_df.loc[mask]['player_dismissed'].unique().tolist()
             assert innings_df.loc[~mask]['player_dismissed'].unique().tolist() == ['nan']
+
+            mask = innings_df['dismissal_kind'].isin(['caught', 'run out', 'stumped'])
+
+            if 'nan' not in innings_df.loc[mask]['fielder'].unique().tolist():
+                print(innings_df)
+            assert 'nan' not in innings_df.loc[mask]['fielder'].unique().tolist()
+            assert innings_df.loc[~mask]['fielder'].unique().tolist() == ['nan']
+
+            bowling_playing_xi = playing_xi_df.query(f'match_key == {match_key} and '
+                                             f'team == "{bowling_team}"')['player_key'].to_list()
+            fielders = innings_df.loc[mask]['fielder'].unique().tolist()
+            for item in fielders:
+                assert item in bowling_playing_xi, f"Missing batter: {item}"
+
+            mask = innings_df['player_dismissed'] == innings_df['non_striker']
+            if not innings_df[mask].empty:
+                if innings_df.loc[mask]['dismissal_kind'].unique().tolist() != ["run out"]:
+                    mask = mask & (innings_df['dismissal_kind'] != 'run out')
+                    assert innings_df.loc[mask]['player_dismissed'].unique().tolist() == ['non_frequent_player']
+
+            innings_total = innings_df.iloc[-1]['previous_total'] + innings_df.iloc[-1]['batter_runs']\
+                            + innings_df.iloc[-1]['extras']
+            innings_wickets = innings_df.iloc[-1]['previous_number_of_wickets'] + innings_df.iloc[-1]['is_wicket']
+
+            assert innings_wickets <= 10
+
+            calculated_total = 0
+            calculated_num_wickets = 0
+
+            for index, row in innings_df.iterrows():
+                calculated_total += row['batter_runs'] + row['extras']
+                calculated_num_wickets += row['is_wicket']
+
+            assert calculated_num_wickets == innings_wickets
+            assert innings_total == calculated_total

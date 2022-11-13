@@ -3,8 +3,7 @@ import pandas as pd
 import numpy as np
 from data_selection.data_selection import DataSelection
 import logging
-from operator import itemgetter
-
+from sklearn import preprocessing
 
 class PredictiveUtils:
     def __init__(self, data_selection: DataSelection):
@@ -21,14 +20,13 @@ class PredictiveUtils:
 
         self.extras_if_legal_no_run_distribution = sps.bernoulli(p=.05)
 
-
-
         self.legal_wickets_distribution = sps.bernoulli(p=.05)
 
         self.legal_wicket_types = ["caught", "bowled", "run out", "lbw", "caught and bowled", "stumped", "others"]
         legal_wicket_types_distribution_list = [0.6, 0.19, 0.08, 0.07, 0.03, 0.03, 0.06]
         self.legal_wicket_types_distribution = sps.multinomial(1, legal_wicket_types_distribution_list)
         self.legal_wicket_single_distribution = sps.bernoulli(p=0.03)
+
         self.direct_run_out_probability = sps.bernoulli(p=0.5)
         self.non_striker_dismissed_on_runout = sps.bernoulli(p=0.5)
 
@@ -42,6 +40,27 @@ class PredictiveUtils:
         non_legal_batter_runs_probability = [0.93, 0.03, 0.008, 0, 0.014, 0, 0.008]
         self.non_legal_batter_runs_distribution = sps.multinomial(1, non_legal_batter_runs_probability)
 
+        self.non_legal_wickets_distribution = sps.bernoulli(p=.0099)
+        self.non_legal_wicket_types = ["stumped", "run out"]
+        non_legal_wicket_types_distribution_list = [0.65, 0.35]
+        self.non_legal_wicket_types_distribution = sps.multinomial(1, non_legal_wicket_types_distribution_list)
+        self.non_legal_wicket_single_distribution = sps.bernoulli(p=0.03)
+
+        non_legal_wicket_extras_probability = [0, 0.97, 0.024, 0, 0.001, 0.006]
+        self.non_legal_wicket_extras_distribution = sps.multinomial(1, non_legal_wicket_extras_probability)
+
+    def predict_runout_details(self, matches_df, base_mask):
+        matches_df.loc[base_mask, 'player_dismissed'] = matches_df['batter']
+
+        base_mask = base_mask & (matches_df['dismissal_kind'] == 'run out')
+        number_of_balls = len(base_mask[base_mask])
+        if number_of_balls > 0:
+            matches_df.loc[base_mask, 'is_direct_runout'] = self.direct_run_out_probability.rvs(number_of_balls)
+            matches_df.loc[base_mask, 'non_striker_dismissed'] \
+                = self.non_striker_dismissed_on_runout.rvs(number_of_balls)
+
+        base_mask = base_mask & (matches_df['non_striker_dismissed'] == 1)
+        matches_df.loc[base_mask, 'player_dismissed'] = matches_df['non_striker']
 
     def predict_legal_wickets(self, matches_df):
         # Set up details for legal delivery
@@ -60,18 +79,8 @@ class PredictiveUtils:
         matches_df.loc[wicket_mask, 'dismissal_kind'] = [self.legal_wicket_types[i] for i in indices]
         matches_df.loc[wicket_mask, 'batter_runs'] = self.legal_wicket_single_distribution.rvs(number_of_balls)
 
-        wicket_mask = wicket_mask & (matches_df['dismissal_kind'] == 'run out')
-        number_of_balls = len(wicket_mask[wicket_mask])
-        if number_of_balls > 0:
-            matches_df.loc[wicket_mask, 'is_direct_runout'] = self.direct_run_out_probability.rvs(number_of_balls)
-            matches_df.loc[wicket_mask, 'non_striker_dismissed'] \
-                = self.non_striker_dismissed_on_runout.rvs(number_of_balls)
+        self.predict_runout_details(matches_df, wicket_mask)
 
-        wicket_mask = mask & (matches_df['is_wicket'] == 1)
-        matches_df.loc[wicket_mask, 'player_dismissed'] = matches_df['batter']
-
-        wicket_mask = wicket_mask & (matches_df['non_striker_dismissed'] == 1)
-        matches_df.loc[wicket_mask, 'player_dismissed'] = matches_df['non_striker']
 
     def predict_legal_outcomes(self, matches_df):
         # Set up details for legal delivery
@@ -88,9 +97,32 @@ class PredictiveUtils:
         matches_df.loc[mask, 'batter_runs'] = np.where(batting_runs == 1)[1]
 
         # set up extras for legal deliveries
-        extras_mask = mask & (matches_df['batter_runs'] == 1)
+        extras_mask = mask & (matches_df['batter_runs'] == 0)
         number_of_balls = len(extras_mask[extras_mask])
         matches_df.loc[extras_mask, 'extras'] = self.extras_if_legal_no_run_distribution.rvs(number_of_balls)
+
+    def predict_non_legal_wicket_outcomes(self, matches_df):
+        # Set up details for legal delivery
+        mask = ~matches_df['legal_delivery']
+        number_of_balls = len(mask[mask])
+
+        # setup legal wicket scenarios
+        matches_df.loc[mask, 'is_wicket'] = self.non_legal_wickets_distribution.rvs(number_of_balls)
+
+        wicket_mask = mask & (matches_df['is_wicket'] == 1)
+        number_of_balls = len(wicket_mask[wicket_mask])
+        dismissal_kind = self.non_legal_wicket_types_distribution.rvs(number_of_balls)
+        indices = np.where(dismissal_kind == 1)[1]
+        assert (len(indices) == number_of_balls)
+
+        matches_df.loc[wicket_mask, 'dismissal_kind'] = [self.non_legal_wicket_types[i] for i in indices]
+        matches_df.loc[wicket_mask, 'batter_runs'] = self.non_legal_wicket_single_distribution.rvs(number_of_balls)
+
+        # set up extras for non-legal wickets
+        extras = self.non_legal_wicket_extras_distribution.rvs(number_of_balls)
+        matches_df.loc[wicket_mask, 'extras'] = np.where(extras == 1)[1]
+
+        self.predict_runout_details(matches_df, wicket_mask)
 
     def predict_non_legal_outcomes(self, matches_df):
 
@@ -104,6 +136,8 @@ class PredictiveUtils:
         matches_df.loc[mask, "wides"] = [1 if i == 0 else 0 for i in indices]
         matches_df.loc[mask, "noballs"] = [1 if i == 1 else 0 for i in indices]
 
+        self.predict_non_legal_wicket_outcomes(matches_df)
+
         # Predict extras for non-legal deliveries
         mask = mask & (matches_df['is_wicket'] == 0)
         number_of_balls = len(mask[mask])
@@ -115,6 +149,7 @@ class PredictiveUtils:
         # Set up non-legal delivery batter runs
         batter_runs = self.non_legal_batter_runs_distribution.rvs(number_of_balls)
         matches_df.loc[mask, 'batter_runs'] = np.where(batter_runs == 1)[1]
+
 
 
     def predict_ball_by_ball_outcome(self, matches_df):
@@ -137,6 +172,7 @@ class PredictiveUtils:
         self.predict_legal_outcomes(matches_df)
         self.predict_non_legal_outcomes(matches_df)
 
+
     def setup(self):
         self.all_innings_df, self.all_matches_df = self.data_selection.get_all_innings_and_matches()
         self.bowling_probabilities = self.calculate_bowling_probabilities()
@@ -147,7 +183,23 @@ class PredictiveUtils:
             self.all_innings_df.groupby(['bowling_team', 'over', 'bowler']).count()['match_key'].unstack()
 
         frequencies_df = frequencies_df.fillna(0)
-        frequencies_df = frequencies_df.div(frequencies_df.sum(axis=1), axis=0)
+        frequencies_df = frequencies_df.astype('float64')
+        #frequencies_df = frequencies_df.div(frequencies_df.sum(axis=1), axis=0)
+
+        #frequencies_df = frequencies_df.round(3)
+
+        #first_column = frequencies_df.columns[0]
+        #frequencies_df.loc[:][first_column] = 1.0 - frequencies_df.sum(axis=1) + frequencies_df.iloc[:][first_column]
+
+        #for index, row in frequencies_df.iterrows():
+           # total = row.sum()
+           # max_location = row.argmax()
+           # if total != 1.0:
+           #     row[max_location] = 1.0 - total + row[max_location]
+                #assert row.sum() == 1.0, f"After computation: {index} received: {row.sum()}"
+
+        #for index, row in frequencies_df.iterrows():
+           # assert(row.sum() == 1.0), f"Index: {index}"
 
         return frequencies_df
 
@@ -156,7 +208,14 @@ class PredictiveUtils:
         bowler_key = previous_bowler
         index = (bowling_team, over)
         if index in self.bowling_probabilities.index:
-            multinomial = sps.multinomial(1, self.bowling_probabilities.loc[index])
+            #normalised_array = preprocessing.normalize(self.bowling_probabilities.loc[index])
+            array = self.bowling_probabilities.loc[index].values.tolist()
+            a = np.asarray(array).astype('float64')
+            a = a / np.sum(a)
+
+            if np.sum(a) > 1.0:
+                a[np.argmax(a)] += 1.0 - np.sum(a)
+            multinomial = sps.multinomial(1, a)
             for i in range(0, 11):
                 selected_bowler_rv \
                     = multinomial.rvs(1, random_state=np.random.randint((over + 1) * match_key))[0]
@@ -172,7 +231,7 @@ class PredictiveUtils:
             bowler_key = list(bowler_for_match_df['bowler'].unique())[0]
 
         if (bowler_key == previous_bowler) or (bowler_key not in playing_xi):
-            logging.info(f'Looking for bowler key from the match for match_key == {match_key} and bowling_team '
+            logging.debug(f'Looking for bowler key from the match for match_key == {match_key} and bowling_team '
                          f'== "{bowling_team}" and over == {over}')
             bowler_key = playing_xi[-1]
             if bowler_key == previous_bowler:
@@ -226,168 +285,7 @@ class PredictiveUtils:
         scenario_and_match_df.loc[mask, 'batting_team'] = scenario_and_match_df['toss_winner']
 
 
-class MatchState:
-
-    def __init__(self, predictive_utils, scenario_number, match_key, bowling_team, batting_team,
-                 batting_playing_xi, bowling_playing_xi):
-        self.predictive_utils = predictive_utils
-        self.scenario_number = scenario_number
-        self.match_key = match_key
-        self.bowling_team = bowling_team
-        self.batting_team = batting_team
-        self.inning = 1
-        self.batting_playing_xi = batting_playing_xi
-        self.bowling_playing_xi = bowling_playing_xi
-        self.target_runs = -1
-        self.target_balls = -1
-        self.initialise_for_innings()
-
-        self.player_label_mapping = {}
-
-        self.update_frequent_players()
-
-        self.match_complete = False
-        self.first_innings_complete = False
-
-    def update_state(self, row):
-        if self.match_complete:
-            return
-
-        if self.first_innings_complete and (self.inning == 1):
-            return
-
-        is_wicket = row['is_wicket']
-        self.previous_num_wickets += is_wicket
-        if (is_wicket == 1) and self.previous_num_wickets < 10:
-            non_striker_dismissed = row['non_striker_dismissed']
-            next_player = self.batting_playing_xi[self.batting_position]
-            self.batting_position += 1
-            if non_striker_dismissed == 1:
-                self.non_striker = next_player
-            else:
-                self.batter = next_player
-
-        batter_runs = row['batter_runs']
-
-        if row['batter_runs'] in [1, 3, 5]:
-            non_striker = self.non_striker
-            self.non_striker = self.batter
-            self.batter = non_striker
-
-        extras = row['extras']
-        self.previous_total += batter_runs
-        self.previous_total += extras
-
-        if self.inning == 2:
-            if (self.previous_total >= self.target_runs) or (self.previous_num_wickets == 10):
-                self.match_complete = True
-                return
-
-        if self.inning == 1:
-            if self.previous_num_wickets == 10:
-                self.first_innings_complete = True
-                return
-
-        '''if row['legal_delivery'] == False:
-            self.bowl_one_ball()
-            current_dict = self.get_dict_list(False)
-            self.extras_list.append(current_dict[0])
-            matches_df = pd.DataFrame(current_dict)
-            self.predictive_utils.predict_ball_by_ball_outcome(matches_df)
-            for index, row in matches_df.iterrows():
-                self.update_state(row)'''
-
-
-    def update_frequent_players(self):
-        featured_players = self.predictive_utils.featured_player_df[
-            self.predictive_utils.featured_player_df.index.isin(self.bowling_playing_xi + self.batting_playing_xi)]
-
-        for player in self.bowling_playing_xi + self.batting_playing_xi:
-            if featured_players.loc[player]['featured_player']:
-                self.player_label_mapping[player] = player
-            else:
-                self.player_label_mapping[player] = "non_frequent_player"
-
-    def initialise_for_innings(self):
-        self.over = -1
-        self.ball = 1
-        self.previous_total = 0
-        self.previous_num_wickets = 0
-        self.bowler = ""
-        self.batting_position = 0
-        self.batter = self.batting_playing_xi[self.batting_position + 1]
-        self.non_striker = self.batting_playing_xi[self.batting_position]
-        self.batting_position = 2
-        self.bowler_map = {}
-        self.previous_bowler = ""
-        self.extras_list = []
-
-    def change_over(self):
-        self.over += 1
-        self.ball = 1
-
-        list_of_bowlers = self.bowling_playing_xi.copy()
-        for key in self.bowler_map.keys():
-            if self.bowler_map[key] == 4:
-                list_of_bowlers.remove(key)
-        self.bowler = self.predictive_utils.populate_bowler_for_state(
-            self.match_key, self.bowling_team, self.over, self.previous_bowler, list_of_bowlers)
-        self.previous_bowler = self.bowler
-        if self.bowler in self.bowler_map.keys():
-            self.bowler_map[self.bowler] += 1
-        else:
-            self.bowler_map[self.bowler] = 1
-
-        non_striker = self.non_striker
-        self.non_striker = self.batter
-        self.batter = non_striker
-
-    def bowl_one_ball(self):
-        self.ball += 1
-
-    def set_innings(self, inning):
-        if self.inning != inning:
-            self.inning = inning
-            self.target_runs = self.previous_total + 1
-            self.target_balls = 20 * 6
-            bowling_team = self.bowling_team
-            self.bowling_team = self.batting_team
-            self.batting_team = bowling_team
-            bowling_xi = self.bowling_playing_xi
-            self.bowling_playing_xi = self.batting_playing_xi
-            self.batting_playing_xi = bowling_xi
-
-            self.initialise_for_innings()
-
-    def get_dict_list(self, with_extras=True):
-        if self.match_complete or (self.first_innings_complete and (self.inning == 1)):
-            return []
-        list_to_send = []
-        '''if with_extras:
-            for item in self.extras_list:
-                list_to_send.append(item)
-            self.extras_list = []'''
-
-        list_to_send.append({'scenario_number': self.scenario_number,
-                'match_key': self.match_key,
-                'bowling_team': self.bowling_team,
-                'batting_team': self.batting_team,
-                'inning': self.inning,
-                'over': self.over,
-                'ball': self.ball,
-                'previous_total': self.previous_total,
-                'previous_number_of_wickets': self.previous_num_wickets,
-                'bowler': self.player_label_mapping[self.bowler],
-                'batter': self.player_label_mapping[self.batter],
-                'non_striker': self.player_label_mapping[self.non_striker],
-                'target_runs': self.target_runs,
-                'target_balls': self.target_balls
-                })
-
-        return list_to_send
-
-
 def update_match_state(row, matches_dict):
     scenario = row.name[0]
     key = row.name[1]
-    matches_dict[(scenario, key)].update_state(row)
+    return matches_dict[(scenario, key)].update_state(row)
