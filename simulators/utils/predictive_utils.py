@@ -3,22 +3,52 @@ import pandas as pd
 import numpy as np
 from data_selection.data_selection import DataSelection
 import logging
+import random
 from sklearn import preprocessing
 
+class Probabilities:
+    def __init__(self):
+        self.label_list = []
+        self.probability_map = {}
+        self.multinomial_map = {}
+
+    def populate_labels(self, labels):
+        self.label_list = labels
+
+    def setup_probability(self, key, probabilities):
+        self.probability_map[key] = probabilities
+
+    def get_probability(self, key):
+        return self.probability_map[key]
+
+    def get_label(self, id):
+        return self.label_list[id]
+
+    def isin(self, key):
+        return key in self.probability_map.keys()
+
+    def setup_multinomials(self):
+        for key in self.probability_map.keys():
+            multinomial = sps.multinomial(1, self.get_probability(key))
+            self.multinomial_map[key] = multinomial
+
+    def get_multinomial(self, key):
+        return self.multinomial_map[key]
 class PredictiveUtils:
     def __init__(self, data_selection: DataSelection):
         self.data_selection = data_selection
         self.all_innings_df = pd.DataFrame()
         self.all_matches_df = pd.DataFrame()
-        self.bowling_probabilities = pd.DataFrame()
+        self.bowling_probabilities = Probabilities()
         self.featured_player_df = pd.DataFrame()
 
+        logging.info("setting up distributions")
         self.legal_delivery_distribution = sps.bernoulli(p=0.9)
 
         legal_batting_distribution = [0.4, 0.35, 0.075, 0.006, 0.125, 0.004, 0.04]
         self.batter_runs_distribution = sps.multinomial(1, legal_batting_distribution)
 
-        self.extras_if_legal_no_run_distribution = sps.bernoulli(p=.05)
+        self.extras_if_legal_no_run_distribution = sps.bernoulli(p=.03)
 
         self.legal_wickets_distribution = sps.bernoulli(p=.05)
 
@@ -174,8 +204,13 @@ class PredictiveUtils:
 
 
     def setup(self):
+        logging.info("getting all innings and matches")
         self.all_innings_df, self.all_matches_df = self.data_selection.get_all_innings_and_matches()
-        self.bowling_probabilities = self.calculate_bowling_probabilities()
+        logging.info("Calculating probabilities")
+
+        self.calculate_bowling_probabilities()
+        logging.info("getting featured players")
+
         self.featured_player_df = self.data_selection.get_frequent_players_universe()
 
     def calculate_bowling_probabilities(self) -> pd.DataFrame:
@@ -184,51 +219,42 @@ class PredictiveUtils:
 
         frequencies_df = frequencies_df.fillna(0)
         frequencies_df = frequencies_df.astype('float64')
-        #frequencies_df = frequencies_df.div(frequencies_df.sum(axis=1), axis=0)
 
-        #frequencies_df = frequencies_df.round(3)
+        self.bowling_probabilities.populate_labels(frequencies_df.columns.values.tolist())
 
-        #first_column = frequencies_df.columns[0]
-        #frequencies_df.loc[:][first_column] = 1.0 - frequencies_df.sum(axis=1) + frequencies_df.iloc[:][first_column]
-
-        #for index, row in frequencies_df.iterrows():
-           # total = row.sum()
-           # max_location = row.argmax()
-           # if total != 1.0:
-           #     row[max_location] = 1.0 - total + row[max_location]
-                #assert row.sum() == 1.0, f"After computation: {index} received: {row.sum()}"
-
-        #for index, row in frequencies_df.iterrows():
-           # assert(row.sum() == 1.0), f"Index: {index}"
-
-        return frequencies_df
-
-    def populate_bowler_for_state(self, match_key, bowling_team, over, previous_bowler, playing_xi):
-
-        bowler_key = previous_bowler
-        index = (bowling_team, over)
-        if index in self.bowling_probabilities.index:
-            #normalised_array = preprocessing.normalize(self.bowling_probabilities.loc[index])
-            array = self.bowling_probabilities.loc[index].values.tolist()
+        for index, row in frequencies_df.iterrows():
+            array = row.values.tolist()
             a = np.asarray(array).astype('float64')
             a = a / np.sum(a)
 
             if np.sum(a) > 1.0:
                 a[np.argmax(a)] += 1.0 - np.sum(a)
-            multinomial = sps.multinomial(1, a)
-            for i in range(0, 11):
+
+
+            self.bowling_probabilities.setup_probability(index, a)
+
+        self.bowling_probabilities.setup_multinomials()
+
+    def populate_bowler_for_state(self, match_key, bowling_team, over, previous_bowler, playing_xi):
+
+        bowler_key = previous_bowler
+        index = (bowling_team, over)
+        if self.bowling_probabilities.isin(index):
+            multinomial = self.bowling_probabilities.get_multinomial(index)
+            for i in range(0, 1):
                 selected_bowler_rv \
                     = multinomial.rvs(1, random_state=np.random.randint((over + 1) * match_key))[0]
                 selected_bowler_id = np.where(selected_bowler_rv == 1)[0][0]
-                bowler_key = self.bowling_probabilities.columns[selected_bowler_id]
+                bowler_key = self.bowling_probabilities.get_label(selected_bowler_id)
+                #bowler_key = random.choice(playing_xi)
                 if bowler_key != previous_bowler and bowler_key in playing_xi:
                     return bowler_key
+        #logging.info("Still Searching for bowler")
 
-        bowler_for_match_df = self.all_innings_df.query(
-            f'match_key == {match_key} and bowling_team == "{bowling_team}" '
-            f'and over == {over}')
-        if not bowler_for_match_df.empty:
-            bowler_key = list(bowler_for_match_df['bowler'].unique())[0]
+        #bowler_for_match_df = self.all_innings_df.query(
+         ##  f'and over == {over}')
+        #if not bowler_for_match_df.empty:
+         #   bowler_key = list(bowler_for_match_df['bowler'].unique())[0]
 
         if (bowler_key == previous_bowler) or (bowler_key not in playing_xi):
             logging.debug(f'Looking for bowler key from the match for match_key == {match_key} and bowling_team '

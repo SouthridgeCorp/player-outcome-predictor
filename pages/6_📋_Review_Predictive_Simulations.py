@@ -1,14 +1,33 @@
 import streamlit as st
 import utils.page_utils as page_utils
-from utils.app_utils import data_selection_instance, rewards_instance
+from utils.app_utils import data_selection_instance, rewards_instance, data_selection_summary
 from simulators.predictive_simulator import PredictiveSimulator
 from simulators.perfect_simulator import PerfectSimulator, Granularity
+from data_selection.data_selection import DataSelection
+import pandas as pd
+import arviz as az
+
+
+def show_summary(title, panel, summary_df, data_selection: DataSelection):
+    with panel:
+        st.write(f"{title}")
+        summary_xarray = summary_df.to_xarray()
+        df = az.summary(summary_xarray)
+        df = df.reset_index()
+        start_len = len(title) + 1
+        df['index'] = df['index'].str[start_len:-1]
+        df = data_selection.merge_with_players(df, 'index')
+        df = df.sort_values('mean', ascending=False)
+        st.write(df[['name', 'mean', 'sd', 'hdi_3%', 'hdi_97%']])
+
 def app():
     page_utils.setup_page(" Review Predictive Simulation ")
 
     data_selection = data_selection_instance()
     tournaments = data_selection.get_helper().tournaments
     rewards = rewards_instance()
+    # Show a summary of selected training & testing windows
+    data_selection_summary(tournaments)
 
     granularity_list = ['None', Granularity.TOURNAMENT, Granularity.STAGE, Granularity.MATCH, Granularity.INNING]
     granularity = st.selectbox("Please select the granularity for reviewing Simulator stats", granularity_list)
@@ -17,50 +36,59 @@ def app():
         st.write("Please select a valid Granularity")
     else:
 
-        number_of_scenarios = 3
+        number_of_scenarios = 4
         predictive_simulator = PredictiveSimulator(data_selection, rewards, number_of_scenarios)
         perfect_simulator = PerfectSimulator(data_selection, rewards)
         with st.spinner("Generating Scenarios"):
             predictive_simulator.generate_scenario()
 
-        scenario = st.selectbox(
-            'Select a scenario:', range(0, number_of_scenarios))
+        # scenario = st.selectbox(
+        # 'Select a scenario:', range(0, number_of_scenarios))
 
         with st.spinner('Calculating Error Measures'):
-            comparison_df = predictive_simulator.perfect_simulators[scenario].\
-                get_simulation_evaluation_metrics_by_granularity(True, granularity)
-            errors_df = perfect_simulator.get_error_measures(True, comparison_df, granularity)
+            perfect_df = perfect_simulator.get_simulation_evaluation_metrics_by_granularity(True, granularity)
+            total_errors_df = pd.DataFrame()
+            for scenario in range(0, number_of_scenarios):
+                comparison_df = predictive_simulator.perfect_simulators[scenario]. \
+                    get_simulation_evaluation_metrics_by_granularity(True, granularity)
+                errors_df = perfect_simulator.get_error_measures(True, comparison_df, granularity, perfect_df)
+                errors_df['scenario_number'] = scenario
+                total_errors_df = pd.concat([total_errors_df, errors_df])
 
-        st.write(errors_df)
+        total_errors_df = total_errors_df.reset_index()
+        total_errors_df = total_errors_df.drop('tournament_key', axis=1)
+        total_errors_df['chain'] = 0
+        total_errors_df.rename(columns={"scenario_number": "draw"}, inplace=True)
+        total_errors_df.set_index(['chain', 'draw', 'player_key'], inplace=True, verify_integrity=True)
 
+        st.header("Summary of Rewards")
 
+        bowling_summary, batting_summary = st.columns(2)
+        fielding_summary, total_summary = st.columns(2)
 
+        st.header("Summary of Error Metrics")
 
+        bowling_error, batting_error = st.columns(2)
+        fielding_error, total_error = st.columns(2)
+        bowling_error_pct, batting_error_pct = st.columns(2)
+        fielding_error_pct, total_error_pct = st.columns(2)
 
+        columns_to_map = ['bowling_rewards_received', 'batting_rewards_received', 'fielding_rewards_received',
+                          'total_rewards_received', 'bowling_rewards_absolute_error', 'batting_rewards_absolute_error',
+                          'fielding_rewards_absolute_error', 'total_rewards_absolute_error',
+                          'bowling_rewards_mean_absolute_percentage_error',
+                          'batting_rewards_mean_absolute_percentage_error',
+                          'fielding_rewards_mean_absolute_percentage_error',
+                          'total_rewards_mean_absolute_percentage_error']
 
-    st.markdown('''
-## Review Predictive Simulations Tab [v0.4]:
+        panels_to_map = [bowling_summary, batting_summary, fielding_summary, total_summary, bowling_error,
+                         batting_error, fielding_error, total_error, bowling_error_pct, batting_error_pct,
+                         fielding_error_pct, total_error_pct]
 
-### Objective:
-- Lets the user review all the `error_measures` and `simulation_evaluation_metrics` for each innings, match, tournament_stage 
-and tournament in the `testing_window`, as projected by the `predictive_simulation_model`
-- The user will be able to view aggregations on both `error_measures` and `simulation_evaluation_metrics` at the following granularities:
-    - `by_player_and_innnings`
-    - `by_player_and_match`
-    - `by_player_and_tournament_stage`
-    - `by_player_and_tournament`
-- Lets the user view the projected `top_k` best performing players in each team as measured by `evaluation_metrics.rewards_by_player`:
-    - `top_k_players_by_team_and_tournament`
-    - `top_k_batsmen_by_team_and_tournament`
-    - `top_k_bowlers_by_team_and_tournament`
+        total_panels = len(panels_to_map)
 
-### Definitions:
-
-#### `predictive_simulation_model`
-
-A model that generates a set of `credible_scenarios` by using the `inferential_models` to simulate entire tournaments
-by building them from ball by ball outcomes. Each `credible_scenario` will be associated with a set of `simulation_evaluation_metrics`.
-    ''')
+        for i in range(0, total_panels):
+            show_summary(columns_to_map[i], panels_to_map[i], total_errors_df[columns_to_map[i]], data_selection)
 
 
 app()

@@ -16,7 +16,9 @@ class TestPredictiveSimulator:
         utils = PredictiveUtils(predictive_simulator.data_selection)
         utils.setup()
 
-        assert (utils.bowling_probabilities.sum(axis=1) > 0.9999).unique().tolist() == [True]
+        for key in utils.bowling_probabilities.probability_map.keys():
+            a = utils.bowling_probabilities.probability_map[key]
+            assert sum(a) > 0.9999999
 
     def test_generate_scenario(self, predictive_simulator, setup_and_teardown):
         prepare_for_tests(predictive_simulator.data_selection, True)
@@ -90,7 +92,7 @@ class TestPredictiveSimulator:
 
             mask = innings_df['dismissal_kind'].isin(['caught', 'run out', 'stumped'])
 
-            if 'nan' not in innings_df.loc[mask]['fielder'].unique().tolist():
+            if 'nan' in innings_df.loc[mask]['fielder'].unique().tolist():
                 print(innings_df)
             assert 'nan' not in innings_df.loc[mask]['fielder'].unique().tolist()
             assert innings_df.loc[~mask]['fielder'].unique().tolist() == ['nan']

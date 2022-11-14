@@ -48,12 +48,48 @@ class PredictiveSimulator:
         simulated_matches_df.set_index(['scenario_number', 'match_key'], inplace=True, verify_integrity=True)
         return simulated_matches_df
 
+    def initialise_match_state(self, row, match_state_dict, playing_xi_df):
+        scenario = row.name[0]
+        match_key = row.name[1]
+        batting_team = row['batting_team']
+        bowling_team = row['bowling_team']
+        batting_playing_xi = playing_xi_df.query(f'match_key == {match_key} and '
+                                                 f'team == "{batting_team}"')['player_key'].to_list()
+        bowling_playing_xi = playing_xi_df.query(f'match_key == {match_key} and '
+                                                 f'team == "{bowling_team}"')['player_key'].to_list()
+        logging.debug(f"initialising for {(scenario, match_key)}")
+        match_state = MatchState(self.predictive_utils, scenario, match_key, bowling_team,
+                                 batting_team, batting_playing_xi, bowling_playing_xi)
+        match_state_dict[(scenario, match_key)] = match_state
+
     def generate_innings(self):
         playing_xi_df = self.data_selection.get_playing_xi_for_selected_matches(True)
         simulated_innings_df = pd.DataFrame()
 
+        logging.info("Initialising match state")
         match_state_dict = {}
-        logging.info(f"Starting to play {len(self.simulated_matches_df.index)} X {self.number_of_scenarios} matches")
+        # match_keys = self.simulated_matches_df.reset_index()['match_key'].unique().tolist()
+        '''for scenario in range(0, self.number_of_scenarios):
+            for match_key in match_keys:
+        #for scenario, matches_df in self.simulated_matches_df.groupby('scenario_number'):
+         #   for match_key, match_df in matches_df.groupby('match_key'):
+                batting_team = self.simulated_matches_df.loc[(scenario, match_key)]['batting_team']
+                bowling_team = self.simulated_matches_df.loc[(scenario, match_key)]['bowling_team']
+                batting_playing_xi = playing_xi_df.query(f'match_key == {match_key} and '
+                                                         f'team == "{batting_team}"')[
+                    'player_key'].to_list()
+                bowling_playing_xi = playing_xi_df.query(f'match_key == {match_key} and '
+                                                         f'team == "{bowling_team}"')[
+                    'player_key'].to_list()
+                logging.debug(f"initialising for {(scenario, match_key)}")
+                match_state = MatchState(self.predictive_utils, scenario, match_key, bowling_team,
+                                         batting_team, batting_playing_xi, bowling_playing_xi)
+                match_state_dict[(scenario, match_key)] = match_state
+'''
+        self.simulated_matches_df.apply(lambda x: self.initialise_match_state(x, match_state_dict, playing_xi_df),
+                                        axis=1)
+
+        logging.info(f"Starting to play {len(self.simulated_matches_df.index)} matches")
         for inning in [1, 2]:
             over = -1
             ball = 0
@@ -68,30 +104,14 @@ class PredictiveSimulator:
                     over_changed = False
                 if over == 20:
                     break
-                for scenario, matches_df in self.simulated_matches_df.groupby('scenario_number'):
-                    for match_key, match_df in matches_df.groupby('match_key'):
-                        if (scenario, match_key) in match_state_dict.keys():
-                            match_state = match_state_dict[(scenario, match_key)]
-                        else:
-                            batting_team = match_df.iloc[0]['batting_team']
-                            bowling_team = match_df.iloc[0]['bowling_team']
-                            batting_playing_xi = playing_xi_df.query(f'match_key == {match_key} and '
-                                                                     f'team == "{batting_team}"')[
-                                'player_key'].to_list()
-                            bowling_playing_xi = playing_xi_df.query(f'match_key == {match_key} and '
-                                                                     f'team == "{bowling_team}"')[
-                                'player_key'].to_list()
-                            match_state = MatchState(self.predictive_utils, scenario, match_key, bowling_team,
-                                                     batting_team, batting_playing_xi, bowling_playing_xi)
-                            match_state_dict[(scenario, match_key)] = match_state
 
-                        match_state.set_innings(inning)
-
-                        if over_changed:
-                            match_state.change_over()
-                        else:
-                            match_state.bowl_one_ball()
-
+                for key in match_state_dict.keys():
+                    match_state = match_state_dict[key]
+                    match_state.set_innings(inning)
+                    if over_changed:
+                        match_state.change_over()
+                    else:
+                        match_state.bowl_one_ball()
 
                 simulated_innings_df = self.play_one_ball(match_state_dict, simulated_innings_df)
 
@@ -102,7 +122,6 @@ class PredictiveSimulator:
                         if match_state_dict[key].was_previous_non_legal_delivery():
                             extras_list[key] = match_state_dict[key]
                             match_state_dict[key].bowl_one_ball()
-
 
                     if len(extras_list.keys()) == 0:
                         break
@@ -137,9 +156,11 @@ class PredictiveSimulator:
         return simulated_innings_df
 
     def generate_scenario(self):
-        self.predictive_utils.setup()
-
         logging.info("***********************************")
+
+        logging.info("Setting up state")
+
+        self.predictive_utils.setup()
 
         logging.info("Generating Match data")
         self.simulated_matches_df = self.generate_matches()
@@ -160,4 +181,3 @@ class PredictiveSimulator:
                                             verify_integrity=True)
 
         logging.info("Done Generating Match & Innings data")
-

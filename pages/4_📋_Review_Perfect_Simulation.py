@@ -2,33 +2,9 @@ import streamlit as st
 
 import utils.page_utils as page_utils
 from simulators.perfect_simulator import Granularity, PerfectSimulator
-from utils.app_utils import data_selection_instance, rewards_instance
-from historical_data.tournaments import Tournaments
+from utils.app_utils import data_selection_instance, rewards_instance, data_selection_summary
 from rewards_configuration.rewards_configuration import RewardsConfiguration
 import pandas as pd
-
-
-def data_selection_summary(tournaments: Tournaments):
-    """
-    Builds out the summary of data selection fields
-    """
-    selected_tournaments, training, testing = st.columns(3)
-
-    with selected_tournaments:
-        st.subheader("Selected Tournaments:")
-        st.write(tournaments.get_selected_tournament_names())
-
-    with training:
-        st.subheader("Training Details:")
-        training_start_date, training_end_date = tournaments.get_start_end_dates(False)
-        st.write(f"Start Date: {training_start_date}")
-        st.write(f"End Date: {training_end_date}")
-
-    with testing:
-        st.subheader("Testing Details:")
-        testing_start_date, testing_end_date = tournaments.get_start_end_dates(True)
-        st.write(f"Start Date: {testing_start_date}")
-        st.write(f"End Date: {testing_end_date}")
 
 
 @st.cache

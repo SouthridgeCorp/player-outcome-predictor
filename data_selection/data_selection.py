@@ -2,6 +2,8 @@ from historical_data.singleton import Helper
 import pandas as pd
 from historical_data.playing_xi import PlayingXI
 
+import warnings
+warnings.filterwarnings('ignore')
 
 class PlayerInformation:
     """

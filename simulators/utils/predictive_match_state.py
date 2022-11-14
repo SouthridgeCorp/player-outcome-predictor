@@ -11,6 +11,8 @@ class MatchState:
         self.inning = 1
         self.batting_playing_xi = batting_playing_xi
         self.bowling_playing_xi = bowling_playing_xi
+        self.available_bowlers = self.bowling_playing_xi.copy()
+
         self.target_runs = -1
         self.target_balls = -1
         self.initialise_for_innings()
@@ -34,7 +36,7 @@ class MatchState:
         is_wicket = row['is_wicket']
         fielder = 'nan'
         self.previous_num_wickets += is_wicket
-        if (is_wicket == 1) and self.previous_num_wickets < 10:
+        if is_wicket == 1:
             dismissal_kind = row['dismissal_kind']
             if dismissal_kind in ['run out', 'caught', 'stumped']:
                 list_of_fielders = self.bowling_playing_xi.copy()
@@ -42,12 +44,13 @@ class MatchState:
                 fielder = random.choice(list_of_fielders)
 
             non_striker_dismissed = row['non_striker_dismissed']
-            next_player = self.batting_playing_xi[self.batting_position]
-            self.batting_position += 1
-            if non_striker_dismissed == 1:
-                self.non_striker = next_player
-            else:
-                self.batter = next_player
+            if self.previous_num_wickets < 10:
+                next_player = self.batting_playing_xi[self.batting_position]
+                self.batting_position += 1
+                if non_striker_dismissed == 1:
+                    self.non_striker = next_player
+                else:
+                    self.batter = next_player
 
 
 
@@ -97,27 +100,39 @@ class MatchState:
         self.batting_position = 0
         self.batter = self.batting_playing_xi[self.batting_position + 1]
         self.non_striker = self.batting_playing_xi[self.batting_position]
+        self.bowling_order = self.setup_bowler_per_over()
         self.batting_position = 2
         self.bowler_map = {}
         self.previous_bowler = ""
         self.previous_non_legal_delivery = False
 
+    def setup_bowler_per_over(self):
+        bowling_order = []
+        available_bowlers = self.bowling_playing_xi.copy()
+        bowler_map = {}
+        previous_bowler = ""
+        for i in range(0, 20):
+            #bowler = random.choice(available_bowlers)
+            bowler = self.predictive_utils.populate_bowler_for_state(self.match_key, self.bowling_team,
+                                                                     i, "", available_bowlers)
+            bowling_order.append(bowler)
+            previous_bowler = bowler
+            if bowler in bowler_map.keys():
+                bowler_map[bowler] += 1
+            else:
+                bowler_map[bowler] = 1
+
+            if bowler_map[bowler] == 4:
+                available_bowlers.remove(bowler)
+
+        return bowling_order
+
     def change_over(self):
         self.over += 1
         self.ball = 1
 
-        list_of_bowlers = self.bowling_playing_xi.copy()
-        for key in self.bowler_map.keys():
-            if self.bowler_map[key] == 4:
-                list_of_bowlers.remove(key)
-        self.bowler = self.predictive_utils.populate_bowler_for_state(
-            self.match_key, self.bowling_team, self.over, self.previous_bowler, list_of_bowlers)
+        self.bowler = self.bowling_order[self.over]
         self.previous_bowler = self.bowler
-        if self.bowler in self.bowler_map.keys():
-            self.bowler_map[self.bowler] += 1
-        else:
-            self.bowler_map[self.bowler] = 1
-
         non_striker = self.non_striker
         self.non_striker = self.batter
         self.batter = non_striker
@@ -136,6 +151,7 @@ class MatchState:
             bowling_xi = self.bowling_playing_xi
             self.bowling_playing_xi = self.batting_playing_xi
             self.batting_playing_xi = bowling_xi
+            self.available_bowlers = self.bowling_playing_xi.copy()
 
             self.initialise_for_innings()
 
