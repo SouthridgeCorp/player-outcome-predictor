@@ -114,7 +114,7 @@ class PredictiveUtils:
 
     def predict_runout_details(self, matches_df, base_mask):
         """
-        Predicts direct / indirect runouts and which player got dismissed
+        Predicts direct / indirect runouts and which player got dismissed. Updates matches_df directly with the details.
         """
         matches_df.loc[base_mask, 'player_dismissed'] = matches_df['batter']
 
@@ -130,7 +130,8 @@ class PredictiveUtils:
 
     def predict_legal_wickets(self, matches_df):
         """
-        Predicts when wickets fall for a legal delivery, the dismissal kind and runs scored
+        Predicts when wickets fall for a legal delivery, the dismissal kind and runs scored.
+        Updates matches_df directly with the details.
         """
         # Set up details for legal delivery
         mask = matches_df['legal_delivery']
@@ -153,6 +154,7 @@ class PredictiveUtils:
     def predict_legal_outcomes(self, matches_df):
         """
         Predicts outcomes on a legal delivery, including batter_runs, extras and wickets
+        Updates matches_df directly with the details.
         """
         # Set up details for legal delivery
         mask = matches_df['legal_delivery']
@@ -173,6 +175,10 @@ class PredictiveUtils:
         matches_df.loc[extras_mask, 'extras'] = self.extras_if_legal_no_run_distribution.rvs(number_of_balls)
 
     def predict_non_legal_wicket_outcomes(self, matches_df):
+        """
+        Predicts the probability of a wicket on a non-legal delivery and sets its corresponding outcomes
+        Updates matches_df directly with the details.
+        """
         # Set up details for legal delivery
         mask = ~matches_df['legal_delivery']
         number_of_balls = len(mask[mask])
@@ -250,17 +256,24 @@ class PredictiveUtils:
         self.predict_non_legal_outcomes(matches_df)
 
     def setup(self):
-
+        """
+        Initial setup required for generating scenarios
+        """
         logging.debug("getting all innings and matches")
         self.all_innings_df, self.all_matches_df = self.data_selection.get_all_innings_and_matches()
-        logging.debug("Calculating bowling probabilities")
 
+        logging.debug("Calculating bowling probabilities")
         self.calculate_bowling_probabilities()
 
         logging.debug("getting featured players")
         self.featured_player_df = self.data_selection.get_frequent_players_universe()
 
     def calculate_bowling_probabilities(self) -> pd.DataFrame:
+        """
+        Counts the number of matches bowled by a player for a specific team & over, and uses that frequency as the
+        probability distribution to seed the multinomial distribution to predict if a certain over for a certain team is
+        bowled by a certain bowler.
+        """
         frequencies_df = \
             self.all_innings_df.groupby(['bowling_team', 'over', 'bowler']).count()['match_key'].unstack()
 
@@ -269,11 +282,12 @@ class PredictiveUtils:
 
         self.bowling_probabilities.populate_labels(frequencies_df.columns.values.tolist())
 
+        # Note: This entire operation could have been done via DataFrames but it led to precision errors with
+        # sps, hence np is used instead.
         for index, row in frequencies_df.iterrows():
             array = row.values.tolist()
             a = np.asarray(array).astype('float64')
             a = a / np.sum(a)
-
             if np.sum(a) > 1.0:
                 a[np.argmax(a)] += 1.0 - np.sum(a)
 
@@ -281,31 +295,34 @@ class PredictiveUtils:
 
         self.bowling_probabilities.setup_multinomials()
 
-    def populate_bowler_for_state(self, match_key, bowling_team, over, previous_bowler, playing_xi):
-
-        bowler_key = previous_bowler
+    def populate_bowler_for_state(self, match_key: str, bowling_team: str,
+                                  over: int, previous_bowler: str, playing_xi: list) -> str:
+        """
+        Calculate the bowler for the current state of the match using a multinomial distribution over the actual
+        historical data
+        """
         index = (bowling_team, over)
         if self.bowling_probabilities.isin(index):
+            # Get the multinomial object corresponding to this state
             multinomial = self.bowling_probabilities.get_multinomial(index)
-            for i in range(0, 1):
+
+            # Look for a bowler using the multinomial distribution thrice
+            for i in range(0, 3):
+                # Get the predicted bowler
                 selected_bowler_rv \
                     = multinomial.rvs(1, random_state=np.random.randint((over + 1) * match_key))[0]
                 selected_bowler_id = np.where(selected_bowler_rv == 1)[0][0]
                 bowler_key = self.bowling_probabilities.get_label(selected_bowler_id)
-                # bowler_key = random.choice(playing_xi)
+                # however, only set it if the predicted bowler is not the previous bowler and if they are in the
+                # bowling playing xi
                 if bowler_key != previous_bowler and bowler_key in playing_xi:
                     return bowler_key
-        # logging.info("Still Searching for bowler")
 
-        # bowler_for_match_df = self.all_innings_df.query(
-        ##  f'and over == {over}')
-        # if not bowler_for_match_df.empty:
-        #   bowler_key = list(bowler_for_match_df['bowler'].unique())[0]
-
-        if (bowler_key == previous_bowler) or (bowler_key not in playing_xi):
-            bowler_key = playing_xi[-1]
-            if bowler_key == previous_bowler:
-                bowler_key = playing_xi[-2]
+        # Catch all if we couldn't find a bowler key yet - this assumes that the playing xi is usually sorted to
+        # list the batters first & then the all-rounders and then the bowlers
+        bowler_key = playing_xi[-1]
+        if bowler_key == previous_bowler:
+            bowler_key = playing_xi[-2]
 
         return bowler_key
 
@@ -366,6 +383,9 @@ class PredictiveUtils:
 
 
 def update_match_state(row, matches_dict):
+    """
+    Helper function to update the match state corresponding to the row
+    """
     scenario = row.name[0]
     key = row.name[1]
     return matches_dict[(scenario, key)].update_state(row)

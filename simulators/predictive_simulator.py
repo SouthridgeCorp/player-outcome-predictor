@@ -119,8 +119,6 @@ class PredictiveSimulator:
                         if match_state_dict[key].was_previous_non_legal_delivery():
                             extras_list[key] = match_state_dict[key]
                             match_state_dict[key].bowl_one_ball()
-                    logging.debug(f"Calculating extras: {len(extras_list.keys())} "
-                                  f"inning: {inning} over: {over} ball:{ball}")
                     if len(extras_list.keys()) == 0:
                         break
                     if extras_list == extras_list_to_consider:
@@ -172,7 +170,6 @@ class PredictiveSimulator:
         """
         Generate all the required scenarios
         """
-
         logging.debug("Setting up scenario state")
 
         self.predictive_utils.setup()

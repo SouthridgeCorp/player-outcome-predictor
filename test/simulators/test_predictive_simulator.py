@@ -92,16 +92,19 @@ class TestPredictiveSimulator:
 
             mask = innings_df['dismissal_kind'].isin(['caught', 'run out', 'stumped'])
 
-            if 'nan' in innings_df.loc[mask]['fielder'].unique().tolist():
-                print(innings_df)
             assert 'nan' not in innings_df.loc[mask]['fielder'].unique().tolist()
             assert innings_df.loc[~mask]['fielder'].unique().tolist() == ['nan']
 
             bowling_playing_xi = playing_xi_df.query(f'match_key == {match_key} and '
                                              f'team == "{bowling_team}"')['player_key'].to_list()
+            bowling_playing_xi.append('non_frequent_player')
             fielders = innings_df.loc[mask]['fielder'].unique().tolist()
             for item in fielders:
-                assert item in bowling_playing_xi, f"Missing batter: {item}"
+                assert item in bowling_playing_xi, f"Missing fielder: {item}"
+
+            bowlers = innings_df.loc[mask]['bowler'].unique().tolist()
+            for item in bowlers:
+                assert item in bowling_playing_xi, f"Missing bowler: {item}"
 
             mask = innings_df['player_dismissed'] == innings_df['non_striker']
             if not innings_df[mask].empty:
@@ -124,3 +127,9 @@ class TestPredictiveSimulator:
 
             assert calculated_num_wickets == innings_wickets
             assert innings_total == calculated_total
+
+            number_of_overs = innings_df.reset_index()['over'].max()
+            for i in range(0, number_of_overs-1):
+                bowler1 = innings_df.query(f"over == {i} and ball == 1").iloc[0]["bowler"]
+                bowler2 = innings_df.query(f"over == {i+1} and ball == 1").iloc[0]["bowler"]
+                assert bowler1 != bowler2 if bowler1 != 'non_frequent_player' else True
