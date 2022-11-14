@@ -8,25 +8,37 @@ import logging
 
 
 class PredictiveSimulator:
+    """
+    Predicts the outcomes of the testing set of matches across the specified number of scenarios.
+    """
 
     def __init__(self, data_selection: DataSelection,
                  rewards_configuration: RewardsConfiguration,
                  number_of_scenarios):
         self.data_selection = data_selection
         self.number_of_scenarios = number_of_scenarios
+
         self.predictive_utils = PredictiveUtils(data_selection)
+
         self.perfect_simulators = []
         self.simulated_matches_df = pd.DataFrame()
         self.simulated_innings_df = pd.DataFrame()
+
+        # Maintain a perfect simulator for each scenario which allows us to calculate the rewards & error metrics
+        # per scenario easily
         for i in range(0, number_of_scenarios):
             perfect_simulator_ds = DataSelection(data_selection.historical_data_helper)
             self.perfect_simulators.append(PerfectSimulator(perfect_simulator_ds, rewards_configuration))
 
     def generate_matches(self):
+        """
+        Generates the matches dataframe corresponding to the match set to simulate.
+        """
         matches_df = self.data_selection.get_selected_matches(True)
         simulated_matches_df = pd.DataFrame()
         number_of_matches = len(matches_df.index)
 
+        # Build a list of matches for each scenario
         for i in range(0, self.number_of_scenarios):
             scenario = {'scenario_number': i,
                         'key': matches_df['key'].values.tolist(),
@@ -36,19 +48,22 @@ class PredictiveSimulator:
                         'stage': matches_df['stage'].values.tolist(),
                         'venue': matches_df['venue'].values.tolist(),
                         'team1': matches_df['team1'].values.tolist(),
-                        'team2': matches_df['team2'].values.tolist(),
-                        'toss_winner': matches_df['team2'].values.tolist(),
-                        'toss_loser': matches_df['team1'].values.tolist(),
-                        'toss_decision': 'bat'}
+                        'team2': matches_df['team2'].values.tolist()
+                        }
             scenario_df = pd.DataFrame(scenario)
-
             simulated_matches_df = pd.concat([simulated_matches_df, scenario_df], ignore_index=True)
 
+        # Set up the toss results - toss winner & their decision (field or bat)
         self.predictive_utils.compute_toss_results(simulated_matches_df, self.number_of_scenarios, number_of_matches)
+
         simulated_matches_df.set_index(['scenario_number', 'match_key'], inplace=True, verify_integrity=True)
         return simulated_matches_df
 
     def initialise_match_state(self, row, match_state_dict, playing_xi_df):
+        """
+        Internal helper function - not to be used outside this class.
+        Iniatialises the match state objects for each match & scenario
+        """
         scenario = row.name[0]
         match_key = row.name[1]
         batting_team = row['batting_team']

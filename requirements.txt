@@ -14,4 +14,4 @@ jupyterlab
 seaborn
 sklearn
 xarray
-ArviZ
+arviz

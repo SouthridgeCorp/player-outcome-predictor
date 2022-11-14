@@ -100,10 +100,6 @@ class PerfectSimulator:
         :return: pd.DataFrame listing match_state for each ball in each innings in training/testing matches for
         selected tournaments
         """
-
-        # TODO: this function needs a fair bit of performance optimisations - to be scheduled separately if there is a
-        # need for faster execution.
-
         match_state_df, player_universe_df, index_columns = initialise_match_state(self.data_selection, is_testing)
         setup_data_labels(match_state_df)
         training_teams, venues = setup_data_labels_with_training(self.data_selection, match_state_df)
@@ -425,13 +421,13 @@ class PerfectSimulator:
         :param granularity: The granularity level, must be one of the levels specified in Granularity
         :return: pd.DataFrame as above"""
 
-        logging.info("Getting rewards components")
+        logging.debug("Getting rewards components")
         base_rewards_df, bonus_penalty_df = self.get_rewards_components(is_testing)
 
         group_by_columns = get_index_columns(granularity)
         rewards_df = pd.DataFrame()
 
-        logging.info(f"Calculating total rewards for {bonus_penalty_df.shape}")
+        logging.debug(f"Calculating total rewards for {bonus_penalty_df.shape}")
 
         for g, g_df in bonus_penalty_df.groupby(group_by_columns):
             input_dict = {'bowling_rewards': g_df['bowling_rewards'].sum(),
@@ -446,7 +442,7 @@ class PerfectSimulator:
             rewards_df = rewards_df.append(input_dict, ignore_index=True)
 
         rewards_df.set_index(group_by_columns, inplace=True, verify_integrity=True)
-        logging.info("Returning the total DF")
+        logging.debug("Returning the total DF")
 
         return rewards_df
 
@@ -477,31 +473,34 @@ class PerfectSimulator:
         :raises: Exception if the contender_simulation_evaluation_metrics does not have a matching index
         to the result of self.get_simulation_evaluation_metrics(is_testing,granularity [as implied by the contender df]"""
 
-        logging.info("Starting error measure calc")
+        logging.debug("Starting error measure calc")
         if perfect_simulator_rewards_ref is not None:
             perfect_simulator_rewards_df = perfect_simulator_rewards_ref.copy()
         else:
             perfect_simulator_rewards_df = self.get_simulation_evaluation_metrics_by_granularity(is_testing,
                                                                                                  granularity)
-        logging.info("Received baseline data and comparing errors")
+        logging.debug("Received baseline data and comparing errors")
 
+        # Make sure the two dataframes are always the same shape. This merge ensures the same number of
+        # players are evaluated
         perfect_simulator_rewards_df = pd.merge(perfect_simulator_rewards_df,
                                                 contender_simulation_evaluation_metrics,
                                                 left_index=True, right_index=True, suffixes=["_expected", "_received"])
         columns_to_compare = ['batting_rewards', 'bowling_rewards', 'fielding_rewards', 'total_rewards']
 
         for column in columns_to_compare:
-            expected_column = list(perfect_simulator_rewards_df[f"{column}_expected"])
-            received_column = list(perfect_simulator_rewards_df[f"{column}_received"])
-
+            # calculate the error metrics between expected & received
             perfect_simulator_rewards_df[f'{column}_absolute_error'] = \
                 abs(perfect_simulator_rewards_df[f"{column}_expected"] -
                     perfect_simulator_rewards_df[f"{column}_received"])
-            perfect_simulator_rewards_df[f'{column}_mean_absolute_percentage_error'] \
-                = 100 * perfect_simulator_rewards_df[f'{column}_absolute_error'] / \
-                  perfect_simulator_rewards_df[f"{column}_expected"]
 
-        logging.info("Done with error measurements")
+            perfect_simulator_rewards_df[f'{column}_absolute_percentage_error'] = 0.0
+            mask = perfect_simulator_rewards_df[f"{column}_expected"] != 0
+            perfect_simulator_rewards_df.loc[mask, f'{column}_absolute_percentage_error'] = \
+                100 * perfect_simulator_rewards_df[f'{column}_absolute_error'] / \
+                perfect_simulator_rewards_df[f"{column}_expected"]
+
+        logging.debug("Done with error measurements")
 
         return perfect_simulator_rewards_df
 

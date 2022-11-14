@@ -1,10 +1,6 @@
 from historical_data.singleton import Helper
 import pandas as pd
 from historical_data.playing_xi import PlayingXI
-
-import warnings
-warnings.filterwarnings('ignore')
-
 class PlayerInformation:
     """
     Helper class - do not use outside this context - used to keep count of all the matches per team played by a player
@@ -37,6 +33,8 @@ class DataSelection:
     def __init__(self,
                  historical_data_helper: Helper):
         self.historical_data_helper = historical_data_helper
+
+        # placeholders for storing simulated data - if not defined, historical data will be used
         self.simulated_matches = pd.DataFrame()
         self.simulated_innings = pd.DataFrame()
 
@@ -48,6 +46,12 @@ class DataSelection:
         return self.historical_data_helper
 
     def set_simulated_data(self, matches_df: pd.DataFrame, innings_df: pd.DataFrame):
+        """
+        Sets the simulated datasets to be used by this object
+        :param matches_df: the simulated matches object
+        :param innings_df: the simulated innings object
+        :return None
+        """
         self.simulated_matches = matches_df
         self.simulated_innings = innings_df
 
@@ -58,6 +62,7 @@ class DataSelection:
         :return: pd.DataFrame listing all matches from selected tournaments in training/testing window
         """
 
+        # Return simulated matches if available
         if is_testing and not self.simulated_matches.empty:
             return self.simulated_matches
 
@@ -106,6 +111,7 @@ class DataSelection:
         window
         """
 
+        # Return simulated innings if available
         if is_testing and not self.simulated_innings.empty:
             return self.simulated_innings
 
@@ -237,8 +243,8 @@ class DataSelection:
 
     def get_all_innings_and_matches(self) -> (pd.DataFrame, pd.DataFrame):
         """
-        Get all matches that the tournaments object knows about
-        :return: pd.DataFrame listing all the matches information avaialble
+        Get all matches & innings that the tournaments object knows about
+        :return: 2 dataframes, first one containing matches and second one containing innings information
         """
         innings_df = self.historical_data_helper.tournaments.get_all_innings()
         matches_df = self.get_all_matches()

@@ -138,8 +138,8 @@ class Tournaments:
 
     def get_all_innings(self) -> pd.DataFrame:
         """
-        Get all matches that we know about
-        :return: pd.DataFrame listing all the matches information avaialble
+        Get all innings that we know about
+        :return: pd.DataFrame listing all the innings information avaialble
         """
         innings_list = []
 

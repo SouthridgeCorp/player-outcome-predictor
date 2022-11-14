@@ -283,8 +283,15 @@ class PredictiveUtils:
         return frequencies_df
 
     def compute_toss_results(self, scenario_and_match_df, number_of_scenarios, number_of_matches):
-        toss_won_by_team1_bernoulli = sps.bernoulli(p=0.5)
+        """
+        For the set of matches (key = scenario & match_key), calculate the toss winners & their actions, and update
+        the scenario_and_match_df.
+        """
 
+        # 50% probability of either team winning the toss
+        toss_won_by_team1_bernoulli = sps.bernoulli(p=0.5)
+        scenario_and_match_df['toss_winner'] = scenario_and_match_df['team2']
+        scenario_and_match_df['toss_loser'] = scenario_and_match_df['team1']
         mask = pd.Series(toss_won_by_team1_bernoulli.rvs(number_of_scenarios * number_of_matches,
                                                          random_state=np.random.randint(low=3)) == 1)
 
@@ -293,6 +300,9 @@ class PredictiveUtils:
 
         toss_winner_action_probability_df = self.calculate_probability_toss_winner_fields_first()
 
+        scenario_and_match_df['toss_decision'] = 'bat'
+
+        # Calculate the toss action by looking at the distribution for the venue & toss winner
         for g, g_df in scenario_and_match_df.groupby(['toss_winner', 'venue']):
             if g in toss_winner_action_probability_df.index:
                 probability_field_first = toss_winner_action_probability_df.loc[g]['probability']

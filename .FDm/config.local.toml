@@ -14,7 +14,7 @@ generated_path="data/generated/prod/rewards"
 file_name = "rewards.csv"
 
 [player_outcome_predictor.predictive_simulator]
-number_of_scenarios=1
+number_of_scenarios=4
 
 [feedback_form]
 storage_dir = "data"

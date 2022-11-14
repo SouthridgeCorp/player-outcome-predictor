@@ -437,5 +437,5 @@ class TestPerfectSimulator:
         columns_to_compare = ['batting_rewards', 'bowling_rewards', 'fielding_rewards', 'total_rewards']
 
         for column in columns_to_compare:
-            assert error_df[f'{column}_mean_absolute_error'].unique() == 0.0
-            assert error_df[f'{column}_mean_absolute_percentage_error'].unique() == 0.0
+            assert error_df[f'{column}_absolute_error'].unique() == 0.0
+            assert error_df[f'{column}_absolute_percentage_error'].unique() == 0.0

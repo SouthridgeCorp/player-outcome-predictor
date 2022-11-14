@@ -26,4 +26,8 @@ class Innings:
         return self.df[(self.df["match_key"].isin(match_keys))]
 
     def get_data(self) -> pd.DataFrame:
+        """
+        Returns a copy of the underlying innings information
+        :return A copy of the innings info
+        """
         return self.df.copy()
