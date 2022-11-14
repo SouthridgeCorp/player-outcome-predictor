@@ -47,7 +47,8 @@ def get_helper(config_utils: ConfigUtils) -> Helper:
 
 def data_selection_summary(tournaments: Tournaments):
     """
-    Builds out the summary of data selection fields
+    Builds out the summary of data selection fields for displaying in streamlit. Can be used to summarise the current
+    state of data selection on any streamlit page.
     """
     selected_tournaments, training, testing = st.columns(3)
 

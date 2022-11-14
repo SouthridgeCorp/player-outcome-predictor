@@ -7,6 +7,7 @@ from simulators.perfect_simulator import PerfectSimulator, Granularity
 from data_selection.data_selection import DataSelection
 import pandas as pd
 import arviz as az
+import logging
 
 
 def show_summary(title, panel, summary_df, data_selection: DataSelection):
@@ -28,6 +29,10 @@ def show_summary(title, panel, summary_df, data_selection: DataSelection):
 
 def app():
     page_utils.setup_page(" Review Predictive Simulation ")
+    enable_debug = st.checkbox("Click here to enable detailed logging", value=True)
+    if enable_debug:
+        logging.basicConfig()
+        logging.getLogger().setLevel(logging.DEBUG)
 
     data_selection = data_selection_instance()
     tournaments = data_selection.get_helper().tournaments

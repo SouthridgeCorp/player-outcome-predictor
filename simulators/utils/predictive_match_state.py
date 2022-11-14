@@ -1,4 +1,6 @@
 import random
+
+
 class MatchState:
 
     def __init__(self, predictive_utils, scenario_number, match_key, bowling_team, batting_team,
@@ -51,8 +53,6 @@ class MatchState:
                     self.non_striker = next_player
                 else:
                     self.batter = next_player
-
-
 
         batter_runs = row['batter_runs']
 
@@ -112,7 +112,7 @@ class MatchState:
         bowler_map = {}
         previous_bowler = ""
         for i in range(0, 20):
-            #bowler = random.choice(available_bowlers)
+            # bowler = random.choice(available_bowlers)
             bowler = self.predictive_utils.populate_bowler_for_state(self.match_key, self.bowling_team,
                                                                      i, "", available_bowlers)
             bowling_order.append(bowler)
@@ -155,29 +155,22 @@ class MatchState:
 
             self.initialise_for_innings()
 
-    def get_dict_list(self, with_extras=True):
+    def get_dict(self):
         if self.match_complete or (self.first_innings_complete and (self.inning == 1)):
-            return []
-        list_to_send = []
-        '''if with_extras:
-            for item in self.extras_list:
-                list_to_send.append(item)
-            self.extras_list = []'''
+            return {}
 
-        list_to_send.append({'scenario_number': self.scenario_number,
-                             'match_key': self.match_key,
-                             'bowling_team': self.bowling_team,
-                             'batting_team': self.batting_team,
-                             'inning': self.inning,
-                             'over': self.over,
-                             'ball': self.ball,
-                             'previous_total': self.previous_total,
-                             'previous_number_of_wickets': self.previous_num_wickets,
-                             'bowler': self.player_label_mapping[self.bowler],
-                             'batter': self.player_label_mapping[self.batter],
-                             'non_striker': self.player_label_mapping[self.non_striker],
-                             'target_runs': self.target_runs,
-                             'target_balls': self.target_balls
-                             })
-
-        return list_to_send
+        return {'scenario_number': self.scenario_number,
+                'match_key': self.match_key,
+                'bowling_team': self.bowling_team,
+                'batting_team': self.batting_team,
+                'inning': self.inning,
+                'over': self.over,
+                'ball': self.ball,
+                'previous_total': self.previous_total,
+                'previous_number_of_wickets': self.previous_num_wickets,
+                'bowler': self.player_label_mapping[self.bowler],
+                'batter': self.player_label_mapping[self.batter],
+                'non_striker': self.player_label_mapping[self.non_striker],
+                'target_runs': self.target_runs,
+                'target_balls': self.target_balls
+                }

@@ -3,13 +3,22 @@ import pandas as pd
 import numpy as np
 from data_selection.data_selection import DataSelection
 import logging
-import random
-from sklearn import preprocessing
+
 
 class Probabilities:
+    """
+    Helper class to maintain and store probability details. This is especially useful for multinomial distributions
+    where pd.DataFrame calculations may yield floating point errors and hence calculations need to be done via numpy
+    instead.
+    Must not be used outside the context of the PredictiveUtils class since the logic is tightly coupled.
+    """
     def __init__(self):
+        # The labels associated with each probability, must be in lock step with the array of probabilities included in
+        # probability_map
         self.label_list = []
+        # Map containing a list of probabilities for each key - each item in the list maps to a label in label_list
         self.probability_map = {}
+        # A map of multinomial instances mapped to the same key as the probability map
         self.multinomial_map = {}
 
     def populate_labels(self, labels):
@@ -34,6 +43,8 @@ class Probabilities:
 
     def get_multinomial(self, key):
         return self.multinomial_map[key]
+
+
 class PredictiveUtils:
     def __init__(self, data_selection: DataSelection):
         self.data_selection = data_selection
@@ -42,44 +53,69 @@ class PredictiveUtils:
         self.bowling_probabilities = Probabilities()
         self.featured_player_df = pd.DataFrame()
 
-        logging.info("setting up distributions")
+        logging.debug("setting up distributions")
+        # TODO: These distributions will no longer be required once the inferential model comes into play.
+
+        # Probability of a legal delivery
         self.legal_delivery_distribution = sps.bernoulli(p=0.9)
 
+        # Probability distribution of batting runs on a legal, wicket-less delivery
         legal_batting_distribution = [0.4, 0.35, 0.075, 0.006, 0.125, 0.004, 0.04]
         self.batter_runs_distribution = sps.multinomial(1, legal_batting_distribution)
 
+        # Probability of getting an extra if there are no batter runs
         self.extras_if_legal_no_run_distribution = sps.bernoulli(p=.03)
 
+        # Probability of wickets on a legal delivery
         self.legal_wickets_distribution = sps.bernoulli(p=.05)
 
+        # Probability distribution of dismissal kinds
         self.legal_wicket_types = ["caught", "bowled", "run out", "lbw", "caught and bowled", "stumped", "others"]
         legal_wicket_types_distribution_list = [0.6, 0.19, 0.08, 0.07, 0.03, 0.03, 0.06]
         self.legal_wicket_types_distribution = sps.multinomial(1, legal_wicket_types_distribution_list)
+
+        # Probability of a single if a wicket was lost
+        # ASSUMPTION: If there was a wicket, at the most 1 batter run could be scored
         self.legal_wicket_single_distribution = sps.bernoulli(p=0.03)
 
+        # Probability of a run out being a runout
         self.direct_run_out_probability = sps.bernoulli(p=0.5)
+
+        # Probability of a non striker being dismissed on a runout
         self.non_striker_dismissed_on_runout = sps.bernoulli(p=0.5)
 
+        # Distribution of non-legal deliveries
         self.non_legal_deliveries = ["wides", "noballs"]
         non_legal_deliveries_probability = [0.87, 0.13]
         self.non_legal_deliveries_distribution = sps.multinomial(1, non_legal_deliveries_probability)
 
+        # Distribution of extras scored on a non-legal delivery
         non_legal_extras_probability = [0, 0.89, 0.07, 0.01, 0.001, 0.03]
         self.non_legal_extras_distribution = sps.multinomial(1, non_legal_extras_probability)
 
+        # Distribution of batter runs scored on a non-legal delivery
         non_legal_batter_runs_probability = [0.93, 0.03, 0.008, 0, 0.014, 0, 0.008]
         self.non_legal_batter_runs_distribution = sps.multinomial(1, non_legal_batter_runs_probability)
 
+        # Probability of a wicket on a non-legal delivery
         self.non_legal_wickets_distribution = sps.bernoulli(p=.0099)
+
+        # Distribution of dismissal kind on a non-legal wicket
         self.non_legal_wicket_types = ["stumped", "run out"]
         non_legal_wicket_types_distribution_list = [0.65, 0.35]
         self.non_legal_wicket_types_distribution = sps.multinomial(1, non_legal_wicket_types_distribution_list)
+
+        # Probability of a single batter_run on a non-legal wicket
         self.non_legal_wicket_single_distribution = sps.bernoulli(p=0.03)
 
+        # Probability of an extra on a non-legal wicket
         non_legal_wicket_extras_probability = [0, 0.97, 0.024, 0, 0.001, 0.006]
         self.non_legal_wicket_extras_distribution = sps.multinomial(1, non_legal_wicket_extras_probability)
 
     def predict_runout_details(self, matches_df, base_mask):
+        """
+        Predicts direct / indirect runouts and which player got dismissed
+        """
         matches_df.loc[base_mask, 'player_dismissed'] = matches_df['batter']
 
         base_mask = base_mask & (matches_df['dismissal_kind'] == 'run out')
@@ -93,6 +129,9 @@ class PredictiveUtils:
         matches_df.loc[base_mask, 'player_dismissed'] = matches_df['non_striker']
 
     def predict_legal_wickets(self, matches_df):
+        """
+        Predicts when wickets fall for a legal delivery, the dismissal kind and runs scored
+        """
         # Set up details for legal delivery
         mask = matches_df['legal_delivery']
         number_of_balls = len(mask[mask])
@@ -111,8 +150,10 @@ class PredictiveUtils:
 
         self.predict_runout_details(matches_df, wicket_mask)
 
-
     def predict_legal_outcomes(self, matches_df):
+        """
+        Predicts outcomes on a legal delivery, including batter_runs, extras and wickets
+        """
         # Set up details for legal delivery
         mask = matches_df['legal_delivery']
 
@@ -155,7 +196,9 @@ class PredictiveUtils:
         self.predict_runout_details(matches_df, wicket_mask)
 
     def predict_non_legal_outcomes(self, matches_df):
-
+        """
+        Predicts outcomes on a legal delivery, including batter_runs, extras and wickets
+        """
         mask = ~matches_df['legal_delivery']
 
         number_of_balls = len(mask[mask])
@@ -180,13 +223,17 @@ class PredictiveUtils:
         batter_runs = self.non_legal_batter_runs_distribution.rvs(number_of_balls)
         matches_df.loc[mask, 'batter_runs'] = np.where(batter_runs == 1)[1]
 
-
-
     def predict_ball_by_ball_outcome(self, matches_df):
+        """
+        This function assumes that the matches_df represents the current state of the match up until the specified
+        ball is bowled, and then predicts the outcome of the current delivery.
+        matches_df must contain one row per match, representing a summary of the current match state.
+        """
         match_count = len(matches_df.index)
+
         is_legal_delivery = self.legal_delivery_distribution.rvs(match_count,
                                                                  random_state=np.random.randint(low=3)) == 1
-
+        # Setup defaults before predicting specific
         matches_df['legal_delivery'] = is_legal_delivery
 
         matches_df['batter_runs'] = 0
@@ -202,15 +249,15 @@ class PredictiveUtils:
         self.predict_legal_outcomes(matches_df)
         self.predict_non_legal_outcomes(matches_df)
 
-
     def setup(self):
-        logging.info("getting all innings and matches")
+
+        logging.debug("getting all innings and matches")
         self.all_innings_df, self.all_matches_df = self.data_selection.get_all_innings_and_matches()
-        logging.info("Calculating probabilities")
+        logging.debug("Calculating bowling probabilities")
 
         self.calculate_bowling_probabilities()
-        logging.info("getting featured players")
 
+        logging.debug("getting featured players")
         self.featured_player_df = self.data_selection.get_frequent_players_universe()
 
     def calculate_bowling_probabilities(self) -> pd.DataFrame:
@@ -230,7 +277,6 @@ class PredictiveUtils:
             if np.sum(a) > 1.0:
                 a[np.argmax(a)] += 1.0 - np.sum(a)
 
-
             self.bowling_probabilities.setup_probability(index, a)
 
         self.bowling_probabilities.setup_multinomials()
@@ -246,19 +292,17 @@ class PredictiveUtils:
                     = multinomial.rvs(1, random_state=np.random.randint((over + 1) * match_key))[0]
                 selected_bowler_id = np.where(selected_bowler_rv == 1)[0][0]
                 bowler_key = self.bowling_probabilities.get_label(selected_bowler_id)
-                #bowler_key = random.choice(playing_xi)
+                # bowler_key = random.choice(playing_xi)
                 if bowler_key != previous_bowler and bowler_key in playing_xi:
                     return bowler_key
-        #logging.info("Still Searching for bowler")
+        # logging.info("Still Searching for bowler")
 
-        #bowler_for_match_df = self.all_innings_df.query(
-         ##  f'and over == {over}')
-        #if not bowler_for_match_df.empty:
-         #   bowler_key = list(bowler_for_match_df['bowler'].unique())[0]
+        # bowler_for_match_df = self.all_innings_df.query(
+        ##  f'and over == {over}')
+        # if not bowler_for_match_df.empty:
+        #   bowler_key = list(bowler_for_match_df['bowler'].unique())[0]
 
         if (bowler_key == previous_bowler) or (bowler_key not in playing_xi):
-            logging.debug(f'Looking for bowler key from the match for match_key == {match_key} and bowling_team '
-                         f'== "{bowling_team}" and over == {over}')
             bowler_key = playing_xi[-1]
             if bowler_key == previous_bowler:
                 bowler_key = playing_xi[-2]

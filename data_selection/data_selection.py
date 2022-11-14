@@ -1,6 +1,11 @@
 from historical_data.singleton import Helper
 import pandas as pd
 from historical_data.playing_xi import PlayingXI
+import logging
+
+import warnings
+warnings.filterwarnings('ignore')
+
 class PlayerInformation:
     """
     Helper class - do not use outside this context - used to keep count of all the matches per team played by a player
@@ -246,8 +251,7 @@ class DataSelection:
         Get all matches & innings that the tournaments object knows about
         :return: 2 dataframes, first one containing matches and second one containing innings information
         """
-        innings_df = self.historical_data_helper.tournaments.get_all_innings()
-        matches_df = self.get_all_matches()
+        matches_df, innings_df = self.historical_data_helper.tournaments.get_all_matches_and_innings_cached()
 
         innings_df = pd.merge(innings_df, matches_df[["key", "team1", "team2"]], left_on="match_key", right_on="key")
         innings_df.drop('key', axis=1, inplace=True)
