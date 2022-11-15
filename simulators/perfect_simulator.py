@@ -434,7 +434,8 @@ class PerfectSimulator:
         logging.debug(f"Calculating total rewards for {bonus_penalty_df.shape}")
 
         for g, g_df in bonus_penalty_df.groupby(group_by_columns):
-            input_dict = {'bowling_rewards': g_df['bowling_rewards'].sum(),
+            input_dict = {'number_of_matches': len(g_df.reset_index()['match_key'].unique()),
+                          'bowling_rewards': g_df['bowling_rewards'].sum(),
                           'batting_rewards': g_df['batting_rewards'].sum(),
                           'fielding_rewards': g_df['fielding_rewards'].sum()}
             input_dict['total_rewards'] = input_dict['bowling_rewards'] + input_dict['batting_rewards'] \
@@ -444,6 +445,8 @@ class PerfectSimulator:
                 input_dict[column] = g[i]
                 i += 1
             rewards_df = rewards_df.append(input_dict, ignore_index=True)
+
+        rewards_df = self.data_selection.merge_with_players(rewards_df, 'player_key')
 
         rewards_df.set_index(group_by_columns, inplace=True, verify_integrity=True)
         logging.debug("Returning the total DF")
