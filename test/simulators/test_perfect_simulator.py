@@ -391,22 +391,21 @@ class TestPerfectSimulator:
         for index, row in bonus_penalty_df.iterrows():
             if pd.isna(row['bowling_rewards']):
                 assert pd.isna(row['bowling_base_rewards'] + row['bowling_bonus_wickets'] \
-                                            + row['bowling_bonus'] - row['bowling_penalty'])
+                               + row['bowling_bonus'] - row['bowling_penalty'])
             else:
                 assert row['bowling_rewards'] == row['bowling_base_rewards'] + row['bowling_bonus_wickets'] \
-                                                + row['bowling_bonus'] - row['bowling_penalty']
-
+                       + row['bowling_bonus'] - row['bowling_penalty']
 
     @pytest.mark.parametrize('is_testing', [True, False])
     @pytest.mark.parametrize('granularity, expected_columns',
-                             [('tournament', ['player_key', 'tournament_key', 'bowling_rewards',
+                             [('tournament', ['name', 'player_key', 'tournament_key', 'bowling_rewards',
                                               'batting_rewards', 'fielding_rewards',
                                               'total_rewards']),
-                              ('tournament_stage', ['player_key', 'tournament_key', 'stage', 'bowling_rewards',
+                              ('tournament_stage', ['name', 'player_key', 'tournament_key', 'stage', 'bowling_rewards',
                                                     'batting_rewards', 'fielding_rewards', 'total_rewards']),
-                              ('match', ['player_key', 'tournament_key', 'stage', 'match_key', 'bowling_rewards',
-                                         'batting_rewards', 'fielding_rewards', 'total_rewards']),
-                              ('innings', ['player_key', 'tournament_key', 'stage', 'match_key', 'inning',
+                              ('match', ['name', 'player_key', 'tournament_key', 'stage', 'match_key',
+                                         'bowling_rewards', 'batting_rewards', 'fielding_rewards', 'total_rewards']),
+                              ('innings', ['name', 'player_key', 'tournament_key', 'stage', 'match_key', 'inning',
                                            'bowling_rewards', 'batting_rewards', 'fielding_rewards', 'total_rewards'])])
     def test_get_simulation_evaluation_metrics_by_granularity(self, perfect_simulator, is_testing, granularity,
                                                               expected_columns):
@@ -422,7 +421,6 @@ class TestPerfectSimulator:
 
         assert (expected_columns == received_columns), f"Granularity: {granularity} expected_columns: " \
                                                        f"{expected_columns} received_columns: {received_columns}"
-
 
     @pytest.mark.parametrize('is_testing', [True, False])
     @pytest.mark.parametrize('granularity', ['tournament', 'tournament_stage', 'match', 'innings'])
