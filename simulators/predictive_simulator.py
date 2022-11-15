@@ -17,6 +17,7 @@ class PredictiveSimulator:
                  number_of_scenarios):
         self.data_selection = data_selection
         self.number_of_scenarios = number_of_scenarios
+        self.rewards_configuration = rewards_configuration
 
         self.predictive_utils = PredictiveUtils(data_selection)
 

@@ -46,8 +46,8 @@ def app():
     st.write(f"Number of scenarios: {number_of_scenarios}")
 
     # TODO: Replace by a granularity drop-down eventually
-    granularity = Granularity.TOURNAMENT
-    st.write(f"Granularity: {granularity}")
+    granularity_list = ['None', Granularity.TOURNAMENT, Granularity.STAGE, Granularity.MATCH, Granularity.INNING]
+    granularity = st.selectbox("Please select the granularity for reviewing Simulator stats", granularity_list)
 
     if granularity == 'None':
         st.write("Please select a valid Granularity")

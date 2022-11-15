@@ -31,8 +31,15 @@ def app():
     # Show a summary of selected training & testing windows
     data_selection_summary(tournaments)
 
-    granularity_list = ['None', Granularity.TOURNAMENT, Granularity.STAGE, Granularity.MATCH, Granularity.INNING]
-    granularity = st.selectbox("Please select the granularity for reviewing Simulator stats", granularity_list)
+    granularity_select, metric_select = st.columns(2)
+
+    with granularity_select:
+        granularity_list = ['None', Granularity.TOURNAMENT, Granularity.STAGE, Granularity.MATCH, Granularity.INNING]
+        granularity = st.selectbox("Please select the granularity for reviewing Simulator stats", granularity_list)
+
+    with metric_select:
+        metric_list = ['bowling_rewards', 'batting_rewards', 'fielding_rewards', 'total_rewards']
+        metric = st.selectbox("Please select the metric to review", metric_list)
 
     if granularity == 'None':
         st.write("Please select a valid Granularity")
@@ -51,7 +58,9 @@ def app():
                                       max_value=len(perfect_simulator_df.index), value=30)
 
         st.subheader('Evaluation & Error Metrics')
-        st.dataframe(errors_df, use_container_width=True)
+        columns_to_show = ['name', 'number_of_matches', metric, f'{metric}_absolute_error',
+                           f'{metric}_absolute_percentage_error']
+        st.dataframe(errors_df[columns_to_show], use_container_width=True)
 
         top_players_column, top_batters_column, top_bowlers_column = st.columns(3)
 

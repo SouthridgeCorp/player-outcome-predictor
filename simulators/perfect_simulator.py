@@ -500,8 +500,8 @@ class PerfectSimulator:
             perfect_simulator_rewards_df[f'{column}_absolute_percentage_error'] = 0.0
             mask = perfect_simulator_rewards_df[f"{column}_expected"] != 0
             perfect_simulator_rewards_df.loc[mask, f'{column}_absolute_percentage_error'] = \
-                100 * perfect_simulator_rewards_df[f'{column}_absolute_error'] / \
-                perfect_simulator_rewards_df[f"{column}_expected"]
+                abs(100 * perfect_simulator_rewards_df[f'{column}_absolute_error'] / \
+                perfect_simulator_rewards_df[f"{column}_expected"])
 
         logging.debug("Done with error measurements")
 

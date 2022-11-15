@@ -1,5 +1,6 @@
 import pytest
 from test.conftest import get_test_cases
+from simulators.perfect_simulator import PerfectSimulator
 from test.data_selection.conftest import prepare_for_tests, setup_training_and_testing
 from simulators.utils.predictive_utils import PredictiveUtils
 import pandas as pd
@@ -133,3 +134,24 @@ class TestPredictiveSimulator:
                 bowler1 = innings_df.query(f"over == {i} and ball == 1").iloc[0]["bowler"]
                 bowler2 = innings_df.query(f"over == {i+1} and ball == 1").iloc[0]["bowler"]
                 assert bowler1 != bowler2 if bowler1 != 'non_frequent_player' else True
+
+    @pytest.mark.parametrize('granularity', ['tournament', 'tournament_stage', 'match', 'innings'])
+    def test_get_error_measures_predictive_simulator(self, predictive_simulator, granularity):
+
+        prepare_for_tests(predictive_simulator.data_selection, True)
+        predictive_simulator.generate_scenario()
+
+        perfect_simulator_for_testing = PerfectSimulator(predictive_simulator.data_selection,
+                                                         predictive_simulator.rewards_configuration)
+        perfect_df = perfect_simulator_for_testing.get_simulation_evaluation_metrics_by_granularity(True, granularity)
+        for scenario in range(0, predictive_simulator.number_of_scenarios):
+            rewards_df = predictive_simulator.perfect_simulators[scenario]\
+                .get_simulation_evaluation_metrics_by_granularity(True, granularity)
+
+            error_df =  perfect_simulator_for_testing.get_error_measures(True, rewards_df, granularity, perfect_df)
+
+            columns_to_compare = ['batting_rewards', 'bowling_rewards', 'fielding_rewards', 'total_rewards']
+
+            for column in columns_to_compare:
+                assert error_df.query(f'{column}_absolute_error < 0.0').empty
+                assert error_df.query(f'{column}_absolute_percentage_error < 0.0').empty
