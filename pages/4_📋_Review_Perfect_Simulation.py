@@ -2,7 +2,7 @@ import streamlit as st
 
 import utils.page_utils as page_utils
 from simulators.perfect_simulator import Granularity, PerfectSimulator
-from utils.app_utils import data_selection_instance, rewards_instance, data_selection_summary
+from utils.app_utils import data_selection_instance, rewards_instance, data_selection_summary, get_metrics_to_show
 from rewards_configuration.rewards_configuration import RewardsConfiguration
 import pandas as pd
 
@@ -35,11 +35,11 @@ def app():
 
     with granularity_select:
         granularity_list = ['None', Granularity.TOURNAMENT, Granularity.STAGE, Granularity.MATCH, Granularity.INNING]
-        granularity = st.selectbox("Please select the granularity for reviewing Simulator stats", granularity_list)
+        granularity = st.selectbox("Please select the granularity for reviewing Simulator stats",
+                                   granularity_list, key="perfect_model_granularity")
 
     with metric_select:
-        metric_list = ['bowling_rewards', 'batting_rewards', 'fielding_rewards', 'total_rewards']
-        metric = st.selectbox("Please select the metric to review", metric_list)
+        metric = st.selectbox("Please select the metric to review", get_metrics_to_show(), key="perfect_model_metric")
 
     if granularity == 'None':
         st.write("Please select a valid Granularity")
@@ -58,8 +58,14 @@ def app():
                                       max_value=len(perfect_simulator_df.index), value=30)
 
         st.subheader('Evaluation & Error Metrics')
-        columns_to_show = ['name', 'number_of_matches', metric, f'{metric}_absolute_error',
-                           f'{metric}_absolute_percentage_error']
+        if 'absolute' not in metric:
+            columns_to_show = ['name', 'number_of_matches',
+                               f'{metric}_expected', f'{metric}_received']
+            errors_df = errors_df.sort_values(f'{metric}_expected', ascending=False)
+        else:
+            columns_to_show = ['name', 'number_of_matches', metric]
+            errors_df = errors_df.sort_values(metric, ascending=False)
+
         st.dataframe(errors_df[columns_to_show], use_container_width=True)
 
         top_players_column, top_batters_column, top_bowlers_column = st.columns(3)

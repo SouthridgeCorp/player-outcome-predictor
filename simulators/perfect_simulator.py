@@ -486,8 +486,9 @@ class PerfectSimulator:
 
         # Make sure the two dataframes are always the same shape. This merge ensures the same number of
         # players are evaluated
+        columns_to_compare = ['batting_rewards', 'bowling_rewards', 'fielding_rewards', 'total_rewards']
         perfect_simulator_rewards_df = pd.merge(perfect_simulator_rewards_df,
-                                                contender_simulation_evaluation_metrics,
+                                                contender_simulation_evaluation_metrics[columns_to_compare],
                                                 left_index=True, right_index=True, suffixes=["_expected", "_received"])
         columns_to_compare = ['batting_rewards', 'bowling_rewards', 'fielding_rewards', 'total_rewards']
 

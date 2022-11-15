@@ -196,3 +196,4 @@ class PredictiveSimulator:
                                             verify_integrity=True)
 
         logging.debug("Done Generating Match & Innings data")
+

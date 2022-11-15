@@ -4,6 +4,7 @@ from historical_data.singleton import Helper
 from historical_data.tournaments import Tournaments
 from rewards_configuration.rewards_configuration import RewardsConfiguration
 from utils.config_utils import create_utils_object, ConfigUtils
+from simulators.predictive_simulator import PredictiveSimulator
 
 
 def data_selection_instance():
@@ -67,3 +68,27 @@ def data_selection_summary(tournaments: Tournaments):
         testing_start_date, testing_end_date = tournaments.get_start_end_dates(True)
         st.write(f"Start Date: {testing_start_date}")
         st.write(f"End Date: {testing_end_date}")
+
+def get_metrics_to_show() -> list:
+    metric_list = ['bowling_rewards', 'batting_rewards', 'fielding_rewards', 'total_rewards']
+    new_metrics = []
+    for item in metric_list:
+        new_metrics.append(f"{item}_absolute_error")
+        new_metrics.append(f"{item}_absolute_percentage_error")
+    metric_list = metric_list + new_metrics
+    return metric_list
+
+
+def reset_session_states():
+    if 'PredictiveSimulator' in st.session_state:
+        del st.session_state['PredictiveSimulator']
+
+def get_predictive_simulator(rewards, number_of_scenarios):
+    if 'PredictiveSimulator' not in st.session_state:
+        predictive_simulator = PredictiveSimulator(data_selection_instance(), rewards, number_of_scenarios)
+        predictive_simulator.generate_scenario()
+        st.session_state['PredictiveSimulator'] = predictive_simulator
+    else:
+        predictive_simulator = st.session_state['PredictiveSimulator']
+
+    return predictive_simulator
