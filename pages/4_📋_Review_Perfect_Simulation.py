@@ -39,7 +39,9 @@ def app():
                                    granularity_list, key="perfect_model_granularity")
 
     with metric_select:
-        metric = st.selectbox("Please select the metric to review", get_metrics_to_show(), key="perfect_model_metric")
+        metrics, error_metrics = get_metrics_to_show()
+        metrics_to_show = metrics + error_metrics
+        metric = st.selectbox("Please select the metric to review", metrics_to_show, key="perfect_model_metric")
 
     if granularity == 'None':
         st.write("Please select a valid Granularity")
@@ -58,7 +60,7 @@ def app():
                                       max_value=len(perfect_simulator_df.index), value=30)
 
         st.subheader('Evaluation & Error Metrics')
-        if 'absolute' not in metric:
+        if metric not in error_metrics:
             columns_to_show = ['name', 'number_of_matches',
                                f'{metric}_expected', f'{metric}_received']
             errors_df = errors_df.sort_values(f'{metric}_expected', ascending=False)

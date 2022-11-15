@@ -398,15 +398,18 @@ class TestPerfectSimulator:
 
     @pytest.mark.parametrize('is_testing', [True, False])
     @pytest.mark.parametrize('granularity, expected_columns',
-                             [('tournament', ['name', 'player_key', 'tournament_key', 'bowling_rewards',
-                                              'batting_rewards', 'fielding_rewards',
+                             [('tournament', ['name', 'number_of_matches', 'player_key', 'tournament_key',
+                                              'bowling_rewards', 'batting_rewards', 'fielding_rewards',
                                               'total_rewards']),
-                              ('tournament_stage', ['name', 'player_key', 'tournament_key', 'stage', 'bowling_rewards',
-                                                    'batting_rewards', 'fielding_rewards', 'total_rewards']),
-                              ('match', ['name', 'player_key', 'tournament_key', 'stage', 'match_key',
-                                         'bowling_rewards', 'batting_rewards', 'fielding_rewards', 'total_rewards']),
-                              ('innings', ['name', 'player_key', 'tournament_key', 'stage', 'match_key', 'inning',
-                                           'bowling_rewards', 'batting_rewards', 'fielding_rewards', 'total_rewards'])])
+                              ('tournament_stage', ['name', 'number_of_matches', 'player_key', 'tournament_key',
+                                                    'stage', 'bowling_rewards', 'batting_rewards', 'fielding_rewards',
+                                                    'total_rewards']),
+                              ('match', ['name', 'number_of_matches','player_key', 'tournament_key', 'stage',
+                                         'match_key', 'bowling_rewards', 'batting_rewards', 'fielding_rewards',
+                                         'total_rewards']),
+                              ('innings', ['name', 'number_of_matches', 'player_key', 'tournament_key', 'stage',
+                                           'match_key', 'inning', 'bowling_rewards', 'batting_rewards',
+                                           'fielding_rewards', 'total_rewards'])])
     def test_get_simulation_evaluation_metrics_by_granularity(self, perfect_simulator, is_testing, granularity,
                                                               expected_columns):
 

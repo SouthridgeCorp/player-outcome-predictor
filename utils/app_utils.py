@@ -69,21 +69,34 @@ def data_selection_summary(tournaments: Tournaments):
         st.write(f"Start Date: {testing_start_date}")
         st.write(f"End Date: {testing_end_date}")
 
-def get_metrics_to_show() -> list:
+
+def get_metrics_to_show() -> (list, list):
+    """
+    Returns a list of metrics to display and the corresponding error measures for the metrics. Used by the simulators
+    UI pages usually.
+    """
     metric_list = ['bowling_rewards', 'batting_rewards', 'fielding_rewards', 'total_rewards']
-    new_metrics = []
+    error_metrics = []
     for item in metric_list:
-        new_metrics.append(f"{item}_absolute_error")
-        new_metrics.append(f"{item}_absolute_percentage_error")
-    metric_list = metric_list + new_metrics
-    return metric_list
+        error_metrics.append(f"{item}_absolute_error")
+        error_metrics.append(f"{item}_absolute_percentage_error")
+
+    return metric_list, error_metrics
 
 
 def reset_session_states():
+    """
+    To be called whenever a major change requires a session state reset. Keep updating this function as and when new
+    session objects are added.
+    """
     if 'PredictiveSimulator' in st.session_state:
         del st.session_state['PredictiveSimulator']
 
-def get_predictive_simulator(rewards, number_of_scenarios):
+
+def get_predictive_simulator(rewards, number_of_scenarios) -> PredictiveSimulator:
+    """
+    Helper instance to cache & acquire the predictive simulator.
+    """
     if 'PredictiveSimulator' not in st.session_state:
         predictive_simulator = PredictiveSimulator(data_selection_instance(), rewards, number_of_scenarios)
         predictive_simulator.generate_scenario()
