@@ -123,10 +123,10 @@ def app():
         # reference dataframe
         if metric not in error_metrics:
             metric_stats_df = show_stats(f'{metric}_received', total_errors_df, total_errors_index)
-            metric_stats_df = pd.merge(reference_df[['name', f'{metric}_expected']],
+            metric_stats_df = pd.merge(reference_df[['name', 'number_of_matches', f'{metric}_expected']],
                                        metric_stats_df, left_index=True, right_index=True)
             metric_stats_df = metric_stats_df.sort_values(f'{metric}_received', ascending=False)
-            st.dataframe(metric_stats_df[['name',
+            st.dataframe(metric_stats_df[['name', 'number_of_matches',
                                           f'{metric}_expected', f'{metric}_received', 'sd', 'hdi_3%', 'hdi_97%']],
                          use_container_width=True)
         else:
