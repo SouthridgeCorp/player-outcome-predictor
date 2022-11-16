@@ -69,12 +69,13 @@ class PredictiveSimulator:
         match_key = row.name[1]
         batting_team = row['batting_team']
         bowling_team = row['bowling_team']
+        venue = row['venue']
         batting_playing_xi = playing_xi_df.query(f'match_key == {match_key} and '
                                                  f'team == "{batting_team}"')['player_key'].to_list()
         bowling_playing_xi = playing_xi_df.query(f'match_key == {match_key} and '
                                                  f'team == "{bowling_team}"')['player_key'].to_list()
         match_state = MatchState(self.predictive_utils, scenario, match_key, bowling_team,
-                                 batting_team, batting_playing_xi, bowling_playing_xi)
+                                 batting_team, batting_playing_xi, bowling_playing_xi, venue)
         match_state_dict[(scenario, match_key)] = match_state
 
     def generate_innings(self):

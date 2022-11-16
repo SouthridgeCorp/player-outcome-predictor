@@ -54,6 +54,7 @@ class TestPredictiveSimulator:
 
         simulated_innings_df = predictive_simulator.simulated_innings_df
 
+        assert simulated_innings_df[simulated_innings_df['venue'].isna()].empty
         assert simulated_innings_df[simulated_innings_df['bowler'].isna()].empty
         assert simulated_innings_df[simulated_innings_df['batter'].isna()].empty
         assert simulated_innings_df[simulated_innings_df['non_striker'].isna()].empty

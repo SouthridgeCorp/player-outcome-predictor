@@ -7,7 +7,7 @@ class MatchState:
     innings simulation model.
     """
     def __init__(self, predictive_utils, scenario_number, match_key, bowling_team, batting_team,
-                 batting_playing_xi, bowling_playing_xi):
+                 batting_playing_xi, bowling_playing_xi, venue):
         self.predictive_utils = predictive_utils
         self.scenario_number = scenario_number
         self.match_key = match_key
@@ -17,6 +17,7 @@ class MatchState:
         self.batting_playing_xi = batting_playing_xi
         self.bowling_playing_xi = bowling_playing_xi
         self.available_bowlers = self.bowling_playing_xi.copy()
+        self.venue = venue
 
         self.target_runs = -1
         self.target_balls = -1
@@ -209,6 +210,7 @@ class MatchState:
 
         return {'scenario_number': self.scenario_number,
                 'match_key': self.match_key,
+                'venue': self.venue,
                 'bowling_team': self.bowling_team,
                 'batting_team': self.batting_team,
                 'inning': self.inning,
