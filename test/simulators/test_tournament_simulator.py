@@ -11,7 +11,7 @@ import pytest
 class TestTournamentSimulatorMissingDetails:
     def test_tournament_simulator_validation(self, tournament_simulator):
         with pytest.raises(ValueError) as e_info:
-            tournament_simulator.validate_source_files()
+            tournament_simulator.validate_and_setup()
 
 
 @pytest.mark.parametrize(
@@ -22,7 +22,11 @@ class TestTournamentSimulatorMissingDetails:
 class TestTournamentSimulator:
     def test_tournament_simulator_validation(self, tournament_simulator):
         try:
-            tournament_simulator.validate_source_files()
+            tournament_simulator.validate_and_setup()
         except ValueError as exc:
             assert False, f"Tournament Simulator validation threw an error {exc}"
+
+        assert not tournament_simulator.source_matches_df['match_key'].isna().unique()
+        assert not tournament_simulator.source_playing_xi_df['match_key'].isna().unique()
+        assert ((tournament_simulator.source_playing_xi_df['match_key'] != 0).all())
 
