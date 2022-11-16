@@ -1,4 +1,4 @@
-from test.conftest import get_test_cases
+from test.conftest import get_test_case
 import pytest
 from test.data_selection.conftest import prepare_for_tests, setup_training_and_testing
 import pandas as pd
@@ -27,13 +27,13 @@ class TestPerfectSimulator:
         else:
             # Assumption: If a batsman runs on a no-ball or wide, the no-ball takes precedence
             if extras > 0:
-                if no_ball == 1:
+                if no_ball >= 1:
                     if batter_runs > 0:
                         outcome_index += f"{batter_runs}-b,"
                     if extras > 0:
                         outcome_index += f"{extras}-"
                     outcome_index += f"nb"
-                elif wides == 1:
+                elif wides >= 1:
                     outcome_index = f"{total_runs}-w"
                 else:
                     outcome_index = f"{total_runs}-oe"
@@ -343,9 +343,9 @@ class TestPerfectSimulator:
 
         wides = row["wides"]
         no_ball = row["noballs"]
-        if no_ball == 1:
+        if no_ball >= 1:
             reward += -3
-        if wides == 1:
+        if wides >= 1:
             reward += -1
 
         return reward
@@ -398,15 +398,18 @@ class TestPerfectSimulator:
 
     @pytest.mark.parametrize('is_testing', [True, False])
     @pytest.mark.parametrize('granularity, expected_columns',
-                             [('tournament', ['name', 'player_key', 'tournament_key', 'bowling_rewards',
-                                              'batting_rewards', 'fielding_rewards',
+                             [('tournament', ['name', 'number_of_matches', 'player_key', 'tournament_key',
+                                              'bowling_rewards', 'batting_rewards', 'fielding_rewards',
                                               'total_rewards']),
-                              ('tournament_stage', ['name', 'player_key', 'tournament_key', 'stage', 'bowling_rewards',
-                                                    'batting_rewards', 'fielding_rewards', 'total_rewards']),
-                              ('match', ['name', 'player_key', 'tournament_key', 'stage', 'match_key',
-                                         'bowling_rewards', 'batting_rewards', 'fielding_rewards', 'total_rewards']),
-                              ('innings', ['name', 'player_key', 'tournament_key', 'stage', 'match_key', 'inning',
-                                           'bowling_rewards', 'batting_rewards', 'fielding_rewards', 'total_rewards'])])
+                              ('tournament_stage', ['name', 'number_of_matches', 'player_key', 'tournament_key',
+                                                    'stage', 'bowling_rewards', 'batting_rewards', 'fielding_rewards',
+                                                    'total_rewards']),
+                              ('match', ['name', 'number_of_matches','player_key', 'tournament_key', 'stage',
+                                         'match_key', 'bowling_rewards', 'batting_rewards', 'fielding_rewards',
+                                         'total_rewards']),
+                              ('innings', ['name', 'number_of_matches', 'player_key', 'tournament_key', 'stage',
+                                           'match_key', 'inning', 'bowling_rewards', 'batting_rewards',
+                                           'fielding_rewards', 'total_rewards'])])
     def test_get_simulation_evaluation_metrics_by_granularity(self, perfect_simulator, is_testing, granularity,
                                                               expected_columns):
 
@@ -435,5 +438,5 @@ class TestPerfectSimulator:
         columns_to_compare = ['batting_rewards', 'bowling_rewards', 'fielding_rewards', 'total_rewards']
 
         for column in columns_to_compare:
-            assert error_df[f'{column}_mean_absolute_error'].unique() == 0.0
-            assert error_df[f'{column}_mean_absolute_percentage_error'].unique() == 0.0
+            assert error_df[f'{column}_absolute_error'].unique() == 0.0
+            assert error_df[f'{column}_absolute_percentage_error'].unique() == 0.0

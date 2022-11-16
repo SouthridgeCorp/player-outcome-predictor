@@ -18,13 +18,13 @@ def get_bowler_outcome_label_for_runs(row):
     else:
         # Assumption: If a batsman runs on a no-ball or wide, the no-ball takes precedence
         if extras > 0:
-            if no_ball == 1:
+            if no_ball >= 1:
                 if batter_runs > 0:
                     outcome_index += f"{batter_runs}b,"
                 if extras > 0:
                     outcome_index += f"{extras}b,"
                 outcome_index = f"nb"
-            elif wides == 1:
+            elif wides >= 1:
                 outcome_index = f"{total_runs}-w"
             else:
                 outcome_index = f"{total_runs}-oe"
@@ -52,9 +52,9 @@ def get_bowling_outcome_label(row):
 
     if extras > 0:
         outcome_index += f"{extras}"
-        if no_ball == 1:
+        if no_ball >= 1:
             outcome_index += "-nb,"
-        elif wides == 1:
+        elif wides >= 1:
             outcome_index += "-w,"
         else:
             outcome_index += "-oe,"
@@ -92,10 +92,10 @@ def get_bowling_base_rewards(row, rewards_configuration: RewardsConfiguration):
 
     bowling_rewards = rewards_configuration.get_bowling_base_rewards_for_runs(total_runs)
 
-    if no_ball == 1:
+    if no_ball >= 1:
         bowling_rewards += rewards_configuration.get_bowling_base_rewards_for_extras(RewardsConfiguration.NO_BALL)
 
-    if wides == 1:
+    if wides >= 1:
         bowling_rewards += rewards_configuration.get_bowling_base_rewards_for_extras(RewardsConfiguration.WIDE)
 
     return bowling_rewards

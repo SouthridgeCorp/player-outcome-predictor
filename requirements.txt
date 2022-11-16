@@ -13,3 +13,5 @@ graphviz
 jupyterlab
 seaborn
 sklearn
+xarray
+arviz
