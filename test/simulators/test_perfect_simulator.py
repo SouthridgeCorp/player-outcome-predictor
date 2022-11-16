@@ -1,4 +1,4 @@
-from test.conftest import get_test_case
+from test.conftest import get_test_cases
 import pytest
 from test.data_selection.conftest import prepare_for_tests, setup_training_and_testing
 import pandas as pd
