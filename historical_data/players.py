@@ -9,6 +9,9 @@ class Players:
         self.players_df = pd.read_csv(player_file)
         self.players_df.set_index("key")
 
+    def get_players(self):
+        return self.players_df.copy()
+
     def merge_with_players(self, source_df: pd.DataFrame, source_key: str, source_left=False) -> pd.DataFrame:
         """
         Merges the player details with the source column to create a combined dataframe

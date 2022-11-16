@@ -4,6 +4,8 @@ from data_selection.data_selection import DataSelection
 from historical_data.singleton import Helper
 from simulators.perfect_simulator import PerfectSimulator
 from simulators.predictive_simulator import PredictiveSimulator
+from simulators.tournament_simulator import TournamentSimulator
+
 
 @pytest.fixture
 def perfect_simulator(setup_and_teardown):
@@ -16,6 +18,7 @@ def perfect_simulator(setup_and_teardown):
 
     simulator = PerfectSimulator(data_selection, rewards_config)
     yield simulator
+
 
 @pytest.fixture
 def predictive_simulator(setup_and_teardown):
@@ -31,3 +34,15 @@ def predictive_simulator(setup_and_teardown):
     simulator = PredictiveSimulator(data_selection, rewards_config, number_of_scenarios)
     yield simulator
 
+
+@pytest.fixture
+def tournament_simulator(setup_and_teardown):
+    test_case, config_instance = setup_and_teardown
+    rewards_config = RewardsConfiguration(config_instance)
+
+    helper = Helper(config_instance)
+
+    data_selection = DataSelection(helper)
+
+    simulator = TournamentSimulator(data_selection, rewards_config, config_instance)
+    yield simulator

@@ -263,3 +263,10 @@ class DataSelection:
         innings_df.drop(['team1', 'team2'], axis=1, inplace=True)
 
         return innings_df, matches_df
+
+    def get_all_players(self) -> pd.DataFrame:
+        """
+        Get all players that we know about
+        :return: pd.DataFrame listing all the player information available
+        """
+        return self.historical_data_helper.players.get_players()
