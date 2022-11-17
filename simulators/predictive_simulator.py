@@ -213,7 +213,12 @@ class PredictiveSimulator:
         mask = (winner_df['previous_total'] + winner_df['total_runs']) >= winner_df['target_runs']
         winner_df.loc[mask, 'winner'] = winner_df['batting_team']
 
-        self.simulated_matches_df = pd.merge(self.simulated_matches_df, winner_df['winner'],
+        winner_df['loser'] = winner_df['bowling_team']
+
+        mask = (winner_df['winner'] == winner_df['bowling_team'])
+        winner_df.loc[mask, 'loser'] = winner_df['batting_team']
+
+        self.simulated_matches_df = pd.merge(self.simulated_matches_df, winner_df[['winner', 'loser']],
                                              left_index=True, right_index=True)
 
     def get_rewards(self, scenario, granularity):

@@ -63,6 +63,8 @@ class TestTournamentSimulator:
         assert list(all_matches_df[final_mask]['team1']) == list(all_matches_df[q1_mask]['winner'])
         assert list(all_matches_df[final_mask]['team2']) == list(all_matches_df[q2_mask]['winner'])
 
+        assert all_matches_df['team1'] != all_matches_df['team2']
+
         for tournament_scenario, matches_df in all_matches_df.groupby('tournament_scenario'):
             group_matches_df = matches_df[~matches_df['stage'].isin(tournament_simulator.non_group_stages)]
             top_4_df = group_matches_df.groupby('winner').count()['key'].nlargest(4)
@@ -77,5 +79,3 @@ class TestTournamentSimulator:
 
             assert list(matches_df[q2_mask]['team1']) == list(matches_df[q1_mask]['loser'])
             assert list(matches_df[q2_mask]['team2']) == list(matches_df[elim_mask]['winner'])
-
-            print('Hello')

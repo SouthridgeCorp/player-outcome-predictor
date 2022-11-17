@@ -127,7 +127,7 @@ class TournamentSimulator:
             matches_to_add_df = non_group_matches.copy()
             matches_to_add_df['tournament_scenario'] = scenario
 
-            sorted_winners_df = previous_winners_df.sort_values(by=[0], ascending=False)[scenario]
+            sorted_winners_df = previous_winners_df.sort_values(by=[scenario], ascending=False)[scenario]
             team_position = 0
             for stage in stages:
                 mask = self.source_matches_df['stage'] == stage
@@ -153,11 +153,6 @@ class TournamentSimulator:
     def prepare_q2_matches_and_players(self, q1_and_elim_df):
         non_group_matches = self.get_second_non_group_matches()
         previous_matches_df = q1_and_elim_df.copy()
-
-        previous_matches_df['loser'] = previous_matches_df['team1']
-
-        mask = (previous_matches_df['winner'] == previous_matches_df['team1'])
-        previous_matches_df.loc[mask, 'loser'] = previous_matches_df['team2']
 
         matches_df = pd.DataFrame()
         playing_xi_df = pd.DataFrame()
