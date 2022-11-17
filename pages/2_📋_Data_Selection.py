@@ -1,8 +1,8 @@
 import utils.app_utils
 import utils.page_utils as page_utils
 import streamlit as st
-from utils.app_utils import data_selection_instance
-import time
+from utils.app_utils import data_selection_instance, reset_session_states
+
 
 
 def on_date_change(tournaments, key, is_testing):
@@ -11,6 +11,8 @@ def on_date_change(tournaments, key, is_testing):
     """
     start_date, end_date = st.session_state[key]
     tournaments.set_start_end_dates(start_date, end_date, is_testing=is_testing)
+    # A change to this object is a big deal - make sure subsequent pages also reset their caches
+    reset_session_states()
 
 
 def on_tournament_change(tournaments):
@@ -19,6 +21,8 @@ def on_tournament_change(tournaments):
     """
     values = st.session_state.tournaments
     tournaments.set_selected_tournament_names(values)
+    # A change to this object is a big deal - make sure subsequent pages also reset their caches
+    reset_session_states()
 
 
 def set_start_end_date(is_testing, tournaments):

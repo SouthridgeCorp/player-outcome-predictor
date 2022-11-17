@@ -2,33 +2,9 @@ import streamlit as st
 
 import utils.page_utils as page_utils
 from simulators.perfect_simulator import Granularity, PerfectSimulator
-from utils.app_utils import data_selection_instance, rewards_instance
-from historical_data.tournaments import Tournaments
+from utils.app_utils import data_selection_instance, rewards_instance, data_selection_summary, get_metrics_to_show
 from rewards_configuration.rewards_configuration import RewardsConfiguration
 import pandas as pd
-
-
-def data_selection_summary(tournaments: Tournaments):
-    """
-    Builds out the summary of data selection fields
-    """
-    selected_tournaments, training, testing = st.columns(3)
-
-    with selected_tournaments:
-        st.subheader("Selected Tournaments:")
-        st.write(tournaments.get_selected_tournament_names())
-
-    with training:
-        st.subheader("Training Details:")
-        training_start_date, training_end_date = tournaments.get_start_end_dates(False)
-        st.write(f"Start Date: {training_start_date}")
-        st.write(f"End Date: {training_end_date}")
-
-    with testing:
-        st.subheader("Testing Details:")
-        testing_start_date, testing_end_date = tournaments.get_start_end_dates(True)
-        st.write(f"Start Date: {testing_start_date}")
-        st.write(f"End Date: {testing_end_date}")
 
 
 @st.cache
@@ -55,8 +31,17 @@ def app():
     # Show a summary of selected training & testing windows
     data_selection_summary(tournaments)
 
-    granularity_list = ['None', Granularity.TOURNAMENT, Granularity.STAGE, Granularity.MATCH, Granularity.INNING]
-    granularity = st.selectbox("Please select the granularity for reviewing Simulator stats", granularity_list)
+    granularity_select, metric_select = st.columns(2)
+
+    with granularity_select:
+        granularity_list = ['None', Granularity.TOURNAMENT, Granularity.STAGE, Granularity.MATCH, Granularity.INNING]
+        granularity = st.selectbox("Please select the granularity for reviewing Simulator stats",
+                                   granularity_list, key="perfect_model_granularity")
+
+    with metric_select:
+        metrics, error_metrics = get_metrics_to_show()
+        metrics_to_show = metrics + error_metrics
+        metric = st.selectbox("Please select the metric to review", metrics_to_show, key="perfect_model_metric")
 
     if granularity == 'None':
         st.write("Please select a valid Granularity")
@@ -71,14 +56,19 @@ def app():
             errors_df = perfect_simulator.get_error_measures(True, perfect_simulator_df, granularity,
                                                              perfect_simulator_df)
 
-        with st.spinner("Calculating Top Players.."):
-            perfect_simulator_df = data_selection.merge_with_players(perfect_simulator_df, 'player_key')
-
         number_of_players = st.slider("Select the number of top players to show:", min_value=0,
                                       max_value=len(perfect_simulator_df.index), value=30)
 
         st.subheader('Evaluation & Error Metrics')
-        st.dataframe(errors_df, use_container_width=True)
+        if metric not in error_metrics:
+            columns_to_show = ['name', 'number_of_matches',
+                               f'{metric}_expected', f'{metric}_received']
+            errors_df = errors_df.sort_values(f'{metric}_expected', ascending=False)
+        else:
+            columns_to_show = ['name', 'number_of_matches', metric]
+            errors_df = errors_df.sort_values(metric, ascending=False)
+
+        st.dataframe(errors_df[columns_to_show], use_container_width=True)
 
         top_players_column, top_batters_column, top_bowlers_column = st.columns(3)
 

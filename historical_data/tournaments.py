@@ -52,6 +52,9 @@ class Tournaments:
         for tournament in tournaments:
             self.artefacts[tournament] = ArtefactsPerTournament(base_path, tournament)
 
+        self.all_innings = self.get_all_innings()
+        self.all_matches = self.get_all_matches()
+
     def get_start_end_dates(self, is_testing) -> (datetime.date, datetime.date):
         """
         Get the start / end dates set in the Tournaments object
@@ -126,7 +129,7 @@ class Tournaments:
 
     def get_all_matches(self) -> pd.DataFrame:
         """
-        Get all matches that we know about
+        Get all matches that we know about. Calculates the list from scratch and hence may have a performance impact.
         :return: pd.DataFrame listing all the matches information avaialble
         """
         matches_list = []
@@ -136,3 +139,20 @@ class Tournaments:
 
         return pd.concat(matches_list)
 
+    def get_all_innings(self) -> pd.DataFrame:
+        """
+        Get all innings that we know about. Calculates the list from scratch and hence may have a performance impact.
+        :return: pd.DataFrame listing all the innings information avaialble
+        """
+        innings_list = []
+
+        for tournament in self.artefacts.keys():
+            innings_list.append(self.artefacts[tournament].innings.get_data())
+
+        return pd.concat(innings_list)
+
+    def get_all_matches_and_innings_cached(self) -> (pd.DataFrame, pd.DataFrame):
+        """
+        Returns copies of the pre-cached version of all matches & innings
+        """
+        return self.all_matches.copy(), self.all_innings.copy()

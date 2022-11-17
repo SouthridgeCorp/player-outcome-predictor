@@ -32,23 +32,11 @@ def initialise_match_state(data_selection, is_testing: bool) -> (pd.DataFrame, p
     return match_state_df, player_universe_df, index_columns
 
 
-def identify_featured_player(row, is_batter):
-    if is_batter:
-        header = 'batter'
-        key = row["batter"]
-        featured_player = row["batting_featured_player"]
-    else:
-        header = 'bowler'
-        key = row["bowler"]
-        featured_player = row["bowling_featured_player"]
-
-    if featured_player:
-        return f"{header}_{key}"
-    else:
-        return f"{header}_non_frequent_player"
-
-
 def identify_featured_player_for_type(match_state_df, label_name, is_batter):
+    """
+    Creates a new column 'label_name' in match_state_df and updates with the label for the batter or bowler, depending
+    on whether they are featured players or not
+    """
     if is_batter:
         header = 'batter'
         featured_player_label = "batting_featured_player"
@@ -81,37 +69,16 @@ def setup_data_labels(match_state_df):
     match_state_df.drop('team2', axis=1, inplace=True)
 
 
-def get_ball_number(row):
-    ball_number = row["ball"]
-    if ball_number > 6:
-        return 7
-    else:
-        return ball_number
-
-
-def get_over_number(row):
-    over_number = row["over"]
-    if over_number > 20:
-        return 21
-    else:
-        return over_number + 1
-
-
-def identiy_bowling_team(row):
-    team1 = row["team1"]
-    team2 = row["team2"]
-    batting_team = row["batting_team"]
-    if batting_team == team1:
-        return team2
-    else:
-        return team1
-
-
 def setup_data_labels_with_references(match_state_df, column_name, reference_list):
+    """
+    Creates a new column 'column_name'_labels in match_state_df and populates it with the corresponding label.
+    If the 'column_name' value is not in the reference list, indicates that the value is missing in training
+    """
     match_state_df[f'{column_name}_labels'] = f"{column_name}_not_in_training"
 
     mask = match_state_df[column_name].isin(reference_list)
     match_state_df.loc[mask, f'{column_name}_labels'] = column_name + "_" + match_state_df[column_name]
+
 
 def setup_data_labels_with_training(data_selection, match_state_df):
     training_teams = data_selection.get_selected_teams(is_testing=False)
