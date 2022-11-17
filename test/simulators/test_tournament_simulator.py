@@ -63,7 +63,6 @@ class TestTournamentSimulator:
         assert list(all_matches_df[final_mask]['team1']) == list(all_matches_df[q1_mask]['winner'])
         assert list(all_matches_df[final_mask]['team2']) == list(all_matches_df[q2_mask]['winner'])
 
-        assert all_matches_df['team1'] != all_matches_df['team2']
 
         for tournament_scenario, matches_df in all_matches_df.groupby('tournament_scenario'):
             group_matches_df = matches_df[~matches_df['stage'].isin(tournament_simulator.non_group_stages)]
