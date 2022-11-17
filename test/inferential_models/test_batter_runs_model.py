@@ -1,12 +1,8 @@
-import pandas as pd
 import pytest
-import os
-import random
-from inferential_models.bowling_outcomes_models.first_innings_by_ball_model import sample_model, real_model
+from inferential_models.batter_runs_models import sample_model, real_model
 import pymc as pm
 import aesara.tensor as at
 from test.conftest import get_test_cases
-from test.simulators.conftest import perfect_simulator
 from test.data_selection.conftest import setup_training_and_testing
 
 def test_model(simulate_match_data):
