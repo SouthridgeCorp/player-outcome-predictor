@@ -268,6 +268,9 @@ class PredictiveUtils:
         logging.debug("getting featured players")
         self.featured_player_df = self.data_selection.get_frequent_players_universe()
 
+        logging.debug("PredictiveUtils setup complete")
+
+
     def calculate_bowling_probabilities(self) -> pd.DataFrame:
         """
         Counts the number of matches bowled by a player for a specific team & over, and uses that frequency as the

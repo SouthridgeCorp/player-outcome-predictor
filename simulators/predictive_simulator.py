@@ -14,7 +14,7 @@ class PredictiveSimulator:
 
     def __init__(self, data_selection: DataSelection,
                  rewards_configuration: RewardsConfiguration,
-                 number_of_scenarios):
+                 number_of_scenarios, match_columns_to_persist=[]):
         self.data_selection = data_selection
         self.number_of_scenarios = number_of_scenarios
         self.rewards_configuration = rewards_configuration
@@ -24,6 +24,8 @@ class PredictiveSimulator:
         self.perfect_simulators = []
         self.simulated_matches_df = pd.DataFrame()
         self.simulated_innings_df = pd.DataFrame()
+
+        self.match_columns_to_persist = match_columns_to_persist
 
         # Maintain a perfect simulator for each scenario which allows us to calculate the rewards & error metrics
         # per scenario easily
@@ -51,6 +53,8 @@ class PredictiveSimulator:
                         'team1': matches_df['team1'].values.tolist(),
                         'team2': matches_df['team2'].values.tolist()
                         }
+            for column in self.match_columns_to_persist:
+                scenario[column] = matches_df[column].values.tolist()
             scenario_df = pd.DataFrame(scenario)
             simulated_matches_df = pd.concat([simulated_matches_df, scenario_df], ignore_index=True)
 
@@ -183,6 +187,8 @@ class PredictiveSimulator:
         logging.debug("Generating simulated Innings data")
         self.simulated_innings_df = self.generate_innings()
 
+        self.calculate_match_winner()
+
         # Set up the matches & innings in each of the perfect simulators for future counting
         self.simulated_matches_df = self.simulated_matches_df.reset_index()
         self.simulated_innings_df = self.simulated_innings_df.reset_index()
@@ -195,6 +201,20 @@ class PredictiveSimulator:
         self.simulated_matches_df.set_index(['scenario_number', 'match_key'], inplace=True, verify_integrity=True)
         self.simulated_innings_df.set_index(['scenario_number', 'match_key', 'inning', 'over', 'ball'], inplace=True,
                                             verify_integrity=True)
-
         logging.debug("Done Generating Match & Innings data")
 
+        return self.simulated_matches_df, self.simulated_innings_df
+
+    def calculate_match_winner(self):
+        winner_df = self.simulated_innings_df.reset_index().groupby(['scenario_number', 'match_key']).last()
+
+        # TODO: Update with logic for ties. Currently the bowling team wins if the scores are tied
+        winner_df['winner'] = winner_df['bowling_team']
+        mask = (winner_df['previous_total'] + winner_df['total_runs']) >= winner_df['target_runs']
+        winner_df.loc[mask, 'winner'] = winner_df['batting_team']
+
+        self.simulated_matches_df = pd.merge(self.simulated_matches_df, winner_df['winner'],
+                                             left_index=True, right_index=True)
+
+    def get_rewards(self, scenario, granularity):
+        return self.perfect_simulators[scenario].get_simulation_evaluation_metrics_by_granularity(True, granularity)
