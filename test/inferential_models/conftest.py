@@ -47,10 +47,6 @@ def get_innings2_batting_team(row):
     else:
         return row['toss_losing_team']
 
-
-
-
-
 @pytest.fixture
 def simulate_match_data():
     num_teams = 10
