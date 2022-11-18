@@ -8,6 +8,7 @@ import logging
 logging.basicConfig()
 logging.getLogger().setLevel(logging.DEBUG)
 
+
 @pytest.mark.parametrize(
     'test_case',
     get_test_cases('app_config', 'TestTournamentSimulatorMissingDetails'),
@@ -46,7 +47,6 @@ class TestTournamentSimulator:
         assert list(tournament_simulator.source_playing_xi_df.groupby('match_key')['player_key'].count().unique()) \
                == [22]
 
-
     def test_generate_scenarios(self, tournament_simulator):
         prepare_for_tests(tournament_simulator.data_selection, True)
         all_matches_df = tournament_simulator.generate_scenarios()
@@ -63,7 +63,6 @@ class TestTournamentSimulator:
         assert list(all_matches_df[final_mask]['team1']) == list(all_matches_df[q1_mask]['winner'])
         assert list(all_matches_df[final_mask]['team2']) == list(all_matches_df[q2_mask]['winner'])
 
-
         for tournament_scenario, matches_df in all_matches_df.groupby('tournament_scenario'):
             group_matches_df = matches_df[~matches_df['stage'].isin(tournament_simulator.non_group_stages)]
             top_4_df = group_matches_df.groupby('winner').count()['key'].nlargest(4)
@@ -78,3 +77,12 @@ class TestTournamentSimulator:
 
             assert list(matches_df[q2_mask]['team1']) == list(matches_df[q1_mask]['loser'])
             assert list(matches_df[q2_mask]['team2']) == list(matches_df[elim_mask]['winner'])
+
+    @pytest.mark.parametrize('granularity', ['tournament', 'tournament_stage', 'match', 'inning'])
+    def test_rewards(self, tournament_simulator, granularity):
+        prepare_for_tests(tournament_simulator.data_selection, True)
+        tournament_simulator.generate_scenarios()
+        list_rewards_df = tournament_simulator.get_rewards(granularity)
+        for rewards_df in list_rewards_df:
+            assert 'tournament_scenario' in list(rewards_df.columns)
+        assert len(list_rewards_df) == tournament_simulator.number_of_scenarios

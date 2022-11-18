@@ -261,17 +261,31 @@ class TournamentSimulator:
 
         columns_to_add = ['number_of_matches', 'bowling_rewards', 'batting_rewards', 'fielding_rewards',
                           'total_rewards']
-
-        group_rewards_df = self.group_matches_predictive_simulator.get_rewards(0, granularity)
+        columns_to_persist = ['tournament_scenario']
+        group_rewards_df = self.group_matches_predictive_simulator.get_rewards(0, granularity, columns_to_persist)
         rewards_df = group_rewards_df
 
-        first_non_group_rewards_df = self.first_non_group_matches_predictive_simulator.get_rewards(0, granularity)
+        first_non_group_rewards_df = self.first_non_group_matches_predictive_simulator.get_rewards(
+            0, granularity, columns_to_persist=columns_to_persist)
         rewards_df = add_dataframes(rewards_df, first_non_group_rewards_df[columns_to_add], 'left', columns_to_add)
 
-        second_non_group_rewards_df = self.second_non_group_matches_predictive_simulator.get_rewards(0, granularity)
+        second_non_group_rewards_df = self.second_non_group_matches_predictive_simulator.get_rewards(
+            0, granularity, columns_to_persist=columns_to_persist)
         rewards_df = add_dataframes(rewards_df, second_non_group_rewards_df[columns_to_add], 'left', columns_to_add)
 
-        final_rewards_df = self.finals_predictive_simulator.get_rewards(0, granularity)
+        final_rewards_df = self.finals_predictive_simulator.get_rewards(
+            0, granularity, columns_to_persist=columns_to_persist)
         rewards_df = add_dataframes(rewards_df, final_rewards_df[columns_to_add], 'left', columns_to_add)
 
-        return rewards_df
+        list_of_rewards_df = []
+
+        indices = list(rewards_df.index.names)
+        indices.remove('tournament_scenario')
+
+        for scenario in range(0, self.number_of_scenarios):
+            scenario_rewards_df = rewards_df.query(f'tournament_scenario == {scenario}').copy()
+            scenario_rewards_df = scenario_rewards_df.reset_index()
+            scenario_rewards_df.set_index(indices, inplace=True, verify_integrity=True)
+            list_of_rewards_df.append(scenario_rewards_df)
+
+        return list_of_rewards_df

@@ -223,7 +223,7 @@ class PerfectSimulator:
         return df
 
     def get_outcomes_by_player_and_innings(self,
-                                           is_testing: bool) -> pd.DataFrame:
+                                           is_testing: bool, columns_to_persist=[]) -> pd.DataFrame:
         """Returns a dataframe representing all get_outcome_labels at a player and innings level for the train/test dataset
         df schema:
             index: [match_key, innings, team_id, player_id]
@@ -270,7 +270,7 @@ class PerfectSimulator:
         outcomes_df = pd.DataFrame(data=outcomes_list)
         index_columns = ['match_key', 'inning', 'team', 'player_key']
 
-        outcomes_df = pd.merge(outcomes_df, matches_df[['key', 'tournament_key', 'stage']],
+        outcomes_df = pd.merge(outcomes_df, matches_df[['key', 'tournament_key', 'stage'] + columns_to_persist],
                                left_on='match_key', right_on='key')
         outcomes_df.drop('key', axis=1, inplace=True)
 
@@ -321,7 +321,7 @@ class PerfectSimulator:
         return innings_outcomes_df
 
     def get_rewards_components(self,
-                               is_testing: bool, generate_labels=False) -> (pd.DataFrame, pd.DataFrame):
+                               is_testing: bool, generate_labels=False, columns_to_persist=[]) -> (pd.DataFrame, pd.DataFrame):
         """Returns 2 dataframes:
         base_rewards_by_ball_and_innings: represents base rewards of all types calculated at a ball and innings level
         for the train/test dataset
@@ -361,7 +361,7 @@ class PerfectSimulator:
 
         logging.debug("Getting player outcomes by innings")
 
-        bonus_penalty_df = self.get_outcomes_by_player_and_innings(is_testing)
+        bonus_penalty_df = self.get_outcomes_by_player_and_innings(is_testing, columns_to_persist=columns_to_persist)
 
         logging.debug("Calculating outcomes by team and innings")
         team_stats_df = self.get_outcomes_by_team_and_innings(is_testing, bonus_penalty_df)
@@ -413,7 +413,8 @@ class PerfectSimulator:
 
     def get_simulation_evaluation_metrics_by_granularity(self,
                                                          is_testing: bool,
-                                                         granularity: str) -> pd.DataFrame:
+                                                         granularity: str,
+                                                         columns_to_persist=[]) -> pd.DataFrame:
         """Returns a dataframe representing all rewards for a player at the chosen granularity level:
         df schema:
             index: [player_key,
@@ -435,9 +436,10 @@ class PerfectSimulator:
         :return: pd.DataFrame as above"""
 
         logging.debug("Getting rewards components")
-        base_rewards_df, bonus_penalty_df = self.get_rewards_components(is_testing)
+        base_rewards_df, bonus_penalty_df = self.get_rewards_components(is_testing,
+                                                                        columns_to_persist=columns_to_persist)
 
-        group_by_columns = get_index_columns(granularity)
+        group_by_columns = get_index_columns(granularity) + columns_to_persist
         rewards_df = pd.DataFrame()
 
         logging.debug(f"Calculating total rewards for {bonus_penalty_df.shape}")
@@ -467,7 +469,8 @@ class PerfectSimulator:
                            is_testing: bool,
                            contender_simulation_evaluation_metrics: pd.DataFrame,
                            granularity,
-                           perfect_simulator_rewards_ref=None) -> pd.DataFrame:
+                           perfect_simulator_rewards_ref=None,
+                           columns_to_persist=[]) -> pd.DataFrame:
         """Returns a dataframe representing error measures between this simulator's simulation_evaluation_metrics
         and a contender simulators simulation evaluation metrics.
         df schema:
@@ -494,8 +497,8 @@ class PerfectSimulator:
         if perfect_simulator_rewards_ref is not None:
             perfect_simulator_rewards_df = perfect_simulator_rewards_ref.copy()
         else:
-            perfect_simulator_rewards_df = self.get_simulation_evaluation_metrics_by_granularity(is_testing,
-                                                                                                 granularity)
+            perfect_simulator_rewards_df = self.get_simulation_evaluation_metrics_by_granularity(
+                is_testing, granularity, columns_to_persist=columns_to_persist)
         logging.debug("Received baseline data and comparing errors")
 
         # Make sure the two dataframes are always the same shape. This merge ensures the same number of

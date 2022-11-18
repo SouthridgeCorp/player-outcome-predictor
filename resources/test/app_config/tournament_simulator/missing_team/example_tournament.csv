@@ -1,44 +1,45 @@
-﻿tournament_key,date,venue,team1,team2
-bbl,19/12/17,"Sydney Showground Stadium, Sydney",My Neighborhood Team,Sydney Sixers
-bbl,20/12/17,"Brisbane Cricket Ground, Brisbane",Brisbane Heat,Melbourne Stars
-bbl,21/12/17,"Bellerive Oval, Hobart",Hobart Hurricanes,Melbourne Renegades
-bbl,22/12/17,"Adelaide Oval, Adelaide",Adelaide Strikers,Sydney Thunder
-bbl,23/12/17,"Sydney Cricket Ground, Sydney",Sydney Sixers,Perth Scorchers
-bbl,23/12/17,"Docklands Stadium, Melbourne",Melbourne Renegades,Brisbane Heat
-bbl,26/12/17,"W.A.C.A. Ground, Perth",Perth Scorchers,Melbourne Stars
-bbl,27/12/17,"Brisbane Cricket Ground, Brisbane",Brisbane Heat,Sydney Thunder
-bbl,28/12/17,"Sydney Cricket Ground, Sydney",Sydney Sixers,Adelaide Strikers
-bbl,29/12/17,"Docklands Stadium, Melbourne",Melbourne Renegades,Perth Scorchers
-bbl,30/12/17,"Aurora Stadium, Launceston",Hobart Hurricanes,Sydney Thunder
-bbl,31/12/17,"Adelaide Oval, Adelaide",Adelaide Strikers,Brisbane Heat
-bbl,1/1/18,"Sydney Showground Stadium, Sydney",Sydney Thunder,Hobart Hurricanes
-bbl,1/1/18,"W.A.C.A. Ground, Perth",Perth Scorchers,Sydney Sixers
-bbl,2/1/18,"Melbourne Cricket Ground, Melbourne",Melbourne Stars,Brisbane Heat
-bbl,3/1/18,"Simonds Stadium, South Geelong, Victoria",Melbourne Renegades,Sydney Sixers
-bbl,4/1/18,"Bellerive Oval, Hobart",Hobart Hurricanes,Adelaide Strikers
-bbl,5/1/18,"Brisbane Cricket Ground, Brisbane",Brisbane Heat,Perth Scorchers
-bbl,6/1/18,"Melbourne Cricket Ground, Melbourne",Melbourne Stars,Melbourne Renegades
-bbl,7/1/18,"Sydney Showground Stadium, Sydney",Sydney Thunder,Adelaide Strikers
-bbl,8/1/18,"Bellerive Oval, Hobart",Hobart Hurricanes,Sydney Sixers
-bbl,8/1/18,"W.A.C.A. Ground, Perth",Perth Scorchers,Melbourne Renegades
-bbl,9/1/18,"Adelaide Oval, Adelaide",Adelaide Strikers,Melbourne Stars
-bbl,10/1/18,"Brisbane Cricket Ground, Brisbane",Brisbane Heat,Hobart Hurricanes
-bbl,11/1/18,"Sydney Showground Stadium, Sydney",Sydney Thunder,Perth Scorchers
-bbl,12/1/18,"Docklands Stadium, Melbourne",Melbourne Renegades,Melbourne Stars
-bbl,13/1/18,"Sydney Cricket Ground, Sydney",Sydney Sixers,Sydney Thunder
-bbl,13/1/18,"Traeger Park, Alice Springs",Adelaide Strikers,Perth Scorchers
-bbl,15/1/18,"Bellerive Oval, Hobart",Hobart Hurricanes,Brisbane Heat
-bbl,16/1/18,"Melbourne Cricket Ground, Melbourne",Melbourne Stars,Sydney Sixers
-bbl,17/1/18,"Adelaide Oval, Adelaide",Adelaide Strikers,Hobart Hurricanes
-bbl,18/1/18,"Sydney Cricket Ground, Sydney",Sydney Sixers,Brisbane Heat
-bbl,20/1/18,"W.A.C.A. Ground, Perth",Perth Scorchers,Hobart Hurricanes
-bbl,20/1/18,"Melbourne Cricket Ground, Melbourne",Melbourne Stars,Sydney Thunder
-bbl,22/1/18,"Docklands Stadium, Melbourne",Melbourne Renegades,Adelaide Strikers
-bbl,23/1/18,"Sydney Cricket Ground, Sydney",Sydney Sixers,Melbourne Stars
-bbl,24/1/18,"Manuka Oval, Canberra",Sydney Thunder,Melbourne Renegades
-bbl,25/1/18,"W.A.C.A. Ground, Perth",Perth Scorchers,Adelaide Strikers
-bbl,27/1/18,"Brisbane Cricket Ground, Brisbane",Brisbane Heat,Melbourne Renegades
-bbl,27/1/18,"Melbourne Cricket Ground, Melbourne",Melbourne Stars,Hobart Hurricanes
-bbl,1/2/18,"Perth Stadium, Perth",Perth Scorchers,Hobart Hurricanes
-bbl,2/2/18,"Adelaide Oval, Adelaide",Adelaide Strikers,Melbourne Renegades
-bbl,4/2/18,"Adelaide Oval, Adelaide",Adelaide Strikers,Hobart Hurricanes
+﻿tournament_key,date,venue,team1,team2,stage
+bbl,19/12/17,"Sydney Showground Stadium, Sydney",My Team,Sydney Sixers,
+bbl,20/12/17,"Brisbane Cricket Ground, Brisbane",Brisbane Heat,Melbourne Stars,
+bbl,21/12/17,"Bellerive Oval, Hobart",Hobart Hurricanes,Melbourne Renegades,
+bbl,22/12/17,"Adelaide Oval, Adelaide",Adelaide Strikers,Sydney Thunder,
+bbl,23/12/17,"Sydney Cricket Ground, Sydney",Sydney Sixers,Perth Scorchers,
+bbl,23/12/17,"Docklands Stadium, Melbourne",Melbourne Renegades,Brisbane Heat,
+bbl,26/12/17,"W.A.C.A. Ground, Perth",Perth Scorchers,Melbourne Stars,
+bbl,27/12/17,"Brisbane Cricket Ground, Brisbane",Brisbane Heat,Sydney Thunder,
+bbl,28/12/17,"Sydney Cricket Ground, Sydney",Sydney Sixers,Adelaide Strikers,
+bbl,29/12/17,"Docklands Stadium, Melbourne",Melbourne Renegades,Perth Scorchers,
+bbl,30/12/17,"Aurora Stadium, Launceston",Hobart Hurricanes,Sydney Thunder,
+bbl,31/12/17,"Adelaide Oval, Adelaide",Adelaide Strikers,Brisbane Heat,
+bbl,1/1/18,"Sydney Showground Stadium, Sydney",Sydney Thunder,Hobart Hurricanes,
+bbl,1/1/18,"W.A.C.A. Ground, Perth",Perth Scorchers,Sydney Sixers,
+bbl,2/1/18,"Melbourne Cricket Ground, Melbourne",Melbourne Stars,Brisbane Heat,
+bbl,3/1/18,"Simonds Stadium, South Geelong, Victoria",Melbourne Renegades,Sydney Sixers,
+bbl,4/1/18,"Bellerive Oval, Hobart",Hobart Hurricanes,Adelaide Strikers,
+bbl,5/1/18,"Brisbane Cricket Ground, Brisbane",Brisbane Heat,Perth Scorchers,
+bbl,6/1/18,"Melbourne Cricket Ground, Melbourne",Melbourne Stars,Melbourne Renegades,
+bbl,7/1/18,"Sydney Showground Stadium, Sydney",Sydney Thunder,Adelaide Strikers,
+bbl,8/1/18,"Bellerive Oval, Hobart",Hobart Hurricanes,Sydney Sixers,
+bbl,8/1/18,"W.A.C.A. Ground, Perth",Perth Scorchers,Melbourne Renegades,
+bbl,9/1/18,"Adelaide Oval, Adelaide",Adelaide Strikers,Melbourne Stars,
+bbl,10/1/18,"Brisbane Cricket Ground, Brisbane",Brisbane Heat,Hobart Hurricanes,
+bbl,11/1/18,"Sydney Showground Stadium, Sydney",Sydney Thunder,Perth Scorchers,
+bbl,12/1/18,"Docklands Stadium, Melbourne",Melbourne Renegades,Melbourne Stars,
+bbl,13/1/18,"Sydney Cricket Ground, Sydney",Sydney Sixers,Sydney Thunder,
+bbl,13/1/18,"Traeger Park, Alice Springs",Adelaide Strikers,Perth Scorchers,
+bbl,15/1/18,"Bellerive Oval, Hobart",Hobart Hurricanes,Brisbane Heat,
+bbl,16/1/18,"Melbourne Cricket Ground, Melbourne",Melbourne Stars,Sydney Sixers,
+bbl,17/1/18,"Adelaide Oval, Adelaide",Adelaide Strikers,Hobart Hurricanes,
+bbl,18/1/18,"Sydney Cricket Ground, Sydney",Sydney Sixers,Brisbane Heat,
+bbl,20/1/18,"W.A.C.A. Ground, Perth",Perth Scorchers,Hobart Hurricanes,
+bbl,20/1/18,"Melbourne Cricket Ground, Melbourne",Melbourne Stars,Sydney Thunder,
+bbl,22/1/18,"Docklands Stadium, Melbourne",Melbourne Renegades,Adelaide Strikers,
+bbl,23/1/18,"Sydney Cricket Ground, Sydney",Sydney Sixers,Melbourne Stars,
+bbl,24/1/18,"Manuka Oval, Canberra",Sydney Thunder,Melbourne Renegades,
+bbl,25/1/18,"W.A.C.A. Ground, Perth",Perth Scorchers,Adelaide Strikers,
+bbl,27/1/18,"Brisbane Cricket Ground, Brisbane",Brisbane Heat,Melbourne Renegades,
+bbl,27/1/18,"Melbourne Cricket Ground, Melbourne",Melbourne Stars,Hobart Hurricanes,
+bbl,1/2/18,"Melbourne Cricket Ground, Melbourne",,,Qualifier 1
+bbl,1/2/18,"Perth Stadium, Perth",,,Eliminator
+bbl,2/2/18,"Adelaide Oval, Adelaide",,,Qualifier 2
+bbl,4/2/18,"Adelaide Oval, Adelaide",,,Final

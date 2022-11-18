@@ -71,7 +71,6 @@ class PredictiveSimulator:
         """
         scenario = row.name[0]
         match_key = row.name[1]
-        logging.info(f"Setting up match state: {match_key}")
         batting_team = row['batting_team']
         bowling_team = row['bowling_team']
         venue = row['venue']
@@ -82,8 +81,6 @@ class PredictiveSimulator:
         match_state = MatchState(self.predictive_utils, scenario, match_key, bowling_team,
                                  batting_team, batting_playing_xi, bowling_playing_xi, venue)
         match_state_dict[(scenario, match_key)] = match_state
-
-        logging.info(f"DONE Setting up match state: {match_key}")
 
 
     def generate_innings(self):
@@ -225,5 +222,6 @@ class PredictiveSimulator:
         self.simulated_matches_df = pd.merge(self.simulated_matches_df, winner_df[['winner', 'loser']],
                                              left_index=True, right_index=True)
 
-    def get_rewards(self, scenario, granularity):
-        return self.perfect_simulators[scenario].get_simulation_evaluation_metrics_by_granularity(True, granularity)
+    def get_rewards(self, scenario, granularity, columns_to_persist=[]):
+        return self.perfect_simulators[scenario].get_simulation_evaluation_metrics_by_granularity(
+            True, granularity, columns_to_persist=columns_to_persist)
