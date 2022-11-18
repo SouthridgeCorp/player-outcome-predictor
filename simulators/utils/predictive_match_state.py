@@ -1,5 +1,5 @@
 import random
-
+import logging
 
 class MatchState:
     """
@@ -107,6 +107,7 @@ class MatchState:
         """
         Maintain a mapping of the frequent players labels which are used to build out the dictionary
         """
+        logging.debug("Updating Featured Player")
         featured_players = self.predictive_utils.featured_player_df[
             self.predictive_utils.featured_player_df.index.isin(self.bowling_playing_xi + self.batting_playing_xi)]
 
@@ -115,7 +116,7 @@ class MatchState:
                 self.player_label_mapping[player] = player
             else:
                 self.player_label_mapping[player] = "non_frequent_player"
-
+        logging.debug("DONE Updating Featured Player")
     def initialise_for_innings(self):
         self.over = -1
         self.ball = 1
@@ -136,6 +137,8 @@ class MatchState:
         Decide on the bowling playing xi before the match starts
         """
 
+        logging.debug("Setting up bowlers per over")
+
         #TODO: Assess if this logic should just be applied per over instead of in one go on initialisation & inning
         # change due to perf considerations
         bowling_order = []
@@ -154,6 +157,8 @@ class MatchState:
 
             if bowler_map[bowler] == 4:
                 available_bowlers.remove(bowler)
+
+        logging.debug("DONE Setting up bowlers per over")
 
         return bowling_order
 

@@ -1,3 +1,4 @@
+import pandas as pd
 def aggregate_base_rewards(outcomes_df, team_label, player_label, base_rewards_label_source,
                            base_rewards_label_target, base_rewards_per_player_dict):
     """
@@ -17,3 +18,17 @@ def aggregate_base_rewards(outcomes_df, team_label, player_label, base_rewards_l
 
         player_dict[base_rewards_label_target] = total_rewards
 
+
+def add_dataframes(df1, df2, how, columns_to_add):
+
+    df3 = pd.merge(df1, df2, left_index=True, right_index=True, how=how)
+    df3.fillna(0, inplace=True)
+
+    for column in columns_to_add:
+        df3[column] = df3[f"{column}_x"] + df3[f"{column}_y"]
+
+    for column in df3.columns:
+        if column.endswith("_x") or column.endswith("_y"):
+            df3.drop(column, axis=1, inplace=True)
+
+    return df3

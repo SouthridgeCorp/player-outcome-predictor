@@ -5,6 +5,7 @@ from historical_data.tournaments import Tournaments
 from rewards_configuration.rewards_configuration import RewardsConfiguration
 from utils.config_utils import create_utils_object, ConfigUtils
 from simulators.predictive_simulator import PredictiveSimulator
+from simulators.perfect_simulator import Granularity
 
 
 def data_selection_instance():
@@ -75,7 +76,7 @@ def get_metrics_to_show() -> (list, list):
     Returns a list of metrics to display and the corresponding error measures for the metrics. Used by the simulators
     UI pages usually.
     """
-    metric_list = ['bowling_rewards', 'batting_rewards', 'fielding_rewards', 'total_rewards']
+    metric_list = ['total_rewards', 'bowling_rewards', 'batting_rewards', 'fielding_rewards']
     error_metrics = []
     for item in metric_list:
         error_metrics.append(f"{item}_absolute_error")
@@ -105,3 +106,20 @@ def get_predictive_simulator(rewards, number_of_scenarios) -> PredictiveSimulato
         predictive_simulator = st.session_state['PredictiveSimulator']
 
     return predictive_simulator
+
+
+def show_granularity_metrics(key_suffix):
+    granularity_select, metric_select = st.columns(2)
+
+    with granularity_select:
+        granularity_list = ['None', Granularity.TOURNAMENT, Granularity.STAGE, Granularity.MATCH, Granularity.INNING]
+        granularity = st.selectbox("Please select the granularity for reviewing Simulator stats",
+                                   granularity_list, key=f"{key_suffix}_model_granularity")
+
+    with metric_select:
+        metrics, error_metrics = get_metrics_to_show()
+        metrics_to_show = metrics + error_metrics
+        metric = st.selectbox("Please select the metric to review", metrics_to_show,
+                              key=f"{key_suffix}_model_metric")
+
+    return granularity, metric, metrics, error_metrics

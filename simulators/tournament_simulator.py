@@ -4,6 +4,7 @@ from rewards_configuration.rewards_configuration import RewardsConfiguration
 import pandas as pd
 import logging
 from simulators.predictive_simulator import PredictiveSimulator
+from simulators.utils.utils import add_dataframes
 
 
 class TournamentSimulator:
@@ -67,12 +68,16 @@ class TournamentSimulator:
 
     def __init__(self, data_selection: DataSelection, rewards_configuration: RewardsConfiguration,
                  config_utils: ConfigUtils):
-        self.number_of_scenarios, matches_file_name, playing_xi_file_name = config_utils.get_tournament_simulator_info()
+        self.number_of_scenarios, self.matches_file_name, self.playing_xi_file_name = \
+            config_utils.get_tournament_simulator_info()
         self.data_selection = data_selection
         self.rewards_configuration = rewards_configuration
 
-        self.source_matches_df = pd.read_csv(matches_file_name)
-        self.master_playing_xi_df = pd.read_csv(playing_xi_file_name)
+        self.source_matches_df = pd.read_csv(self.matches_file_name)
+        self.source_matches_df['stage'] = self.source_matches_df['stage'].fillna('')
+
+
+        self.master_playing_xi_df = pd.read_csv(self.playing_xi_file_name)
         # self.master_playing_xi_df.set_index('team', inplace=True, verify_integrity=True)
         self.source_playing_xi_df = pd.DataFrame()
 
@@ -251,3 +256,22 @@ class TournamentSimulator:
 
         logging.debug(f"Done with tournament")
         return all_matches
+
+    def get_rewards(self, granularity):
+
+        columns_to_add = ['number_of_matches', 'bowling_rewards', 'batting_rewards', 'fielding_rewards',
+                          'total_rewards']
+
+        group_rewards_df = self.group_matches_predictive_simulator.get_rewards(0, granularity)
+        rewards_df = group_rewards_df
+
+        first_non_group_rewards_df = self.first_non_group_matches_predictive_simulator.get_rewards(0, granularity)
+        rewards_df = add_dataframes(rewards_df, first_non_group_rewards_df[columns_to_add], 'left', columns_to_add)
+
+        second_non_group_rewards_df = self.second_non_group_matches_predictive_simulator.get_rewards(0, granularity)
+        rewards_df = add_dataframes(rewards_df, second_non_group_rewards_df[columns_to_add], 'left', columns_to_add)
+
+        final_rewards_df = self.finals_predictive_simulator.get_rewards(0, granularity)
+        rewards_df = add_dataframes(rewards_df, final_rewards_df[columns_to_add], 'left', columns_to_add)
+
+        return rewards_df

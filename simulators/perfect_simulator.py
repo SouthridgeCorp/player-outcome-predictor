@@ -351,13 +351,22 @@ class PerfectSimulator:
         :param generate_labels: Set to true if get_outcome_labels labels should be generated, else False
         :return: pd.DataFrame as above"""
 
+        logging.debug("Getting ball & inning outcomes")
         outcomes_df = self.get_outcomes_by_ball_and_innings(is_testing, generate_labels)
+
+        logging.debug("Calculating base rewards")
         outcomes_df['batter_base_rewards'], outcomes_df['non_striker_base_rewards'], \
         outcomes_df['bowling_base_rewards'], outcomes_df['fielding_base_rewards'] = zip(*outcomes_df.apply(
             lambda x: get_base_rewards(x, self.rewards_configuration), axis=1))
 
+        logging.debug("Getting player outcomes by innings")
+
         bonus_penalty_df = self.get_outcomes_by_player_and_innings(is_testing)
+
+        logging.debug("Calculating outcomes by team and innings")
         team_stats_df = self.get_outcomes_by_team_and_innings(is_testing, bonus_penalty_df)
+
+        logging.debug("Aggregating base rewards")
 
         # Calculate cumulative base rewards per player
         base_rewards_per_player_dict = {}
@@ -380,6 +389,8 @@ class PerfectSimulator:
         base_rewards_per_player_df.set_index(index_columns, inplace=True, verify_integrity=True)
         base_rewards_per_player_df = base_rewards_per_player_df.sort_values(index_columns)
 
+        logging.debug("Calculating bonus / penalty")
+
         bonus_penalty_df = pd.merge(bonus_penalty_df,
                                     base_rewards_per_player_df[['batter_base_rewards',
                                                                 'fielding_base_rewards', 'bowling_base_rewards']],
@@ -395,6 +406,8 @@ class PerfectSimulator:
         bonus_penalty_df['batting_penalty'], bonus_penalty_df['bowling_rewards'], \
         bonus_penalty_df['batting_rewards'], bonus_penalty_df['fielding_rewards'] = zip(*bonus_penalty_df.apply(
             lambda x: get_bonus_penalty(x, self.rewards_configuration), axis=1))
+
+        logging.debug("DONE with rewards")
 
         return outcomes_df, bonus_penalty_df
 
@@ -434,6 +447,7 @@ class PerfectSimulator:
                           'bowling_rewards': g_df['bowling_rewards'].sum(),
                           'batting_rewards': g_df['batting_rewards'].sum(),
                           'fielding_rewards': g_df['fielding_rewards'].sum()}
+
             input_dict['total_rewards'] = input_dict['bowling_rewards'] + input_dict['batting_rewards'] \
                                           + input_dict['fielding_rewards']
             i = 0

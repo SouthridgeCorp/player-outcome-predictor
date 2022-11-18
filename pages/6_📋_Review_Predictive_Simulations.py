@@ -1,9 +1,9 @@
 import streamlit as st
 import utils.page_utils as page_utils
 from utils.config_utils import create_utils_object
-from utils.app_utils import data_selection_instance, rewards_instance, data_selection_summary, get_metrics_to_show, \
-    get_predictive_simulator
-from simulators.perfect_simulator import PerfectSimulator, Granularity
+from utils.app_utils import data_selection_instance, rewards_instance, data_selection_summary, \
+    get_predictive_simulator, show_granularity_metrics
+from simulators.perfect_simulator import PerfectSimulator
 import pandas as pd
 import arviz as az
 import logging
@@ -85,18 +85,7 @@ def app():
 
     st.write(f"Number of scenarios: {number_of_scenarios}")
 
-    granularity_select, metric_select = st.columns(2)
-
-    with granularity_select:
-        granularity_list = ['None', Granularity.TOURNAMENT, Granularity.STAGE, Granularity.MATCH, Granularity.INNING]
-        granularity = st.selectbox("Please select the granularity for reviewing Simulator stats",
-                                   granularity_list, key="predictive_model_granularity")
-
-    with metric_select:
-        metrics, error_metrics = get_metrics_to_show()
-        metrics_to_show = metrics + error_metrics
-        metric = st.selectbox("Please select the metric to review", metrics_to_show,
-                              key="predictive_model_metric")
+    granularity, metric, metrics, error_metrics = show_granularity_metrics("predictive")
 
     if granularity == 'None':
         st.write("Please select a valid Granularity")
