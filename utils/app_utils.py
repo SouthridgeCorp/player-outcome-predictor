@@ -8,6 +8,7 @@ from rewards_configuration.rewards_configuration import RewardsConfiguration
 from utils.config_utils import create_utils_object, ConfigUtils
 from simulators.predictive_simulator import PredictiveSimulator
 from simulators.perfect_simulator import Granularity
+from simulators.tournament_simulator import TournamentSimulator
 
 
 def data_selection_instance():
@@ -95,6 +96,9 @@ def reset_session_states():
     if 'PredictiveSimulator' in st.session_state:
         del st.session_state['PredictiveSimulator']
 
+    if 'TournamentSimulator' in st.session_state:
+        del st.session_state['TournamentSimulator']
+
 
 def get_predictive_simulator(rewards, number_of_scenarios) -> PredictiveSimulator:
     """
@@ -110,11 +114,29 @@ def get_predictive_simulator(rewards, number_of_scenarios) -> PredictiveSimulato
     return predictive_simulator
 
 
+def get_tournament_simulator(force_initialise) -> TournamentSimulator:
+    if ('TournamentSimulator' not in st.session_state) or force_initialise:
+        tournament_simulator = TournamentSimulator(data_selection_instance(), rewards_instance(), create_utils_object())
+        with st.spinner("Generating Scenarios"):
+            tournament_simulator.generate_scenarios()
+        if 'TournamentSimulator' in st.session_state:
+            del st.session_state['TournamentSimulator']
+        st.session_state['TournamentSimulator'] = tournament_simulator
+    else:
+        tournament_simulator = st.session_state['TournamentSimulator']
+
+    return tournament_simulator
+
+def has_tournament_simulator():
+    return 'TournamentSimulator' in st.session_state
+
+def get_granularity_list():
+    return ['None', Granularity.TOURNAMENT, Granularity.STAGE, Granularity.MATCH, Granularity.INNING]
 def show_granularity_metrics(key_suffix, show_error_metrics=True):
     granularity_select, metric_select = st.columns(2)
 
     with granularity_select:
-        granularity_list = ['None', Granularity.TOURNAMENT, Granularity.STAGE, Granularity.MATCH, Granularity.INNING]
+        granularity_list = get_granularity_list()
         granularity = st.selectbox("Please select the granularity for reviewing Simulator stats",
                                    granularity_list, key=f"{key_suffix}_model_granularity")
 
@@ -135,6 +157,7 @@ def show_stats(metric, summary_df, indices) -> pd.DataFrame:
     dataframe returned by this function is indexed by the same set of indices.
     """
     summary_xarray = summary_df[metric].to_xarray()
+    summary_xarray = summary_xarray.fillna(0.0)
     df = az.summary(summary_xarray)
 
     df = df.reset_index()

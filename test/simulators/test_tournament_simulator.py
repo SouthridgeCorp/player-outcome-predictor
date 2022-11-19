@@ -85,4 +85,11 @@ class TestTournamentSimulator:
         list_rewards_df = tournament_simulator.get_rewards(granularity)
         for rewards_df in list_rewards_df:
             assert 'tournament_scenario' in list(rewards_df.columns)
+            assert list(rewards_df['total_rewards'].isna().unique()) == [False]
+            assert list(rewards_df['bowling_rewards'].isna().unique()) == [False]
+            assert list(rewards_df['batting_rewards'].isna().unique()) == [False]
+            assert list(rewards_df['fielding_rewards'].isna().unique()) == [False]
+
         assert len(list_rewards_df) == tournament_simulator.number_of_scenarios
+
+

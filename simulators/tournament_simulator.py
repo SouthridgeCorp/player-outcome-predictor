@@ -5,7 +5,7 @@ import pandas as pd
 import logging
 from simulators.predictive_simulator import PredictiveSimulator
 from simulators.utils.utils import add_dataframes
-
+from datetime import datetime
 
 class TournamentSimulator:
 
@@ -92,6 +92,8 @@ class TournamentSimulator:
         self.first_non_group_matches_predictive_simulator = None
         self.second_non_group_matches_predictive_simulator = None
         self.finals_predictive_simulator = None
+
+        self.scenario_date_time = None
 
 
     def get_group_stage_matches(self):
@@ -217,6 +219,7 @@ class TournamentSimulator:
         matches_df, innings_df = predictive_simulator.generate_scenario()
         winners_df = matches_df.groupby(['winner', 'tournament_scenario'])['key'].count().unstack()
 
+        self.scenario_date_time = datetime.now()
         return predictive_simulator, winners_df, matches_df, innings_df
 
     def generate_scenarios(self):
@@ -258,38 +261,35 @@ class TournamentSimulator:
     def get_rewards(self, granularity):
 
         logging.debug("*********************************Getting Group Rewards*********************************")
-        columns_to_add = ['number_of_matches', 'bowling_rewards', 'batting_rewards', 'fielding_rewards',
-                          'total_rewards']
+
         columns_to_persist = ['tournament_scenario']
         group_rewards_df = self.group_matches_predictive_simulator.get_rewards(0, granularity, columns_to_persist)
-        rewards_df = group_rewards_df
 
         logging.debug("******************************Getting Q1 & Eliminator Rewards******************************")
 
         first_non_group_rewards_df = self.first_non_group_matches_predictive_simulator.get_rewards(
             0, granularity, columns_to_persist=columns_to_persist)
-        rewards_df = add_dataframes(rewards_df, first_non_group_rewards_df[columns_to_add], 'left', columns_to_add)
 
         logging.debug("*********************************Getting Q2 Rewards*********************************")
         second_non_group_rewards_df = self.second_non_group_matches_predictive_simulator.get_rewards(
             0, granularity, columns_to_persist=columns_to_persist)
-        rewards_df = add_dataframes(rewards_df, second_non_group_rewards_df[columns_to_add], 'left', columns_to_add)
 
         logging.debug("*********************************Getting Finals Rewards*********************************")
 
         final_rewards_df = self.finals_predictive_simulator.get_rewards(
             0, granularity, columns_to_persist=columns_to_persist)
-        rewards_df = add_dataframes(rewards_df, final_rewards_df[columns_to_add], 'left', columns_to_add)
 
-        list_of_rewards_df = []
+        indices = list(group_rewards_df.index.names)
+        rewards_df = pd.concat([group_rewards_df, first_non_group_rewards_df, second_non_group_rewards_df,
+                                final_rewards_df])
+        rewards_df = rewards_df.groupby(indices).sum()
+        rewards_df = rewards_df.reset_index()
+        rewards_df = self.data_selection.merge_with_players(rewards_df, 'player_key')
 
-        indices = list(rewards_df.index.names)
-        indices.remove('tournament_scenario')
+        if 'match_key' in indices:
+            rewards_df['match_key'] = rewards_df['match_key'] / 10
+            rewards_df['match_key'] = rewards_df['match_key'].astype(int)
 
-        for scenario in range(0, self.number_of_scenarios):
-            scenario_rewards_df = rewards_df.query(f'tournament_scenario == {scenario}').copy()
-            scenario_rewards_df = scenario_rewards_df.reset_index()
-            scenario_rewards_df.set_index(indices, inplace=True, verify_integrity=True)
-            list_of_rewards_df.append(scenario_rewards_df)
+        rewards_df.set_index(indices, inplace=True, verify_integrity=True)
 
-        return list_of_rewards_df
+        return rewards_df
