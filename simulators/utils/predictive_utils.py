@@ -5,6 +5,37 @@ from data_selection.data_selection import DataSelection
 import logging
 
 
+def calculate_bowling_probabilities(all_innings_df) -> pd.DataFrame:
+    """
+    Counts the number of matches bowled by a player for a specific team & over, and uses that frequency as the
+    probability distribution to seed the multinomial distribution to predict if a certain over for a certain team is
+    bowled by a certain bowler.
+    """
+    frequencies_df = \
+        all_innings_df.groupby(['bowling_team', 'over', 'bowler']).count()['match_key'].unstack()
+
+    frequencies_df = frequencies_df.fillna(0)
+    frequencies_df = frequencies_df.astype('float64')
+
+    bowling_probabilities = Probabilities()
+    bowling_probabilities.populate_labels(frequencies_df.columns.values.tolist())
+
+    # Note: This entire operation could have been done via DataFrames but it led to precision errors with
+    # sps, hence np is used instead.
+    for index, row in frequencies_df.iterrows():
+        array = row.values.tolist()
+        a = np.asarray(array).astype('float64')
+        a = a / np.sum(a)
+        if np.sum(a) > 1.0:
+            a[np.argmax(a)] += 1.0 - np.sum(a)
+
+        bowling_probabilities.setup_probability(index, a)
+
+    bowling_probabilities.setup_multinomials()
+
+    return bowling_probabilities
+
+
 class Probabilities:
     """
     Helper class to maintain and store probability details. This is especially useful for multinomial distributions
@@ -12,6 +43,7 @@ class Probabilities:
     instead.
     Must not be used outside the context of the PredictiveUtils class since the logic is tightly coupled.
     """
+
     def __init__(self):
         # The labels associated with each probability, must be in lock step with the array of probabilities included in
         # probability_map
@@ -111,6 +143,8 @@ class PredictiveUtils:
         # Probability of an extra on a non-legal wicket
         non_legal_wicket_extras_probability = [0, 0.97, 0.024, 0, 0.001, 0.006]
         self.non_legal_wicket_extras_distribution = sps.multinomial(1, non_legal_wicket_extras_probability)
+
+        self.is_setup = False
 
     def predict_runout_details(self, matches_df, base_mask):
         """
@@ -259,44 +293,23 @@ class PredictiveUtils:
         """
         Initial setup required for generating scenarios
         """
+
+        if self.is_setup:
+            logging.debug("Utils is already setup - not setting up again")
+            return
+
         logging.debug("getting all innings and matches")
         self.all_innings_df, self.all_matches_df = self.data_selection.get_all_innings_and_matches()
 
         logging.debug("Calculating bowling probabilities")
-        self.calculate_bowling_probabilities()
+        self.bowling_probabilities = calculate_bowling_probabilities(self.all_innings_df)
 
         logging.debug("getting featured players")
         self.featured_player_df = self.data_selection.get_frequent_players_universe()
 
         logging.debug("PredictiveUtils setup complete")
 
-
-    def calculate_bowling_probabilities(self) -> pd.DataFrame:
-        """
-        Counts the number of matches bowled by a player for a specific team & over, and uses that frequency as the
-        probability distribution to seed the multinomial distribution to predict if a certain over for a certain team is
-        bowled by a certain bowler.
-        """
-        frequencies_df = \
-            self.all_innings_df.groupby(['bowling_team', 'over', 'bowler']).count()['match_key'].unstack()
-
-        frequencies_df = frequencies_df.fillna(0)
-        frequencies_df = frequencies_df.astype('float64')
-
-        self.bowling_probabilities.populate_labels(frequencies_df.columns.values.tolist())
-
-        # Note: This entire operation could have been done via DataFrames but it led to precision errors with
-        # sps, hence np is used instead.
-        for index, row in frequencies_df.iterrows():
-            array = row.values.tolist()
-            a = np.asarray(array).astype('float64')
-            a = a / np.sum(a)
-            if np.sum(a) > 1.0:
-                a[np.argmax(a)] += 1.0 - np.sum(a)
-
-            self.bowling_probabilities.setup_probability(index, a)
-
-        self.bowling_probabilities.setup_multinomials()
+        self.is_setup = True
 
     def populate_bowler_for_state(self, match_key: str, bowling_team: str,
                                   over: int, previous_bowler: str, playing_xi: list) -> str:

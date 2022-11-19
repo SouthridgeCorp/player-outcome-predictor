@@ -14,12 +14,15 @@ class PredictiveSimulator:
 
     def __init__(self, data_selection: DataSelection,
                  rewards_configuration: RewardsConfiguration,
-                 number_of_scenarios, match_columns_to_persist=[]):
+                 number_of_scenarios, match_columns_to_persist=[], utils=None):
         self.data_selection = data_selection
         self.number_of_scenarios = number_of_scenarios
         self.rewards_configuration = rewards_configuration
 
-        self.predictive_utils = PredictiveUtils(data_selection)
+        if utils is None:
+            self.predictive_utils = PredictiveUtils(data_selection)
+        else:
+            self.predictive_utils = utils
 
         self.perfect_simulators = []
         self.simulated_matches_df = pd.DataFrame()
@@ -103,7 +106,7 @@ class PredictiveSimulator:
                     over += 1
                     ball = 1
                     over_changed = True
-                    logging.debug(f"Playing inning:{inning} and over: {over}")
+                    #logging.debug(f"Playing inning:{inning} and over: {over}")
                 else:
                     over_changed = False
                 if over == 20:
@@ -134,7 +137,7 @@ class PredictiveSimulator:
                         extras_list_to_consider = extras_list
 
                     simulated_innings_df = self.play_one_ball(extras_list, simulated_innings_df)
-
+        logging.debug("Done playing all matches")
         return simulated_innings_df
 
     def play_one_ball(self, match_state_dict, simulated_innings_df):

@@ -90,7 +90,7 @@ def app():
                          use_container_width=True)
 
         number_of_players = len(metric_stats_df.index)
-        write_top_X_to_st(number_of_players, total_errors_df, total_errors_index, reference_df,
+        write_top_X_to_st(number_of_players, total_errors_df, total_errors_index, reference_df=reference_df,
                           column_suffix="_received")
 
 app()

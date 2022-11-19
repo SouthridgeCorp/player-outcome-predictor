@@ -154,18 +154,21 @@ def show_stats(metric, summary_df, indices) -> pd.DataFrame:
     return df
 
 
-def show_top_X(metric, total_errors_df, total_errors_index, reference_df, number_of_players):
+def show_top_X(metric, total_errors_df, total_errors_index, number_of_players, reference_df=None):
     """
     Show the top X rows sorted by the metric
     """
     metric_stats_df = show_stats(metric, total_errors_df, total_errors_index)
-    metric_stats_df = pd.merge(reference_df[['name']],
-                               metric_stats_df, left_index=True, right_index=True)
+    if reference_df is not None:
+        metric_stats_df = pd.merge(reference_df[['name']], metric_stats_df, left_index=True, right_index=True)
+
     metric_stats_df = metric_stats_df.sort_values(metric, ascending=False)
-    st.dataframe(metric_stats_df[['name', metric]].head(number_of_players),
+    st.dataframe(metric_stats_df[['name', metric]].drop_duplicates().head(number_of_players),
                  use_container_width=True)
 
-def write_top_X_to_st(max_players, total_errors_df, total_errors_index, reference_df, column_suffix=""):
+
+def write_top_X_to_st(max_players, total_errors_df, total_errors_index, reference_df=None,
+                      column_suffix=""):
     # Show the top players
     number_of_players = st.slider("Select the number of top players to show:", min_value=0,
                                   max_value=max_players, value=30)
@@ -174,12 +177,15 @@ def write_top_X_to_st(max_players, total_errors_df, total_errors_index, referenc
 
     with top_players_column:
         st.subheader(f'Top {number_of_players} Players')
-        show_top_X(f'total_rewards{column_suffix}', total_errors_df, total_errors_index, reference_df, number_of_players)
+        show_top_X(f'total_rewards{column_suffix}', total_errors_df, total_errors_index,
+                   number_of_players=number_of_players, reference_df=reference_df)
 
     with top_bowlers_column:
         st.subheader(f'Top {number_of_players} Bowlers')
-        show_top_X(f'bowling_rewards{column_suffix}', total_errors_df, total_errors_index, reference_df, number_of_players)
+        show_top_X(f'bowling_rewards{column_suffix}', total_errors_df, total_errors_index,
+                   number_of_players=number_of_players, reference_df=reference_df)
 
     with top_batters_column:
         st.subheader(f'Top {number_of_players} Batters')
-        show_top_X(f'batting_rewards{column_suffix}', total_errors_df, total_errors_index, reference_df, number_of_players)
+        show_top_X(f'batting_rewards{column_suffix}', total_errors_df, total_errors_index,
+                   number_of_players=number_of_players, reference_df=reference_df)

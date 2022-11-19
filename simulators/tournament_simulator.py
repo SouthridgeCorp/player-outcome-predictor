@@ -93,6 +93,7 @@ class TournamentSimulator:
         self.second_non_group_matches_predictive_simulator = None
         self.finals_predictive_simulator = None
 
+
     def get_group_stage_matches(self):
         mask_for_stage = self.source_matches_df['stage'].isin(self.non_group_stages)
         return self.source_matches_df[~mask_for_stage]
@@ -203,9 +204,6 @@ class TournamentSimulator:
 
         return matches_df, playing_xi_df
 
-        return self.prepare_non_group_matches(previous_winners_df,
-                                              non_group_matches,
-                                              self.q2_group_stage)
 
     def get_match_results(self, input_matches_df, input_playing_xi_df):
         data_selection_for_simulations = DataSelection(self.data_selection.historical_data_helper)
@@ -259,19 +257,25 @@ class TournamentSimulator:
 
     def get_rewards(self, granularity):
 
+        logging.debug("*********************************Getting Group Rewards*********************************")
         columns_to_add = ['number_of_matches', 'bowling_rewards', 'batting_rewards', 'fielding_rewards',
                           'total_rewards']
         columns_to_persist = ['tournament_scenario']
         group_rewards_df = self.group_matches_predictive_simulator.get_rewards(0, granularity, columns_to_persist)
         rewards_df = group_rewards_df
 
+        logging.debug("******************************Getting Q1 & Eliminator Rewards******************************")
+
         first_non_group_rewards_df = self.first_non_group_matches_predictive_simulator.get_rewards(
             0, granularity, columns_to_persist=columns_to_persist)
         rewards_df = add_dataframes(rewards_df, first_non_group_rewards_df[columns_to_add], 'left', columns_to_add)
 
+        logging.debug("*********************************Getting Q2 Rewards*********************************")
         second_non_group_rewards_df = self.second_non_group_matches_predictive_simulator.get_rewards(
             0, granularity, columns_to_persist=columns_to_persist)
         rewards_df = add_dataframes(rewards_df, second_non_group_rewards_df[columns_to_add], 'left', columns_to_add)
+
+        logging.debug("*********************************Getting Finals Rewards*********************************")
 
         final_rewards_df = self.finals_predictive_simulator.get_rewards(
             0, granularity, columns_to_persist=columns_to_persist)

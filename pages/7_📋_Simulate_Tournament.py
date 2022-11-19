@@ -42,7 +42,6 @@ def app():
             list_of_rewards_df = tournament_simulator.get_rewards(granularity)
 
         all_rewards_df = pd.DataFrame()
-        reference_df = pd.DataFrame()
         for rewards_df in list_of_rewards_df:
             indices = rewards_df.index.names
             rewards_df['chain'] = 0
@@ -50,19 +49,22 @@ def app():
             rewards_df.rename(columns={"tournament_scenario": "draw"}, inplace=True)
             rewards_df.set_index(['chain', 'draw'] + indices, inplace=True, verify_integrity=True)
             all_rewards_df = pd.concat([all_rewards_df, rewards_df])
-            reference_df = rewards_df
+
+        reference_df = all_rewards_df.reset_index()
+        reference_df.set_index(indices, inplace=True)
 
         if len(all_rewards_df.index) > 0:
-            stats_df = show_stats(metric, all_rewards_df, indices)
-            metric_stats_df = pd.merge(reference_df[['name', 'number_of_matches']],
-                                       stats_df, left_index=True, right_index=True)
+            metric_stats_df = show_stats(metric, all_rewards_df, indices)
+
+            metric_stats_df = data_selection.merge_with_players(metric_stats_df.reset_index(), 'player_key')
+            metric_stats_df.set_index(indices, inplace=True, verify_integrity=True)
+
             metric_stats_df = metric_stats_df.sort_values(f'{metric}', ascending=False)
-            st.dataframe(metric_stats_df[['name', 'number_of_matches', f'{metric}', 'sd', 'hdi_3%', 'hdi_97%']],
+            st.dataframe(metric_stats_df[['name', f'{metric}', 'sd', 'hdi_3%', 'hdi_97%']],
                          use_container_width=True)
 
             number_of_players = len(metric_stats_df.index)
-            write_top_X_to_st(number_of_players, all_rewards_df, indices, reference_df,
-                              column_suffix="")
+            write_top_X_to_st(number_of_players, all_rewards_df, indices, column_suffix="", reference_df=reference_df)
         else:
             st.write("Could not find any rewards metrics to report")
 
