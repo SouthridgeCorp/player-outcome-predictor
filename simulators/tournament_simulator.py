@@ -7,10 +7,14 @@ from simulators.predictive_simulator import PredictiveSimulator
 from simulators.utils.utils import add_dataframes
 from datetime import datetime
 
+
 class TournamentSimulator:
 
     def validate_and_setup(self):
 
+        if self.number_of_scenarios >= self.max_number_of_scenarios:
+            raise ValueError(f"The number of scenarios must be lesser than {self.max_number_of_scenarios}\n"
+                             f"Received: {self.number_of_scenarios}")
         number_of_matches = len(self.source_matches_df.index)
 
         matches_df = self.data_selection.get_all_matches()
@@ -76,7 +80,6 @@ class TournamentSimulator:
         self.source_matches_df = pd.read_csv(self.matches_file_name)
         self.source_matches_df['stage'] = self.source_matches_df['stage'].fillna('')
 
-
         self.master_playing_xi_df = pd.read_csv(self.playing_xi_file_name)
         # self.master_playing_xi_df.set_index('team', inplace=True, verify_integrity=True)
         self.source_playing_xi_df = pd.DataFrame()
@@ -95,6 +98,7 @@ class TournamentSimulator:
 
         self.scenario_date_time = None
 
+        self.max_number_of_scenarios = 100
 
     def get_group_stage_matches(self):
         mask_for_stage = self.source_matches_df['stage'].isin(self.non_group_stages)
@@ -119,11 +123,11 @@ class TournamentSimulator:
         for scenario in range(0, self.number_of_scenarios):
             matches_to_add_df = group_stage_matches_df.copy()
             matches_to_add_df['tournament_scenario'] = scenario
-            matches_to_add_df['key'] = (matches_to_add_df['key'] * 10) + scenario
+            matches_to_add_df['key'] = (matches_to_add_df['key'] * self.max_number_of_scenarios) + scenario
             matches_df = pd.concat([matches_df, matches_to_add_df])
 
             players_to_add_df = self.source_playing_xi_df.copy()
-            players_to_add_df['match_key'] = (players_to_add_df['match_key'] * 10) + scenario
+            players_to_add_df['match_key'] = (players_to_add_df['match_key'] * self.max_number_of_scenarios) + scenario
             playing_xi_df = pd.concat((playing_xi_df, players_to_add_df))
 
         return matches_df, playing_xi_df
@@ -144,7 +148,7 @@ class TournamentSimulator:
                 matches_to_add_df.loc[mask, 'team2'] = sorted_winners_df.index[team_position]
                 team_position += 1
 
-            matches_to_add_df['key'] = (matches_to_add_df['key'] * 10) + scenario
+            matches_to_add_df['key'] = (matches_to_add_df['key'] * self.max_number_of_scenarios) + scenario
             matches_df = pd.concat([matches_df, matches_to_add_df])
 
             players_to_add_df = self.build_playing_xi(matches_to_add_df)
@@ -175,7 +179,7 @@ class TournamentSimulator:
                    (previous_matches_df['tournament_scenario'] == scenario)
             matches_to_add_df['team2'] = previous_matches_df[mask]['winner'].values[0]
 
-            matches_to_add_df['key'] = (matches_to_add_df['key'] * 10) + scenario
+            matches_to_add_df['key'] = (matches_to_add_df['key'] * self.max_number_of_scenarios) + scenario
             matches_df = pd.concat([matches_df, matches_to_add_df])
 
             players_to_add_df = self.build_playing_xi(matches_to_add_df)
@@ -198,14 +202,13 @@ class TournamentSimulator:
             mask = q2_df['tournament_scenario'] == scenario
             matches_to_add_df['team2'] = q2_df[mask]['winner'].values[0]
 
-            matches_to_add_df['key'] = (matches_to_add_df['key'] * 10) + scenario
+            matches_to_add_df['key'] = (matches_to_add_df['key'] * self.max_number_of_scenarios) + scenario
             matches_df = pd.concat([matches_df, matches_to_add_df])
 
             players_to_add_df = self.build_playing_xi(matches_to_add_df)
             playing_xi_df = pd.concat((playing_xi_df, players_to_add_df))
 
         return matches_df, playing_xi_df
-
 
     def get_match_results(self, input_matches_df, input_playing_xi_df):
         data_selection_for_simulations = DataSelection(self.data_selection.historical_data_helper)
@@ -287,7 +290,9 @@ class TournamentSimulator:
         rewards_df = self.data_selection.merge_with_players(rewards_df, 'player_key')
 
         if 'match_key' in indices:
-            rewards_df['match_key'] = rewards_df['match_key'] / 10
+            rewards_df['match_key'] = \
+                (rewards_df['match_key'] - (
+                            rewards_df['match_key'] % self.max_number_of_scenarios)) / self.max_number_of_scenarios
             rewards_df['match_key'] = rewards_df['match_key'].astype(int)
 
         rewards_df.set_index(indices, inplace=True, verify_integrity=True)

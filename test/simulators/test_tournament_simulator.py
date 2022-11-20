@@ -78,18 +78,30 @@ class TestTournamentSimulator:
             assert list(matches_df[q2_mask]['team1']) == list(matches_df[q1_mask]['loser'])
             assert list(matches_df[q2_mask]['team2']) == list(matches_df[elim_mask]['winner'])
 
-    @pytest.mark.parametrize('granularity', ['tournament', 'tournament_stage', 'match', 'inning'])
+    @pytest.mark.parametrize('granularity', ['match'])
     def test_rewards(self, tournament_simulator, granularity):
         prepare_for_tests(tournament_simulator.data_selection, True)
         tournament_simulator.generate_scenarios()
-        list_rewards_df = tournament_simulator.get_rewards(granularity)
-        for rewards_df in list_rewards_df:
-            assert 'tournament_scenario' in list(rewards_df.columns)
-            assert list(rewards_df['total_rewards'].isna().unique()) == [False]
-            assert list(rewards_df['bowling_rewards'].isna().unique()) == [False]
-            assert list(rewards_df['batting_rewards'].isna().unique()) == [False]
-            assert list(rewards_df['fielding_rewards'].isna().unique()) == [False]
+        rewards_df = tournament_simulator.get_rewards(granularity)
 
-        assert len(list_rewards_df) == tournament_simulator.number_of_scenarios
+        assert 'tournament_scenario' in list(rewards_df.index.names)
+        assert list(rewards_df['total_rewards'].isna().unique()) == [False]
+        assert list(rewards_df['bowling_rewards'].isna().unique()) == [False]
+        assert list(rewards_df['batting_rewards'].isna().unique()) == [False]
+        assert list(rewards_df['fielding_rewards'].isna().unique()) == [False]
+
+        tournament_scenarios_received = rewards_df.reset_index()['tournament_scenario'].unique().tolist()
+        tournament_scenarios_received.sort()
+
+        assert tournament_scenarios_received == list(range(0, tournament_simulator.number_of_scenarios))
+
+        if granularity == 'match':
+            match_keys = rewards_df.reset_index()['match_key'].unique().tolist()
+            match_keys.sort()
+
+            expected_match_keys = tournament_simulator.source_matches_df.reset_index()['key'].unique().tolist()
+            expected_match_keys.sort()
+
+            assert match_keys == expected_match_keys
 
 
