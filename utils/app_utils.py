@@ -79,6 +79,8 @@ def get_metrics_to_show() -> (list, list):
     Returns a list of metrics to display and the corresponding error measures for the metrics. Used by the simulators
     UI pages usually.
     """
+    # This list governs the sequence in which metrics appear in the UI - changing this sequence will change the sequence
+    # in the UI as well
     metric_list = ['total_rewards', 'bowling_rewards', 'batting_rewards', 'fielding_rewards']
     error_metrics = []
     for item in metric_list:
@@ -114,7 +116,12 @@ def get_predictive_simulator(rewards, number_of_scenarios) -> PredictiveSimulato
     return predictive_simulator
 
 
-def get_tournament_simulator(force_initialise) -> TournamentSimulator:
+def get_tournament_simulator(force_initialise: bool) -> TournamentSimulator:
+    """
+    Helper instance to cache & acquire the tournament simulator.
+    @param force_initialise: If true, forces a new instance to be initialised and replaced in the cache.
+    @return An instance of TournamentSimulator which has already generated its scenarios
+    """
     if ('TournamentSimulator' not in st.session_state) or force_initialise:
         tournament_simulator = TournamentSimulator(data_selection_instance(), rewards_instance(), create_utils_object())
         with st.spinner("Generating Scenarios"):
@@ -127,12 +134,28 @@ def get_tournament_simulator(force_initialise) -> TournamentSimulator:
 
     return tournament_simulator
 
-def has_tournament_simulator():
+
+def has_tournament_simulator() -> bool:
+    """
+    Checks if the tournament simulator has already been generated & cached
+    @return True if the simulator is available in the cache, False otherwise
+    """
     return 'TournamentSimulator' in st.session_state
 
-def get_granularity_list():
+
+def get_granularity_list() -> list:
+    """
+    Gets the list of supported granularities
+    """
     return ['None', Granularity.TOURNAMENT, Granularity.STAGE, Granularity.MATCH, Granularity.INNING]
-def show_granularity_metrics(key_suffix, show_error_metrics=True):
+
+
+def show_granularity_metrics(key_suffix: str, show_error_metrics: bool = True):
+    """
+    Streamlit helper function to show the granularity & metrics selection drop downs in the UI
+    @param key_suffix: The name of the key to be tagged to the dropdowns
+    @param show_error_metrics: Indicate if error metrics should be included in the metrics dropdown
+    """
     granularity_select, metric_select = st.columns(2)
 
     with granularity_select:
@@ -151,7 +174,7 @@ def show_granularity_metrics(key_suffix, show_error_metrics=True):
     return granularity, metric, metrics, error_metrics
 
 
-def show_stats(metric, summary_df, indices) -> pd.DataFrame:
+def show_stats(metric: str, summary_df: pd.DataFrame, indices: list) -> pd.DataFrame:
     """
     Calculate the stats for metric across all scenarios. Indices represents the index of the summary_df, and the
     dataframe returned by this function is indexed by the same set of indices.
@@ -177,11 +200,16 @@ def show_stats(metric, summary_df, indices) -> pd.DataFrame:
     return df
 
 
-def show_top_X(metric, total_errors_df, total_errors_index, number_of_players, reference_df=None):
+def show_top_X(metric: str, df: pd.DataFrame, indices: list, number_of_players: int, reference_df: pd.DataFrame=None):
     """
-    Show the top X rows sorted by the metric
+    Show the top X rows sorted by the metric - streamlit helper function which also displays the tables in the UI
+    @param metric: the metric to summarise
+    @param df: the dataframe containing all scenarios of the metric to summarise
+    @param indices: the indices to set for the stats returned
+    @param number_of_players: the number of players to summarise
+    @param reference_df: the reference dataframe to lookup for the name of the players
     """
-    metric_stats_df = show_stats(metric, total_errors_df, total_errors_index)
+    metric_stats_df = show_stats(metric, df, indices)
     if reference_df is not None:
         metric_stats_df = pd.merge(reference_df[['name']], metric_stats_df, left_index=True, right_index=True)
 
@@ -190,8 +218,10 @@ def show_top_X(metric, total_errors_df, total_errors_index, number_of_players, r
                  use_container_width=True)
 
 
-def write_top_X_to_st(max_players, total_errors_df, total_errors_index, reference_df=None,
-                      column_suffix=""):
+def write_top_X_to_st(max_players, df: pd.DataFrame, indices: list, reference_df=None, column_suffix=""):
+    """
+    Helper streamlit function to prepare for & show the top X players
+    """
     # Show the top players
     number_of_players = st.slider("Select the number of top players to show:", min_value=0,
                                   max_value=max_players, value=30)
@@ -200,15 +230,15 @@ def write_top_X_to_st(max_players, total_errors_df, total_errors_index, referenc
 
     with top_players_column:
         st.subheader(f'Top {number_of_players} Players')
-        show_top_X(f'total_rewards{column_suffix}', total_errors_df, total_errors_index,
+        show_top_X(f'total_rewards{column_suffix}', df, indices,
                    number_of_players=number_of_players, reference_df=reference_df)
 
     with top_bowlers_column:
         st.subheader(f'Top {number_of_players} Bowlers')
-        show_top_X(f'bowling_rewards{column_suffix}', total_errors_df, total_errors_index,
+        show_top_X(f'bowling_rewards{column_suffix}', df, indices,
                    number_of_players=number_of_players, reference_df=reference_df)
 
     with top_batters_column:
         st.subheader(f'Top {number_of_players} Batters')
-        show_top_X(f'batting_rewards{column_suffix}', total_errors_df, total_errors_index,
+        show_top_X(f'batting_rewards{column_suffix}', df, indices,
                    number_of_players=number_of_players, reference_df=reference_df)

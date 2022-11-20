@@ -19,6 +19,8 @@ an IPL like tournament. Details on how the simulator works and how to configure 
   * Sample match & player config simulating an IPL are available here:
     * Match config: *resources/prod/app_config/tournament_simulator/example_tournament.csv*
     * Player config: *resources/prod/app_config/tournament_simulator/example_playing_xi.csv*
+* The simulator relies on the training window to build the player universe and calculate featured players. The training 
+window must include all the players who are participating in the simulated tournament.
 
 ## Configuring the match simulator
 * The match simulator configuration is defined in config.toml in .streamlit, and supports the following fields:

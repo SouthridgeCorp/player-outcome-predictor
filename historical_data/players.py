@@ -9,7 +9,11 @@ class Players:
         self.players_df = pd.read_csv(player_file)
         self.players_df.set_index("key")
 
-    def get_players(self):
+    def get_players(self) -> pd.DataFrame:
+        """
+        Returns a copy of all the players that we know about
+        :return: pd.DataFrame listing all the player information available
+        """
         return self.players_df.copy()
 
     def merge_with_players(self, source_df: pd.DataFrame, source_key: str, source_left=False) -> pd.DataFrame:

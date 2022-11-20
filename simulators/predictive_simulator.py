@@ -106,7 +106,6 @@ class PredictiveSimulator:
                     over += 1
                     ball = 1
                     over_changed = True
-                    #logging.debug(f"Playing inning:{inning} and over: {over}")
                 else:
                     over_changed = False
                 if over == 20:
@@ -210,6 +209,9 @@ class PredictiveSimulator:
         return self.simulated_matches_df, self.simulated_innings_df
 
     def calculate_match_winner(self):
+        """
+        Calculate the winner & loser for a match, and update the innings
+        """
         winner_df = self.simulated_innings_df.reset_index().groupby(['scenario_number', 'match_key']).last()
 
         # TODO: Update with logic for ties. Currently the bowling team wins if the scores are tied
@@ -225,6 +227,13 @@ class PredictiveSimulator:
         self.simulated_matches_df = pd.merge(self.simulated_matches_df, winner_df[['winner', 'loser']],
                                              left_index=True, right_index=True)
 
-    def get_rewards(self, scenario, granularity, columns_to_persist=[]):
+    def get_rewards(self, scenario, granularity, columns_to_persist=[]) -> pd.DataFrame:
+        """
+        Returns the rewards dataframe for the specific scenario
+        @param scenario: The scenario # for whcih to return the rewards config for
+        @param granularity: The granularity for calculating the rewards config
+        @param columns_to_persist: The list of columns to persist in the output dataframes
+        @return The rewards dataframe corresponding to the expected scenario
+        """
         return self.perfect_simulators[scenario].get_simulation_evaluation_metrics_by_granularity(
             True, granularity, columns_to_persist=columns_to_persist)

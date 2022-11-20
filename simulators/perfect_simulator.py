@@ -9,7 +9,6 @@ from simulators.utils.outcomes_calculator import get_base_rewards, get_bonus_pen
 from simulators.utils.match_state_utils import setup_data_labels, initialise_match_state, \
     setup_data_labels_with_training, add_missing_columns, calculate_ball_by_ball_stats
 from simulators.utils.utils import aggregate_base_rewards
-from sklearn.metrics import mean_absolute_error as mae, mean_absolute_percentage_error as mape
 
 
 class Granularity:
@@ -234,6 +233,7 @@ class PerfectSimulator:
                     ]
         See `outcomes_by_player_and_innings` subgraph of the computational model
         :param is_testing: Set True if testing data is needed, else set False
+        :param columns_to_persist: The list of columns to persist in the output dataframes
         :return: pd.DataFrame as above"""
 
         innings_df = self.data_selection.get_innings_for_selected_matches(is_testing)
@@ -349,6 +349,7 @@ class PerfectSimulator:
         See `rewards` subgraph of the computational model
         :param is_testing: Set True if testing data is needed, else set False
         :param generate_labels: Set to true if get_outcome_labels labels should be generated, else False
+        :param columns_to_persist: The list of columns to persist in the output dataframes
         :return: pd.DataFrame as above"""
 
         logging.debug("Getting ball & inning outcomes")
@@ -489,6 +490,7 @@ class PerfectSimulator:
         :param perfect_simulator_rewards_ref: A reference to the rewards used as the basis for this calculation. If not
         specified, they are calculated via a call to get_simulation_evaluation_metrics_by_granularity(). Use this as a
         perf optimisation.
+        :param columns_to_persist: The list of columns to persist in the output dataframes
         :return: pd.DataFrame as above
         :raises: Exception if the contender_simulation_evaluation_metrics does not have a matching index
         to the result of self.get_simulation_evaluation_metrics(is_testing,granularity [as implied by the contender df]"""

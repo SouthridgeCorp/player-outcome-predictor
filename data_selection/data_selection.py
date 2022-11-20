@@ -95,7 +95,7 @@ class DataSelection:
         :return: pd.DataFrame listing all playing_xis from matches in selected tournaments in training/testing window
         """
 
-        # Return simulated matches if available
+        # Return simulated playing xi if available
         if is_testing and not self.simulated_playing_xi.empty:
             return self.simulated_playing_xi
 
