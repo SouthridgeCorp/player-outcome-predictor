@@ -5,6 +5,12 @@ import pandas as pd
 from scipy.special import softmax
 from collections import Counter
 
+from data_selection.data_selection import DataSelection
+from historical_data.singleton import Helper
+from inferential_models.batter_runs_models import BatterRunsModel
+from rewards_configuration.rewards_configuration import RewardsConfiguration
+from simulators.perfect_simulator import PerfectSimulator
+
 
 def get_toss_winning_team(row):
     if row['toss_won_by_team1'] == 1:
@@ -239,4 +245,19 @@ def simulate_fake_data():
         [sps.multinomial(1, bowling_outcomes_p_rv[i]).rvs(1)[0] for i in range(full_sample_size)])
     bowling_outcome_rv = np.where(bowling_outcome_encoded_rv == 1)[1]
     yield batter_rv, bowling_outcome_encoded_rv, bowling_outcome_rv
+
+@pytest.fixture
+def batter_runs_model(setup_and_teardown):
+    test_case, config_instance = setup_and_teardown
+    rewards_config = RewardsConfiguration(config_instance)
+
+    helper = Helper(config_instance)
+
+    data_selection = DataSelection(helper)
+
+    simulator = PerfectSimulator(data_selection, rewards_config)
+
+    model = BatterRunsModel(simulator)
+
+    yield model
 
