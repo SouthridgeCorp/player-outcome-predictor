@@ -4,6 +4,8 @@ import numpy as np
 from data_selection.data_selection import DataSelection
 import logging
 
+from inferential_models.batter_runs_models import BatterRunsModel
+
 
 def calculate_bowling_probabilities(all_innings_df) -> pd.DataFrame:
     """
@@ -78,12 +80,15 @@ class Probabilities:
 
 
 class PredictiveUtils:
-    def __init__(self, data_selection: DataSelection):
+    def __init__(self,
+                 data_selection: DataSelection,
+                 batter_runs_model: BatterRunsModel):
         self.data_selection = data_selection
         self.all_innings_df = pd.DataFrame()
         self.all_matches_df = pd.DataFrame()
         self.bowling_probabilities = Probabilities()
         self.featured_player_df = pd.DataFrame()
+        self.batter_runs_model = batter_runs_model
 
         logging.debug("setting up distributions")
         # TODO: These distributions will no longer be required once the inferential model comes into play.
@@ -200,9 +205,13 @@ class PredictiveUtils:
         number_of_balls = len(mask[mask])
 
         # Set up legal delivery batting runs
-        batting_runs = self.batter_runs_distribution.rvs(number_of_balls)
-        matches_df.loc[mask, 'batter_runs'] = np.where(batting_runs == 1)[1]
+        # Sampling from batter runs distribution deprecated in issue#28 in favor of querying the inf. model
+        # batting_runs = self.batter_runs_distribution.rvs(number_of_balls)
+        # matches_df.loc[mask, 'batter_runs'] = np.where(batting_runs == 1)[1]
 
+        match_state_df = matches_df.loc[mask]
+        inferred_batting_runs = self.batter_runs_model.get_batter_runs_given_match_state(match_state_df)
+        matches_df.loc[mask, 'batter_runs'] = inferred_batting_runs['batter_runs'].values
         # set up extras for legal deliveries
         extras_mask = mask & (matches_df['batter_runs'] == 0)
         number_of_balls = len(extras_mask[extras_mask])

@@ -1,4 +1,5 @@
 from data_selection.data_selection import DataSelection
+from inferential_models.batter_runs_models import BatterRunsModel
 from rewards_configuration.rewards_configuration import RewardsConfiguration
 from simulators.utils.predictive_utils import PredictiveUtils, update_match_state
 from simulators.perfect_simulator import PerfectSimulator
@@ -12,15 +13,20 @@ class PredictiveSimulator:
     Predicts the outcomes of the testing set of matches across the specified number of scenarios.
     """
 
-    def __init__(self, data_selection: DataSelection,
+    def __init__(self,
+                 data_selection: DataSelection,
                  rewards_configuration: RewardsConfiguration,
-                 number_of_scenarios, match_columns_to_persist=[], utils=None):
+                 batter_runs_model: BatterRunsModel,
+                 number_of_scenarios,
+                 match_columns_to_persist=[],
+                 utils=None):
         self.data_selection = data_selection
         self.number_of_scenarios = number_of_scenarios
         self.rewards_configuration = rewards_configuration
 
         if utils is None:
-            self.predictive_utils = PredictiveUtils(data_selection)
+            self.predictive_utils = PredictiveUtils(data_selection,
+                                                    batter_runs_model)
         else:
             self.predictive_utils = utils
 
