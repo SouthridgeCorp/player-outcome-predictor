@@ -137,8 +137,7 @@ def innings_strike_rate(df):
     else:
         df['innings_strike_rate'] = df['previous_total'] / (df['over']*6 + df['ball'])
     df['innings_strike_rate'].fillna(0, inplace=True)
-    max_value = np.nanmax(df[['innings_strike_rate']][df['innings_strike_rate'] != np.inf])
-    df['innings_strike_rate'].replace([np.inf, -np.inf], max_value, inplace=True)
+    df['innings_strike_rate'].replace([np.inf, -np.inf], 0, inplace=True)
 
 
 def add_column_to_df(df,
