@@ -1,7 +1,7 @@
 import streamlit as st
 import utils.page_utils as page_utils
 from rewards_configuration.rewards_configuration import RewardsConfiguration
-from utils.app_utils import rewards_instance
+from utils.app_utils import rewards_instance, reset_session_states
 from utils.aggrid_utis import AgGridTable
 import pandas as pd
 from st_aggrid import AgGrid
@@ -25,6 +25,7 @@ def update_bonus_penalty(grid_table: AgGrid,
     """
     df = pd.DataFrame(grid_table['data'])
     set_bonus_penalty_function(df, play_type, bonus_or_penalty)
+    reset_session_states(True)
     st.sidebar.success("Bonus / Penalty values updated successfully")
 
 
@@ -43,6 +44,7 @@ def update_base_rewards(grid_table: AgGrid,
     """
     df = pd.DataFrame(grid_table['data'])
     set_rewards_function(df, play_type)
+    reset_session_states(True)
     st.sidebar.success("Base Rewards updated successfully")
 
 

@@ -29,10 +29,6 @@ config_file_path = "resources/test/app_config/tournament_simulator/AppConfigurat
 
 [[test_case]]
 test_class = "TestTournamentSimulatorMissingDetails"
-config_file_path = "resources/test/app_config/tournament_simulator/AppConfiguration_local_missing_team.toml"
-
-[[test_case]]
-test_class = "TestTournamentSimulatorMissingDetails"
 config_file_path = "resources/test/app_config/tournament_simulator/AppConfiguration_local_missing_player.toml"
 
 [[test_case]]

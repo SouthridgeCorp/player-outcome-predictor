@@ -1,3 +1,5 @@
+import logging
+
 import arviz as az
 import pandas as pd
 import streamlit as st
@@ -90,7 +92,7 @@ def get_metrics_to_show() -> (list, list):
     return metric_list, error_metrics
 
 
-def reset_session_states():
+def reset_session_states(reset_rewards=True):
     """
     To be called whenever a major change requires a session state reset. Keep updating this function as and when new
     session objects are added.
@@ -100,6 +102,8 @@ def reset_session_states():
 
     if 'TournamentSimulator' in st.session_state:
         del st.session_state['TournamentSimulator']
+    if reset_rewards:
+        reset_rewards_cache()
 
 
 def get_predictive_simulator(rewards, number_of_scenarios) -> PredictiveSimulator:
@@ -179,6 +183,8 @@ def show_stats(metric: str, summary_df: pd.DataFrame, indices: list) -> pd.DataF
     Calculate the stats for metric across all scenarios. Indices represents the index of the summary_df, and the
     dataframe returned by this function is indexed by the same set of indices.
     """
+    logging.debug(f"Calculating stats for '{metric}'")
+
     summary_xarray = summary_df[metric].to_xarray()
     summary_xarray = summary_xarray.fillna(0.0)
     df = az.summary(summary_xarray)
@@ -242,3 +248,27 @@ def write_top_X_to_st(max_players, df: pd.DataFrame, indices: list, reference_df
         st.subheader(f'Top {number_of_players} Batters')
         show_top_X(f'batting_rewards{column_suffix}', df, indices,
                    number_of_players=number_of_players, reference_df=reference_df)
+
+
+def reset_rewards_cache():
+    """
+    Reset the cache for all granularities
+    """
+    for granularity in get_granularity_list():
+        if f'TournamentRewards_{granularity}' in st.session_state:
+            del st.session_state[f'TournamentRewards_{granularity}']
+
+
+def get_rewards(tournament_simulator, granularity, regenerate):
+    """
+    Gets the rewards from the current tournament simulator. This function uses a cache to improve the usability of the
+    page, but the cache can be invalidated via the 'regenerate' parameter.
+    """
+    if not regenerate and (f'TournamentRewards_{granularity}' in st.session_state):
+        return st.session_state[f'TournamentRewards_{granularity}']
+
+    logging.debug("Running the function call")
+    rewards_list = tournament_simulator.get_rewards(granularity)
+    st.session_state[f'TournamentRewards_{granularity}'] = rewards_list
+
+    return rewards_list
