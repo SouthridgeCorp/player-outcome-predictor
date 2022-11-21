@@ -9,7 +9,6 @@ from simulators.utils.outcomes_calculator import get_base_rewards, get_bonus_pen
 from simulators.utils.match_state_utils import setup_data_labels, initialise_match_state, \
     setup_data_labels_with_training, add_missing_columns, calculate_ball_by_ball_stats
 from simulators.utils.utils import aggregate_base_rewards
-from sklearn.metrics import mean_absolute_error as mae, mean_absolute_percentage_error as mape
 
 
 class Granularity:
@@ -223,7 +222,7 @@ class PerfectSimulator:
         return df
 
     def get_outcomes_by_player_and_innings(self,
-                                           is_testing: bool) -> pd.DataFrame:
+                                           is_testing: bool, columns_to_persist=[]) -> pd.DataFrame:
         """Returns a dataframe representing all get_outcome_labels at a player and innings level for the train/test dataset
         df schema:
             index: [match_key, innings, team_id, player_id]
@@ -234,6 +233,7 @@ class PerfectSimulator:
                     ]
         See `outcomes_by_player_and_innings` subgraph of the computational model
         :param is_testing: Set True if testing data is needed, else set False
+        :param columns_to_persist: The list of columns to persist in the output dataframes
         :return: pd.DataFrame as above"""
 
         innings_df = self.data_selection.get_innings_for_selected_matches(is_testing)
@@ -270,7 +270,7 @@ class PerfectSimulator:
         outcomes_df = pd.DataFrame(data=outcomes_list)
         index_columns = ['match_key', 'inning', 'team', 'player_key']
 
-        outcomes_df = pd.merge(outcomes_df, matches_df[['key', 'tournament_key', 'stage']],
+        outcomes_df = pd.merge(outcomes_df, matches_df[['key', 'tournament_key', 'stage'] + columns_to_persist],
                                left_on='match_key', right_on='key')
         outcomes_df.drop('key', axis=1, inplace=True)
 
@@ -321,7 +321,7 @@ class PerfectSimulator:
         return innings_outcomes_df
 
     def get_rewards_components(self,
-                               is_testing: bool, generate_labels=False) -> (pd.DataFrame, pd.DataFrame):
+                               is_testing: bool, generate_labels=False, columns_to_persist=[]) -> (pd.DataFrame, pd.DataFrame):
         """Returns 2 dataframes:
         base_rewards_by_ball_and_innings: represents base rewards of all types calculated at a ball and innings level
         for the train/test dataset
@@ -349,15 +349,25 @@ class PerfectSimulator:
         See `rewards` subgraph of the computational model
         :param is_testing: Set True if testing data is needed, else set False
         :param generate_labels: Set to true if get_outcome_labels labels should be generated, else False
+        :param columns_to_persist: The list of columns to persist in the output dataframes
         :return: pd.DataFrame as above"""
 
+        logging.debug("Getting ball & inning outcomes")
         outcomes_df = self.get_outcomes_by_ball_and_innings(is_testing, generate_labels)
+
+        logging.debug("Calculating base rewards")
         outcomes_df['batter_base_rewards'], outcomes_df['non_striker_base_rewards'], \
         outcomes_df['bowling_base_rewards'], outcomes_df['fielding_base_rewards'] = zip(*outcomes_df.apply(
             lambda x: get_base_rewards(x, self.rewards_configuration), axis=1))
 
-        bonus_penalty_df = self.get_outcomes_by_player_and_innings(is_testing)
+        logging.debug("Getting player outcomes by innings")
+
+        bonus_penalty_df = self.get_outcomes_by_player_and_innings(is_testing, columns_to_persist=columns_to_persist)
+
+        logging.debug("Calculating outcomes by team and innings")
         team_stats_df = self.get_outcomes_by_team_and_innings(is_testing, bonus_penalty_df)
+
+        logging.debug("Aggregating base rewards")
 
         # Calculate cumulative base rewards per player
         base_rewards_per_player_dict = {}
@@ -380,6 +390,8 @@ class PerfectSimulator:
         base_rewards_per_player_df.set_index(index_columns, inplace=True, verify_integrity=True)
         base_rewards_per_player_df = base_rewards_per_player_df.sort_values(index_columns)
 
+        logging.debug("Calculating bonus / penalty")
+
         bonus_penalty_df = pd.merge(bonus_penalty_df,
                                     base_rewards_per_player_df[['batter_base_rewards',
                                                                 'fielding_base_rewards', 'bowling_base_rewards']],
@@ -396,11 +408,14 @@ class PerfectSimulator:
         bonus_penalty_df['batting_rewards'], bonus_penalty_df['fielding_rewards'] = zip(*bonus_penalty_df.apply(
             lambda x: get_bonus_penalty(x, self.rewards_configuration), axis=1))
 
+        logging.debug("DONE with rewards")
+
         return outcomes_df, bonus_penalty_df
 
     def get_simulation_evaluation_metrics_by_granularity(self,
                                                          is_testing: bool,
-                                                         granularity: str) -> pd.DataFrame:
+                                                         granularity: str,
+                                                         columns_to_persist=[]) -> pd.DataFrame:
         """Returns a dataframe representing all rewards for a player at the chosen granularity level:
         df schema:
             index: [player_key,
@@ -422,9 +437,10 @@ class PerfectSimulator:
         :return: pd.DataFrame as above"""
 
         logging.debug("Getting rewards components")
-        base_rewards_df, bonus_penalty_df = self.get_rewards_components(is_testing)
+        base_rewards_df, bonus_penalty_df = self.get_rewards_components(is_testing,
+                                                                        columns_to_persist=columns_to_persist)
 
-        group_by_columns = get_index_columns(granularity)
+        group_by_columns = get_index_columns(granularity) + columns_to_persist
         rewards_df = pd.DataFrame()
 
         logging.debug(f"Calculating total rewards for {bonus_penalty_df.shape}")
@@ -434,6 +450,7 @@ class PerfectSimulator:
                           'bowling_rewards': g_df['bowling_rewards'].sum(),
                           'batting_rewards': g_df['batting_rewards'].sum(),
                           'fielding_rewards': g_df['fielding_rewards'].sum()}
+
             input_dict['total_rewards'] = input_dict['bowling_rewards'] + input_dict['batting_rewards'] \
                                           + input_dict['fielding_rewards']
             i = 0
@@ -453,7 +470,8 @@ class PerfectSimulator:
                            is_testing: bool,
                            contender_simulation_evaluation_metrics: pd.DataFrame,
                            granularity,
-                           perfect_simulator_rewards_ref=None) -> pd.DataFrame:
+                           perfect_simulator_rewards_ref=None,
+                           columns_to_persist=[]) -> pd.DataFrame:
         """Returns a dataframe representing error measures between this simulator's simulation_evaluation_metrics
         and a contender simulators simulation evaluation metrics.
         df schema:
@@ -472,6 +490,7 @@ class PerfectSimulator:
         :param perfect_simulator_rewards_ref: A reference to the rewards used as the basis for this calculation. If not
         specified, they are calculated via a call to get_simulation_evaluation_metrics_by_granularity(). Use this as a
         perf optimisation.
+        :param columns_to_persist: The list of columns to persist in the output dataframes
         :return: pd.DataFrame as above
         :raises: Exception if the contender_simulation_evaluation_metrics does not have a matching index
         to the result of self.get_simulation_evaluation_metrics(is_testing,granularity [as implied by the contender df]"""
@@ -480,8 +499,8 @@ class PerfectSimulator:
         if perfect_simulator_rewards_ref is not None:
             perfect_simulator_rewards_df = perfect_simulator_rewards_ref.copy()
         else:
-            perfect_simulator_rewards_df = self.get_simulation_evaluation_metrics_by_granularity(is_testing,
-                                                                                                 granularity)
+            perfect_simulator_rewards_df = self.get_simulation_evaluation_metrics_by_granularity(
+                is_testing, granularity, columns_to_persist=columns_to_persist)
         logging.debug("Received baseline data and comparing errors")
 
         # Make sure the two dataframes are always the same shape. This merge ensures the same number of

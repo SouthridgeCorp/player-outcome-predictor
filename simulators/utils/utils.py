@@ -16,4 +16,3 @@ def aggregate_base_rewards(outcomes_df, team_label, player_label, base_rewards_l
             total_rewards += player_dict[base_rewards_label_target]
 
         player_dict[base_rewards_label_target] = total_rewards
-
