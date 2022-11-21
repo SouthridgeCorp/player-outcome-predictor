@@ -23,7 +23,8 @@ class MatchState:
         self.target_balls = -1
         self.initialise_for_innings()
 
-        self.player_label_mapping = {}
+        # TODO: Blocking the frequent player mapping till we figure out a good way to use it
+        #self.player_label_mapping = {}
 
         self.update_frequent_players()
 
@@ -107,6 +108,10 @@ class MatchState:
         """
         Maintain a mapping of the frequent players labels which are used to build out the dictionary
         """
+
+        pass
+        # TODO: Blocking the frequent player mapping till we figure out a good way to use it
+        '''
         featured_players = self.predictive_utils.featured_player_df[
             self.predictive_utils.featured_player_df.index.isin(self.bowling_playing_xi + self.batting_playing_xi)]
 
@@ -116,6 +121,7 @@ class MatchState:
                 self.player_label_mapping[player] = player
             else:
                 self.player_label_mapping[player] = "non_frequent_player"
+        '''
 
     def initialise_for_innings(self):
         self.over = -1
@@ -217,9 +223,13 @@ class MatchState:
                 'ball': self.ball,
                 'previous_total': self.previous_total,
                 'previous_number_of_wickets': self.previous_num_wickets,
-                'bowler': self.player_label_mapping[self.bowler],
-                'batter': self.player_label_mapping[self.batter],
-                'non_striker': self.player_label_mapping[self.non_striker],
+                # TODO: Blocking the frequent player mapping till we figure out a good way to use it
+                #'bowler': self.player_label_mapping[self.bowler],
+                #'batter': self.player_label_mapping[self.batter],
+                #'non_striker': self.player_label_mapping[self.non_striker],
+                'bowler': self.bowler,
+                'batter': self.batter,
+                'non_striker': self.non_striker,
                 'target_runs': self.target_runs,
                 'target_balls': self.target_balls
                 }
