@@ -18,3 +18,23 @@ config_file_path = "resources/test/app_config/AppConfiguration_local.toml"
 [[test_case]]
 test_class = "TestPredictiveSimulator"
 config_file_path = "resources/test/app_config/AppConfiguration_local.toml"
+
+[[test_case]]
+test_class = "TestTournamentSimulatorValidation"
+config_file_path = "resources/test/app_config/AppConfiguration_local.toml"
+
+[[test_case]]
+test_class = "TestTournamentSimulatorMissingDetails"
+config_file_path = "resources/test/app_config/tournament_simulator/AppConfiguration_local_missing_venue.toml"
+
+[[test_case]]
+test_class = "TestTournamentSimulatorMissingDetails"
+config_file_path = "resources/test/app_config/tournament_simulator/AppConfiguration_local_missing_team.toml"
+
+[[test_case]]
+test_class = "TestTournamentSimulatorMissingDetails"
+config_file_path = "resources/test/app_config/tournament_simulator/AppConfiguration_local_missing_player.toml"
+
+[[test_case]]
+test_class = "TestTournamentSimulatorMissingDetails"
+config_file_path = "resources/test/app_config/tournament_simulator/AppConfiguration_local_missing_player.toml"

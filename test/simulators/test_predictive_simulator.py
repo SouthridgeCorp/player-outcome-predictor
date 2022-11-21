@@ -136,6 +136,16 @@ class TestPredictiveSimulator:
                 bowler2 = innings_df.query(f"over == {i+1} and ball == 1").iloc[0]["bowler"]
                 assert bowler1 != bowler2 if bowler1 != 'non_frequent_player' else True
 
+            if inning == 2:
+                winner = predictive_simulator.simulated_matches_df.loc[(scenario, match_key)]['winner']
+                batting_runs = innings_df.iloc[-1]['total_runs'] + innings_df.iloc[-1]['previous_total']
+                target_runs = innings_df.iloc[-1]['target_runs']
+                assert winner in [bowling_team, batting_team]
+                if winner == bowling_team:
+                    assert batting_runs < target_runs
+                else:
+                    assert batting_runs >= target_runs
+
     @pytest.mark.parametrize('granularity', ['tournament', 'tournament_stage', 'match', 'innings'])
     def test_get_error_measures_predictive_simulator(self, predictive_simulator, granularity):
 

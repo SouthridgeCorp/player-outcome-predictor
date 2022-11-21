@@ -12,12 +12,9 @@ repo_path="resources/test/app_config/rewards_configuration"
 generated_path="data/generated/test/rewards"
 file_name = "rewards.csv"
 
-[player_outcome_predictor.predictive_simulator]
-number_of_scenarios=3
-
 [player_outcome_predictor.tournament_simulator]
-number_of_scenarios=3
-data_path="resources/test/app_config/tournament_simulator/good"
+number_of_scenarios=4
+data_path="resources/test/app_config/tournament_simulator/missing_venue"
 matches_file_name='example_tournament.csv'
 playing_xi_file_name='example_playing_xi.csv'
 

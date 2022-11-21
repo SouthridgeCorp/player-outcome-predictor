@@ -1,8 +1,8 @@
 import streamlit as st
 
 import utils.page_utils as page_utils
-from simulators.perfect_simulator import Granularity, PerfectSimulator
-from utils.app_utils import data_selection_instance, rewards_instance, data_selection_summary, get_metrics_to_show
+from simulators.perfect_simulator import PerfectSimulator
+from utils.app_utils import data_selection_instance, rewards_instance, data_selection_summary, show_granularity_metrics
 from rewards_configuration.rewards_configuration import RewardsConfiguration
 import pandas as pd
 
@@ -31,17 +31,7 @@ def app():
     # Show a summary of selected training & testing windows
     data_selection_summary(tournaments)
 
-    granularity_select, metric_select = st.columns(2)
-
-    with granularity_select:
-        granularity_list = ['None', Granularity.TOURNAMENT, Granularity.STAGE, Granularity.MATCH, Granularity.INNING]
-        granularity = st.selectbox("Please select the granularity for reviewing Simulator stats",
-                                   granularity_list, key="perfect_model_granularity")
-
-    with metric_select:
-        metrics, error_metrics = get_metrics_to_show()
-        metrics_to_show = metrics + error_metrics
-        metric = st.selectbox("Please select the metric to review", metrics_to_show, key="perfect_model_metric")
+    granularity, metric, metrics, error_metrics = show_granularity_metrics("perfect")
 
     if granularity == 'None':
         st.write("Please select a valid Granularity")
