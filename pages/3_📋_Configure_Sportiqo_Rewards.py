@@ -25,7 +25,7 @@ def update_bonus_penalty(grid_table: AgGrid,
     """
     df = pd.DataFrame(grid_table['data'])
     set_bonus_penalty_function(df, play_type, bonus_or_penalty)
-    reset_session_states(True)
+    reset_session_states(False)
     st.sidebar.success("Bonus / Penalty values updated successfully")
 
 
@@ -44,7 +44,7 @@ def update_base_rewards(grid_table: AgGrid,
     """
     df = pd.DataFrame(grid_table['data'])
     set_rewards_function(df, play_type)
-    reset_session_states(True)
+    reset_session_states(False)
     st.sidebar.success("Base Rewards updated successfully")
 
 

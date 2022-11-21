@@ -92,7 +92,7 @@ def get_metrics_to_show() -> (list, list):
     return metric_list, error_metrics
 
 
-def reset_session_states(reset_rewards=True):
+def reset_session_states(reset_tournament_simulator=True):
     """
     To be called whenever a major change requires a session state reset. Keep updating this function as and when new
     session objects are added.
@@ -100,10 +100,11 @@ def reset_session_states(reset_rewards=True):
     if 'PredictiveSimulator' in st.session_state:
         del st.session_state['PredictiveSimulator']
 
-    if 'TournamentSimulator' in st.session_state:
-        del st.session_state['TournamentSimulator']
-    if reset_rewards:
-        reset_rewards_cache()
+    if reset_tournament_simulator:
+        if 'TournamentSimulator' in st.session_state:
+            del st.session_state['TournamentSimulator']
+
+    reset_rewards_cache()
 
 
 def get_predictive_simulator(rewards, number_of_scenarios) -> PredictiveSimulator:
