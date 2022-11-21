@@ -1,4 +1,6 @@
 import pytest
+
+from inferential_models.batter_runs_models import BatterRunsModel
 from rewards_configuration.rewards_configuration import RewardsConfiguration
 from data_selection.data_selection import DataSelection
 from historical_data.singleton import Helper
@@ -31,7 +33,14 @@ def predictive_simulator(setup_and_teardown):
 
     number_of_scenarios = config_instance.get_predictive_simulator_info()
 
-    simulator = PredictiveSimulator(data_selection, rewards_config, number_of_scenarios)
+    perf_simulator = PerfectSimulator(data_selection, rewards_config)
+
+    batter_runs_model = BatterRunsModel(perf_simulator)
+
+    simulator = PredictiveSimulator(data_selection,
+                                    rewards_config,
+                                    batter_runs_model,
+                                    number_of_scenarios)
     yield simulator
 
 
