@@ -38,13 +38,13 @@ class Tournaments:
         self.last_match_date = self.df["last_match_date"].max()
 
         # Set default limits for training & testing date ranges
+        self.training_selected_tournaments = []
         self.training_start = self.first_match_date
         self.training_end = self.last_match_date
-        self.testing_start = self.first_match_date
-        self.testing_end = self.last_match_date
 
         # represents the selected set of tournaments, based on user selection
-        self.selected = []
+        self.testing_selected_tournament = ""
+        self.testing_selected_seasons = []
 
         # Populate the artefacts related to the tournament
         tournaments = self.df["key"].to_list()
@@ -55,18 +55,15 @@ class Tournaments:
         self.all_innings = self.get_all_innings()
         self.all_matches = self.get_all_matches()
 
-    def get_start_end_dates(self, is_testing) -> (datetime.date, datetime.date):
+    def get_training_start_end_dates(self) -> (datetime.date, datetime.date):
         """
         Get the start / end dates set in the Tournaments object
         :param is_testing: True for testing, False for training
         :return: A tuple of 2 dates
         """
-        if is_testing:
-            return self.testing_start, self.testing_end
-        else:
-            return self.training_start, self.training_end
+        return self.training_start, self.training_end
 
-    def set_start_end_dates(self, start_date: datetime.date, end_date: datetime.date, is_testing):
+    def set_training_start_end_date(self, start_date: datetime.date, end_date: datetime.date):
         """
         Sets the testing window
         :param start_date: The start date to be set
@@ -74,34 +71,48 @@ class Tournaments:
         :param is_testing: True for testing, False for training
         :return: None
         """
-        if is_testing:
-            self.testing_start = start_date
-            self.testing_end = end_date
-        else:
-            self.training_start = start_date
-            self.training_end = end_date
+        self.training_start = start_date
+        self.training_end = end_date
 
-    def get_selected_tournaments(self) -> list:
+    def get_selected_training_tournaments(self) -> list:
         """
         Gets the list of selected tournaments
         :return: A list of tournaments
         """
-        return self.selected
+        return self.training_selected_tournaments
 
-    def get_selected_tournament_names(self) -> list:
+    def get_selected_training_tournament_names(self) -> list:
         """
         Gets the list of selected tournaments
         :return: A list of tournaments
         """
-        return self.df[self.df["key"].isin(self.selected)]["name"].tolist()
+        tournaments = self.get_selected_tournaments()
+        return self.df[self.df["key"].isin(tournaments)]["name"].tolist()
 
-    def set_selected_tournament_names(self, selected_names: list):
+    def set_training_selected_tournament_names(self, selected_names: list):
         """
         Set the selected tournament details based on user selection
         :param selected_names: The names of tournaments that have been selected
         :return: None
         """
-        self.selected = self.df[self.df["name"].isin(selected_names)]["key"].tolist()
+        self.training_selected_tournaments = self.df[self.df["name"].isin(selected_names)]["key"].tolist()
+
+    def set_testing_details(self, tournament, list_of_seasons):
+        """
+        Set the selected tournament details based on user selection
+        :param selected_names: The names of tournaments that have been selected
+        :return: None
+        """
+        self.testing_selected_tournament = self.df[self.df["name"] == tournament].iloc[0]['key']
+        self.testing_selected_seasons = list_of_seasons
+
+    def get_testing_details(self):
+        """
+        Set the selected tournament details based on user selection
+        :param selected_names: The names of tournaments that have been selected
+        :return: None
+        """
+        return self.testing_selected, self.testing_selected_seasons
 
     def matches(self, tournament):
         """
@@ -156,3 +167,95 @@ class Tournaments:
         Returns copies of the pre-cached version of all matches & innings
         """
         return self.all_matches.copy(), self.all_innings.copy()
+
+    def get_selected_matches(self, is_testing: bool) -> pd.DataFrame:
+        if is_testing:
+            return self.matches(self.testing_selected_tournament).get_selected_matches_by_seasons(
+                self.testing_selected_seasons)
+        else:
+            start_date, end_date = self.get_training_start_end_dates()
+
+            selected_matches_list = []
+            for tournament in self.training_selected_tournaments:
+                matches = self.matches(tournament).get_selected_matches(start_date, end_date)
+                selected_matches_list.append(matches)
+            selected_matches_df = pd.concat(selected_matches_list)
+            return selected_matches_df
+
+    def get_selected_innings(self, is_testing: bool) -> pd.DataFrame:
+        if is_testing:
+            match_keys = self.matches(self.testing_selected_tournament).\
+                get_selected_match_keys_by_seasons(self.testing_selected_seasons)
+            return self.innings(self.testing_selected_tournament).get_innings_from_match_list(match_keys)
+        else:
+
+            innings_list = []
+            start_date, end_date = self.get_training_start_end_dates()
+
+            for tournament in self.training_selected_tournaments:
+                matches = self.matches(tournament)
+                match_keys = matches.get_selected_match_keys(start_date, end_date)
+                innings_list.append(self.innings(tournament).get_innings_from_match_list(match_keys))
+
+            innings_df = pd.concat(innings_list)
+            return innings_df
+
+    def get_selected_teams(self, is_testing: bool) -> list:
+
+        if is_testing:
+            return self.matches(self.testing_selected_tournament).get_selected_teams_by_season(
+                self.testing_selected_seasons)
+        else:
+            start_date, end_date = self.get_training_start_end_dates()
+            selected_teams = []
+            for tournament in self.training_selected_tournaments:
+                match = self.matches(tournament)
+                selected_teams += match.get_selected_teams(start_date, end_date)
+
+            return list(set(selected_teams))
+
+    def get_selected_playing_xi(self, is_testing: bool) -> list:
+
+        if is_testing:
+            playing_xi_list = []
+            matches = self.matches(self.testing_selected_tournament)
+            match_keys = matches.get_selected_match_keys_by_seasons(self.testing_selected_seasons)
+            for key in match_keys:
+                team1, team2 = matches.get_teams(key)
+                playing_xi_list.append(
+                    self.playing_xi(self.testing_selected_tournament).get_playing_xi(key, team1))
+                playing_xi_list.append(
+                    self.playing_xi(self.testing_selected_tournament).get_playing_xi(key, team2))
+        else:
+            playing_xi_list = []
+            start_date, end_date = self.get_training_start_end_dates()
+
+            for tournament in self.training_selected_tournaments:
+                matches = self.matches(tournament)
+                match_keys = matches.get_selected_match_keys(start_date, end_date)
+                for key in match_keys:
+                    team1, team2 = matches.get_teams(key)
+                    playing_xi_list.append(
+                        self.playing_xi(tournament).get_playing_xi(key, team1))
+                    playing_xi_list.append(
+                        self.playing_xi(tournament).get_playing_xi(key, team2))
+
+        if len(playing_xi_list) > 0:
+            playing_xi_df = pd.concat(playing_xi_list)
+        else:
+            playing_xi_df = pd.DataFrame()
+        return playing_xi_df
+
+    def get_selected_venues(self, is_testing: bool) -> list:
+
+        if is_testing:
+            return self.matches(self.testing_selected_tournament).get_selected_teams_by_season(
+                self.testing_selected_seasons)
+        else:
+            start_date, end_date = self.get_training_start_end_dates()
+            selected_venues = []
+            for tournament in self.training_selected_tournaments:
+                match = self.matches(tournament)
+                selected_venues += match.get_selected_venues(start_date, end_date)
+
+            return list(set(selected_venues))

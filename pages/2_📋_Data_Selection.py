@@ -78,20 +78,16 @@ def app():
     data_selection = data_selection_instance()
     tournaments = data_selection.get_helper().tournaments
 
-    tournament_selector, training_column, testing_column = st.columns(3, gap="large")
+    testing_column, training_column = st.columns(2, gap="large")
 
-    with tournament_selector:
-        st.header("Select the Tournaments ")
-        default_values = tournaments.get_selected_tournament_names()
-        st.multiselect("Please select tournaments for training & testing", tournaments.df["name"].to_list(),
-                       default=default_values, on_change=on_tournament_change, args=([tournaments])
-                       , key="tournaments")
+    with testing_column:
+        tournaments = tournaments.df["name"].to_list()
+        tournament = st.selectbox("Select the Testing window", tournaments, key="testing_tournaments")
+
 
     with training_column:
         set_start_end_date(False, tournaments)
 
-    with testing_column:
-        set_start_end_date(True, tournaments)
 
     st.header("List of tournaments available for training & testing")
 

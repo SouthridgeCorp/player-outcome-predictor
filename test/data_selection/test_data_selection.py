@@ -6,16 +6,17 @@ from datetime import datetime
 import csv
 
 
-def prepare_for_tests(data_selection_instance, is_testing):
+def prepare_tests(data_selection_instance, is_testing):
     tournaments = data_selection_instance.historical_data_helper.tournaments
 
-    tournaments.set_selected_tournament_names(["Big Bash League", "Afghanistan Premier League"])
-    start_date = datetime.strptime("01/01/2018", "%d/%m/%Y").date()
-    end_date = datetime.strptime("31/12/2018", "%d/%m/%Y").date()
+    if is_testing:
+        tournaments.set_testing_details("Big Bash League", ["2017/18", "2018/19"])
+    else:
+        tournaments.set_training_selected_tournament_names(["Big Bash League", "Afghanistan Premier League"])
+        start_date = datetime.strptime("01/01/2018", "%d/%m/%Y").date()
+        end_date = datetime.strptime("31/12/2018", "%d/%m/%Y").date()
 
-    tournaments.set_start_end_dates(start_date, end_date, is_testing)
-
-    return start_date, end_date
+        tournaments.set_training_start_end_date(start_date, end_date)
 
 
 @pytest.mark.parametrize(
@@ -27,14 +28,14 @@ class TestDataSelection:
 
     @pytest.mark.parametrize('is_testing', [True, False])
     def test_selected_matches(self, data_selection_instance: DataSelection, is_testing):
-        prepare_for_tests(data_selection_instance, is_testing)
+        prepare_tests(data_selection_instance, is_testing)
         selected_matches = data_selection_instance.get_selected_matches(is_testing)
 
         assert len(selected_matches) == 47
 
     @pytest.mark.parametrize('is_testing', [True, False])
     def test_playing_xi(self, data_selection_instance: DataSelection, is_testing):
-        prepare_for_tests(data_selection_instance, is_testing)
+        prepare_tests(data_selection_instance, is_testing)
 
         playing_xi = data_selection_instance.get_playing_xi_for_selected_matches(is_testing)
         expected_columns = ["team", "match_key", "player_key"]
@@ -44,7 +45,7 @@ class TestDataSelection:
 
     @pytest.mark.parametrize('is_testing', [True, False])
     def test_innings(self, data_selection_instance: DataSelection, is_testing):
-        start_date, end_date = prepare_for_tests(data_selection_instance, is_testing)
+        prepare_tests(data_selection_instance, is_testing)
 
         innings = data_selection_instance.get_innings_for_selected_matches(is_testing)
         expected_columns = ['match_key', 'inning', 'over', 'ball', 'batting_team', 'batter', 'bowler', 'non_striker',
@@ -64,7 +65,7 @@ class TestDataSelection:
     def test_player_universe(self, setup_and_teardown, data_selection_instance: DataSelection):
         test_case, config_instance = setup_and_teardown
         input_dir = config_instance.get_input_directory()
-        start_date, end_date = prepare_for_tests(data_selection_instance, False)
+        prepare_tests(data_selection_instance, False)
         df = data_selection_instance.get_frequent_players_universe()
 
         team_set = set()
