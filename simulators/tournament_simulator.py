@@ -41,7 +41,7 @@ class TournamentSimulator:
         expected_teams = set(matches_df['team1'].unique().tolist() + matches_df['team2'].unique().tolist())
 
         if not received_teams.issubset(expected_teams):
-            raise ValueError(f"Couldn't find some teams in the historical data.\n"
+            logging.debug(f"Couldn't find some teams in the historical data.\n"
                              f"Received: {received_teams}\n"
                              f"Expected: {expected_teams}")
 
@@ -339,6 +339,7 @@ class TournamentSimulator:
 
         first_non_group_rewards_df = self.first_non_group_matches_predictive_simulator.get_rewards(
             0, granularity, columns_to_persist=columns_to_persist)
+
 
         logging.debug("Getting Q2 Rewards")
         second_non_group_rewards_df = self.second_non_group_matches_predictive_simulator.get_rewards(

@@ -208,7 +208,11 @@ class DataSelection:
 
         # Calculate featured player
         df = df.assign(best_rank=lambda x: x[columns].min(axis=1))
-        df = df.assign(featured_player=lambda x: df['best_rank'] <= 11)
+
+        # TODO: Blocking the frequent player mapping till we figure out a good way to use it
+        #df = df.assign(featured_player=lambda x: df['best_rank'] <= 11)
+        df['featured_player'] = True
+
         df = self.merge_with_players(df, 'player_key')
         df.set_index('player_key', inplace=True)
         df = df.sort_values('player_key')

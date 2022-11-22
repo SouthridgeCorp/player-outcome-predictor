@@ -1,32 +1,9 @@
 import streamlit as st
 import utils.page_utils as page_utils
 from utils.app_utils import data_selection_instance, data_selection_summary, show_granularity_metrics, \
-    show_stats, write_top_X_to_st, get_tournament_simulator, has_tournament_simulator, get_granularity_list
+    show_stats, write_top_X_to_st, get_tournament_simulator, has_tournament_simulator, reset_rewards_cache, get_rewards
 import logging
-
-
-def reset_rewards_cache():
-    """
-    Reset the cache for all granularities
-    """
-    for granularity in get_granularity_list():
-        if f'TournamentRewards_{granularity}' in st.session_state:
-            del st.session_state[f'TournamentRewards_{granularity}']
-
-
-def get_rewards(tournament_simulator, granularity, regenerate):
-    """
-    Gets the rewards from the current tournament simulator. This function uses a cache to improve the usability of the
-    page, but the cache can be invalidated via the 'regenerate' parameter.
-    """
-    if not regenerate and (f'TournamentRewards_{granularity}' in st.session_state):
-        return st.session_state[f'TournamentRewards_{granularity}']
-
-    logging.debug("Running the function call")
-    rewards_list = tournament_simulator.get_rewards(granularity)
-    st.session_state[f'TournamentRewards_{granularity}'] = rewards_list
-
-    return rewards_list
+import pandas as pd
 
 
 def display_data(tournament_simulator, data_selection, regenerate):
@@ -67,6 +44,10 @@ def display_data(tournament_simulator, data_selection, regenerate):
         if len(all_rewards_df.index) > 0:
             # Get the overall metrics stats
             metric_stats_df = show_stats(metric, all_rewards_df, indices)
+            number_of_matches_stats_df = show_stats('number_of_matches', all_rewards_df, indices)
+
+            metric_stats_df = pd.merge(metric_stats_df,
+                                       number_of_matches_stats_df['number_of_matches'], left_index=True, right_index=True)
 
             # Add the player names back
             metric_stats_df = data_selection.merge_with_players(metric_stats_df.reset_index(), 'player_key')
@@ -74,11 +55,13 @@ def display_data(tournament_simulator, data_selection, regenerate):
 
             # Sort & display the grid
             metric_stats_df = metric_stats_df.sort_values(f'{metric}', ascending=False)
-            st.dataframe(metric_stats_df[['name', f'{metric}', 'sd', 'hdi_3%', 'hdi_97%']],
+            st.dataframe(metric_stats_df.query("number_of_matches > 0.0")
+                         [['name', 'number_of_matches', f'{metric}', 'sd', 'hdi_3%', 'hdi_97%']],
                          use_container_width=True)
 
             # Show top X players
-            number_of_players = len(metric_stats_df.index)
+            df_length = len(metric_stats_df.index)
+            number_of_players = df_length if df_length < 50 else 50
             write_top_X_to_st(number_of_players, all_rewards_df, indices, column_suffix="", reference_df=reference_df)
         else:
             st.write("Could not find any rewards metrics to report")
