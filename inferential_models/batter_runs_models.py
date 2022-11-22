@@ -1,10 +1,15 @@
 import numpy as np
 import pandas as pd
 import pymc as pm
+from pymc.util import dataset_to_point_list
 from sklearn.preprocessing import OneHotEncoder
 import aesara.tensor as at
 from simulators.perfect_simulator import PerfectSimulator
 import pickle
+import logging
+
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 RANDOM_SEED = 8265
 
@@ -195,6 +200,7 @@ class BatterRunsModel:
         self.idata_trained = load_idata_trained(
             "batter_runs_model/bayesian_inference/Indian Premier League_2009_and_selection_with_SR"
         )
+        self.posterior_point_list = dataset_to_point_list(self.idata_trained.posterior)
         self.pymc_model = get_batter_runs_model(self.idata_trained)
 
     def prepare_for_prediction(self,
@@ -216,17 +222,26 @@ class BatterRunsModel:
 
     def get_batter_runs_given_match_state(self,
                                           match_state_df):
+
         test_combined_df = prepare_match_state_df(match_state_df.reset_index(),
                                                   self.idata_trained)
+        logger.info(f'Received match state with {test_combined_df.shape[0]} balls for inference')
         self.prepare_for_prediction(test_combined_df)
+        logger.info(f'Prepared for inference for {test_combined_df.shape[0]} balls')
         with self.pymc_model:
             idata_predicted = pm.sample_posterior_predictive(
-                self.idata_trained,
+                self.posterior_point_list,
                 predictions=True,
                 extend_inferencedata=False,
                 random_seed=RANDOM_SEED,
             )
-        predictions_xarray,predictions_df = predictions_from_idata(idata_predicted,
-                                                                   'batter_runs_outcome_by_ball_and_innings_rv')
+        logger.info(f'Formatting inference for {test_combined_df.shape[0]} balls')
+        try:
+            predictions_xarray,predictions_df = predictions_from_idata(idata_predicted,
+                                                                       'batter_runs_outcome_by_ball_and_innings_rv')
+        except Exception as e:
+            logger.error(f"Error while formatting inference for {test_combined_df.shape[0]} balls: {e}")
+            predictions_df = pd.DataFrame()
+        logger.info(f'Inferred batter runs for {predictions_df.shape[0]} balls')
         return predictions_df
 

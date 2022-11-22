@@ -212,6 +212,7 @@ class PredictiveUtils:
         match_state_df = matches_df.loc[mask]
         inferred_batting_runs = self.batter_runs_model.get_batter_runs_given_match_state(match_state_df)
         matches_df.loc[mask, 'batter_runs'] = inferred_batting_runs['batter_runs'].values
+
         # set up extras for legal deliveries
         extras_mask = mask & (matches_df['batter_runs'] == 0)
         number_of_balls = len(extras_mask[extras_mask])
