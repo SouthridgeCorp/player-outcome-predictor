@@ -116,7 +116,7 @@ class PredictiveSimulator:
                     over_changed = False
                 if over == 20:
                     break
-
+                logging.info(f"Playing inning {inning}, over {over}, ball {ball}")
                 for key in match_state_dict.keys():
                     match_state = match_state_dict[key]
                     match_state.set_innings(inning)
