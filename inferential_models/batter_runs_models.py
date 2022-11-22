@@ -198,7 +198,7 @@ class BatterRunsModel:
                  ):
         self.perfect_simulator = perfect_simulator
         self.idata_trained = load_idata_trained(
-            "batter_runs_model/bayesian_inference/Indian Premier League_2009_and_selection_with_SR"
+            "batter_runs_model/bayesian_inference/Indian Premier League_2009_or_selection_with_SR"
         )
         self.posterior_point_list = dataset_to_point_list(self.idata_trained.posterior)
         self.pymc_model = get_batter_runs_model(self.idata_trained)

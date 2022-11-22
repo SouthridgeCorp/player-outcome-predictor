@@ -210,8 +210,11 @@ class PredictiveUtils:
         # matches_df.loc[mask, 'batter_runs'] = np.where(batting_runs == 1)[1]
 
         match_state_df = matches_df.loc[mask]
-        inferred_batting_runs = self.batter_runs_model.get_batter_runs_given_match_state(match_state_df)
-        matches_df.loc[mask, 'batter_runs'] = inferred_batting_runs['batter_runs'].values
+        if not(match_state_df.empty):
+            inferred_batting_runs = self.batter_runs_model.get_batter_runs_given_match_state(match_state_df)
+            matches_df.loc[mask, 'batter_runs'] = inferred_batting_runs['batter_runs'].values
+        else:
+            logging.debug("Got empty match state df, bypassing inferential model")
 
         # set up extras for legal deliveries
         extras_mask = mask & (matches_df['batter_runs'] == 0)
