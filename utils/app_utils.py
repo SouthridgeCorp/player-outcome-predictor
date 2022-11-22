@@ -6,10 +6,11 @@ import streamlit as st
 from data_selection.data_selection import DataSelection
 from historical_data.singleton import Helper
 from historical_data.tournaments import Tournaments
+from inferential_models.batter_runs_models import BatterRunsModel
 from rewards_configuration.rewards_configuration import RewardsConfiguration
 from utils.config_utils import create_utils_object, ConfigUtils
 from simulators.predictive_simulator import PredictiveSimulator
-from simulators.perfect_simulator import Granularity
+from simulators.perfect_simulator import Granularity, PerfectSimulator
 from simulators.tournament_simulator import TournamentSimulator
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
@@ -31,6 +32,22 @@ def data_selection_instance():
         st.session_state['DataSelection'] = DataSelection(helper)
 
     return st.session_state['DataSelection']
+
+def batter_runs_model_instance():
+    """
+    Helper function to get a singleton instance of the data_selection config. To only be used within streamlit
+    :return: An instance of DataSelection
+    """
+    if 'BatterRunsModel' not in st.session_state:
+        # get the helper from the singleton instance
+        data_selection = data_selection_instance()
+        rewards = rewards_instance()
+        perfect_simulator = PerfectSimulator(data_selection, rewards)
+        batter_runs_model = BatterRunsModel(perfect_simulator)
+        # get a data selection instance from the singleton
+        st.session_state['BatterRunsModel'] = batter_runs_model
+
+    return st.session_state['BatterRunsModel']
 
 
 def rewards_instance() -> RewardsConfiguration:
@@ -148,7 +165,12 @@ def get_predictive_simulator(rewards, number_of_scenarios) -> PredictiveSimulato
     Helper instance to cache & acquire the predictive simulator.
     """
     if 'PredictiveSimulator' not in st.session_state:
-        predictive_simulator = PredictiveSimulator(data_selection_instance(), rewards, number_of_scenarios)
+        data_selection = data_selection_instance()
+        batter_runs_model = batter_runs_model_instance()
+        predictive_simulator = PredictiveSimulator(data_selection,
+                                                   rewards,
+                                                   batter_runs_model,
+                                                   number_of_scenarios)
         predictive_simulator.generate_scenario()
         st.session_state['PredictiveSimulator'] = predictive_simulator
     else:
