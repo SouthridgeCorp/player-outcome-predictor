@@ -43,7 +43,11 @@ def batter_runs_model_instance():
         data_selection = data_selection_instance()
         rewards = rewards_instance()
         perfect_simulator = PerfectSimulator(data_selection, rewards)
-        batter_runs_model = BatterRunsModel(perfect_simulator)
+        config_utils = create_utils_object()
+        batter_runs_model_info = config_utils.get_batter_runs_model_info()
+        batter_runs_model = BatterRunsModel(perfect_simulator,
+                                            model_directory_path = batter_runs_model_info['model_directory_path'],
+                                            model_type = st.session_state['model_type'])
         # get a data selection instance from the singleton
         st.session_state['BatterRunsModel'] = batter_runs_model
 

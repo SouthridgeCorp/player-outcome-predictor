@@ -383,3 +383,16 @@ class ConfigUtils:
         playing_xi_file_name = f"{data_path}/{tournament_simulator['playing_xi_file_name']}"
         return tournament_simulator["number_of_scenarios"], matches_file_name, playing_xi_file_name
 
+    def get_batter_runs_model_info(self) -> dict:
+        batter_runs_config = self.config['player_outcome_predictor']['inferential_models']['batter_runs_model']
+        model_types = os.listdir(batter_runs_config['model_directory_path'])
+        model_type_dict = dict()
+        for model_type in model_types:
+            model_type_path = f"{batter_runs_config['model_directory_path']}/{model_type}"
+            model_type_dict[model_type] = os.listdir(model_type_path)
+        ret = {
+            'model_directory_path': batter_runs_config['model_directory_path'],
+            'model_type_dict': model_type_dict
+        }
+        return ret
+
