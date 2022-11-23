@@ -14,8 +14,11 @@ an IPL like tournament. Details on how the simulator works and how to configure 
   rounds should be blank
   * Player config, which maps each team to its playing XI. We assume that each team has the same playing XI for the 
   duration of the tournament.
-  * __Note__: The teams, players and venues must be a part of the overall historical match dataset, else the simulator 
-  will throw an error
+  * __Note__: 
+    * The players and venues must be a part of the overall historical match dataset, else the simulator 
+    will throw an error
+    * The teams can be new to the app, however new teams will use a simplistic bowler distribution model to predict who
+    bowls a certain over
   * Sample match & player config simulating an IPL are available here:
     * Match config: *resources/prod/app_config/tournament_simulator/example_tournament.csv*
     * Player config: *resources/prod/app_config/tournament_simulator/example_playing_xi.csv*

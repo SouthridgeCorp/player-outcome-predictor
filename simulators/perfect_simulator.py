@@ -9,6 +9,7 @@ from simulators.utils.outcomes_calculator import get_base_rewards, get_bonus_pen
 from simulators.utils.match_state_utils import setup_data_labels, initialise_match_state, \
     setup_data_labels_with_training, add_missing_columns, calculate_ball_by_ball_stats
 from simulators.utils.utils import aggregate_base_rewards
+from data_selection.data_selection import DataSelectionType
 
 
 class Granularity:
@@ -321,7 +322,8 @@ class PerfectSimulator:
         return innings_outcomes_df
 
     def get_rewards_components(self,
-                               is_testing: bool, generate_labels=False, columns_to_persist=[]) -> (pd.DataFrame, pd.DataFrame):
+                               is_testing: bool, generate_labels=False, columns_to_persist=[]) -> (
+            pd.DataFrame, pd.DataFrame):
         """Returns 2 dataframes:
         base_rewards_by_ball_and_innings: represents base rewards of all types calculated at a ball and innings level
         for the train/test dataset
@@ -521,11 +523,43 @@ class PerfectSimulator:
             mask = perfect_simulator_rewards_df[f"{column}_expected"] != 0
             perfect_simulator_rewards_df.loc[mask, f'{column}_absolute_percentage_error'] = \
                 abs(100 * perfect_simulator_rewards_df[f'{column}_absolute_error'] / \
-                perfect_simulator_rewards_df[f"{column}_expected"])
+                    perfect_simulator_rewards_df[f"{column}_expected"])
 
         logging.debug("Done with error measurements")
 
         return perfect_simulator_rewards_df
+
+    def get_match_state_by_balls_for_training(self):
+        unqualified_train_bowling_outcomes_df = self.get_bowling_outcomes_by_ball_and_innings(False)
+        unqualified_train_match_state_df = self.get_match_state_by_ball_and_innings(False)
+
+        test_season_matches = self.data_selection.get_selected_matches(True)
+        test_season_balls = self.data_selection.get_innings_for_selected_matches(True)
+        test_season_venues = test_season_matches.venue.unique().tolist()
+        test_season_batters = test_season_balls.batter.unique().tolist()
+        test_season_bowlers = test_season_balls.bowler.unique().tolist()
+
+        is_test_season_venue = unqualified_train_match_state_df.venue.isin(test_season_venues)
+        is_test_season_batter = unqualified_train_match_state_df.batter.isin(test_season_batters)
+        is_test_season_bowler = unqualified_train_match_state_df.bowler.isin(test_season_bowlers)
+
+        selection_options = {
+            DataSelectionType.OR_SELECTION: is_test_season_venue | is_test_season_batter | is_test_season_bowler,
+            DataSelectionType.AND_SELECTION: is_test_season_venue & is_test_season_batter & is_test_season_bowler
+        }
+        selection = self.data_selection.get_selection_type()
+        train_match_state_df = unqualified_train_match_state_df.loc[selection_options[selection]]
+        train_bowling_outcomes_df = unqualified_train_bowling_outcomes_df.loc[selection_options[selection]]
+
+        stats = {"Number of balls selected for training": train_match_state_df.shape[0],
+                 "Number of bowlers in test season bowlers": train_match_state_df. \
+                     query('bowler in @test_season_bowlers').shape[0],
+                 "Number of batters in test season batters": train_match_state_df. \
+                     query('batter in @test_season_bowlers').shape[0],
+                 "Number of venues in test season venues": train_match_state_df. \
+                     query('venue in @test_season_venues').shape[0]}
+
+        return train_match_state_df, train_bowling_outcomes_df, stats
 
 
 def get_index_columns(granularity):

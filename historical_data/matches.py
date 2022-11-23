@@ -30,6 +30,15 @@ class Matches:
         """
         return self.df[(self.df["date"] >= start_date) & (self.df["date"] <= end_date)]
 
+    def get_selected_matches_by_seasons(self, list_of_seasons):
+        """
+        Find all matches between the specified date range
+        :param start_date: The start of the date range
+        :param end_date: The end of the date range
+        :return: A dataframe containing all the matches which took place within the date range
+        """
+        return self.df[self.df["season"].isin(list_of_seasons)]
+
     def get_selected_match_count(self, start_date, end_date):
         """
         Gets the number of matches that have been selected within the specified date range
@@ -40,6 +49,16 @@ class Matches:
         selected_df = self.get_selected_matches(start_date, end_date)
         return len(selected_df.index)
 
+    def get_selected_match_count_by_seasons(self, list_of_seasons):
+        """
+        Gets the number of matches that have been selected within the specified date range
+        :param start_date: The start of the date range
+        :param end_date: The end of the date range
+        :return: The number of matches which took place within the date range
+        """
+        selected_df = self.get_selected_matches_by_seasons(list_of_seasons)
+        return len(selected_df.index)
+
     def get_selected_match_keys(self, start_date: datetime.date, end_date: datetime.date) -> list:
         """
         Get a list of match keys corresponding to the start & end date windows
@@ -48,6 +67,16 @@ class Matches:
         :return: A list of keys
         """
         selected_df = self.get_selected_matches(start_date, end_date)
+        return selected_df["key"].tolist()
+
+    def get_selected_match_keys_by_seasons(self, list_of_seasons) -> list:
+        """
+        Get a list of match keys corresponding to the start & end date windows
+        :param start_date: The starting date of the window
+        :param end_date: The ending state of the window
+        :return: A list of keys
+        """
+        selected_df = self.get_selected_matches_by_seasons(list_of_seasons)
         return selected_df["key"].tolist()
 
     def get_teams(self, match_key: str) -> (str, str):
@@ -74,6 +103,18 @@ class Matches:
         team_list += list(selected_df["team2"])
         return list(set(team_list))
 
+    def get_selected_teams_by_season(self, list_of_seasons) -> list:
+        """
+        Get a list of teams corresponding to the start & end date windows
+        :param start_date: The starting date of the window
+        :param end_date: The ending state of the window
+        :return: A list of keys
+        """
+        selected_df = self.get_selected_matches_by_seasons(list_of_seasons)
+        team_list = list(selected_df["team1"])
+        team_list += list(selected_df["team2"])
+        return list(set(team_list))
+
     def get_selected_venues(self, start_date: datetime.date, end_date: datetime.date) -> list:
         """
         Get a list of venues corresponding to the start & end date windows
@@ -84,8 +125,31 @@ class Matches:
         selected_df = self.get_selected_matches(start_date, end_date)
         return list(set(list(selected_df["venue"])))
 
+    def get_selected_venues_by_season(self, list_of_seasons) -> list:
+        """
+        Get a list of venues corresponding to the start & end date windows
+        :param start_date: The starting date of the window
+        :param end_date: The ending state of the window
+        :return: A list of keys
+        """
+        selected_df = self.get_selected_matches_by_seasons(list_of_seasons)
+        return list(set(list(selected_df["venue"])))
+
     def get_match_df(self) -> pd.DataFrame:
         """
         Returns a copy of the underlying matches dataframe
         """
         return self.df.copy()
+
+    def get_all_seasons(self):
+        return self.df['season'].unique().tolist()
+
+    def get_seasons_df(self):
+        seasons_df = self.df.copy().groupby('season').min().reset_index()
+        return seasons_df[['tournament_key', 'season', 'date']].sort_values(by=['date'], ascending=False)
+
+    def get_seasons_df_by_window(self, start_date, end_date):
+        seasons_df = self.df[(self.df['date'] >= start_date) & (self.df['date'] <= end_date)]
+        seasons_df = seasons_df.copy().groupby(['tournament_key', 'season'])['key'].count().reset_index()
+        seasons_df = seasons_df[['tournament_key', 'season', 'key']]
+        return seasons_df

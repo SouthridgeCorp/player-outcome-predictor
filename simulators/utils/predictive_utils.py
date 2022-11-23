@@ -90,6 +90,8 @@ class PredictiveUtils:
         self.featured_player_df = pd.DataFrame()
         self.batter_runs_model = batter_runs_model
 
+        self.batter_runs_model.initiate_model(session_type='testing')
+
         logging.debug("setting up distributions")
         # TODO: These distributions will no longer be required once the inferential model comes into play.
 

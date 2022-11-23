@@ -1,3 +1,5 @@
+import logging
+
 import arviz as az
 import pandas as pd
 import streamlit as st
@@ -31,18 +33,23 @@ def batter_runs_model_instance():
     Helper function to get a singleton instance of the data_selection config. To only be used within streamlit
     :return: An instance of DataSelection
     """
-    if 'BatterRunsModel' not in st.session_state:
-        # get the helper from the singleton instance
-        data_selection = data_selection_instance()
-        rewards = rewards_instance()
-        perfect_simulator = PerfectSimulator(data_selection, rewards)
-        config_utils = create_utils_object()
-        batter_runs_model_info = config_utils.get_batter_runs_model_info()
-        batter_runs_model = BatterRunsModel(perfect_simulator,
-                                            model_directory_path = batter_runs_model_info['model_directory_path'],
-                                            model_type = st.session_state['model_type'])
-        # get a data selection instance from the singleton
-        st.session_state['BatterRunsModel'] = batter_runs_model
+     # get the helper from the singleton instance
+    data_selection = data_selection_instance()
+    rewards = rewards_instance()
+    perfect_simulator = PerfectSimulator(data_selection, rewards)
+    config_utils = create_utils_object()
+    batter_runs_model_info = config_utils.get_batter_runs_model_info()
+    batter_runs_model = BatterRunsModel(perfect_simulator,
+                                        model_directory_path = batter_runs_model_info['model_directory_path'],
+                                        model_type = st.session_state['model_type'])
+    session_type = st.session_state['session_type']
+    batter_runs_model.initiate_model(st.session_state['session_type'])
+    if session_type == 'training':
+        batter_runs_model.run_training()
+    if session_type == 'testing':
+        batter_runs_model.run_testing()
+    # get a data selection instance from the singleton
+    st.session_state['BatterRunsModel'] = batter_runs_model
 
     return st.session_state['BatterRunsModel']
 
@@ -70,29 +77,54 @@ def get_helper(config_utils: ConfigUtils) -> Helper:
         st.session_state['MatchUtilsHelper'] = Helper(config_utils)
     return st.session_state['MatchUtilsHelper']
 
+def prep_simulator_pages(data_selection, page_name):
+    tournaments = data_selection.get_helper().tournaments
+    st.subheader("Data Selection Summary")
+    with st.expander("Click to see a summary of data selection"):
+        # Show a summary of selected training & testing windows
+        show_data_selection_summary(data_selection)
 
-def data_selection_summary(tournaments: Tournaments):
+    test_tournament_key, test_tournament_name, test_season = tournaments.get_testing_details()
+    if test_tournament_key == "":
+        st.error("Please select your data selection metrics before proceeding")
+        return False
+
+    st.subheader(page_name)
+    return True
+
+
+def show_data_selection_summary(data_selection):
     """
     Builds out the summary of data selection fields for displaying in streamlit. Can be used to summarise the current
     state of data selection on any streamlit page.
     """
-    selected_tournaments, training, testing = st.columns(3)
+    tournaments = data_selection.get_helper().tournaments
+    test_tournament_key, test_tournament_name, test_season = tournaments.get_testing_details()
 
-    with selected_tournaments:
-        st.subheader("Selected Tournaments:")
-        st.write(tournaments.get_selected_tournament_names())
+    if test_tournament_key == "":
+        st.write("Please setup your data selection criteria before proceeding")
+        return
 
-    with training:
-        st.subheader("Training Details:")
-        training_start_date, training_end_date = tournaments.get_start_end_dates(False)
-        st.write(f"Start Date: {training_start_date}")
-        st.write(f"End Date: {training_end_date}")
+    testing, training = st.columns(2)
 
     with testing:
         st.subheader("Testing Details:")
-        testing_start_date, testing_end_date = tournaments.get_start_end_dates(True)
-        st.write(f"Start Date: {testing_start_date}")
-        st.write(f"End Date: {testing_end_date}")
+        matches = tournaments.get_selected_matches(True)
+        st.markdown(f"**Test Tournament:** {test_tournament_name}")
+        st.markdown(f"**Test Season:**= {test_season}")
+        st.markdown(f"**Number of matches**= {len(matches.index)}")
+
+        st.subheader("Selection Type Details:")
+        st.markdown(f"**Selection Type:** {data_selection.get_selection_type()}")
+
+    with training:
+        st.subheader("Training Details:")
+        training_start_date, training_end_date = tournaments.get_training_start_end_dates()
+        st.markdown(f"**Start Date:** {training_start_date}")
+        st.markdown(f"**End Date:** {training_end_date}")
+
+        seasons_df = tournaments.get_season_details_for_window(training_start_date, training_end_date)
+        st.dataframe(seasons_df, use_container_width=True)
 
 
 def get_metrics_to_show() -> (list, list):
@@ -111,16 +143,20 @@ def get_metrics_to_show() -> (list, list):
     return metric_list, error_metrics
 
 
-def reset_session_states():
+def reset_session_states(reset_tournament_simulator=True):
     """
     To be called whenever a major change requires a session state reset. Keep updating this function as and when new
     session objects are added.
     """
+    st.sidebar.info("Resetting session states")
     if 'PredictiveSimulator' in st.session_state:
         del st.session_state['PredictiveSimulator']
 
-    if 'TournamentSimulator' in st.session_state:
-        del st.session_state['TournamentSimulator']
+    if reset_tournament_simulator:
+        if 'TournamentSimulator' in st.session_state:
+            del st.session_state['TournamentSimulator']
+
+    reset_rewards_cache()
 
 
 def get_predictive_simulator(rewards, number_of_scenarios) -> PredictiveSimulator:
@@ -128,12 +164,7 @@ def get_predictive_simulator(rewards, number_of_scenarios) -> PredictiveSimulato
     Helper instance to cache & acquire the predictive simulator.
     """
     if 'PredictiveSimulator' not in st.session_state:
-        data_selection = data_selection_instance()
-        batter_runs_model = batter_runs_model_instance()
-        predictive_simulator = PredictiveSimulator(data_selection,
-                                                   rewards,
-                                                   batter_runs_model,
-                                                   number_of_scenarios)
+        predictive_simulator = PredictiveSimulator(data_selection_instance(), rewards, number_of_scenarios)
         predictive_simulator.generate_scenario()
         st.session_state['PredictiveSimulator'] = predictive_simulator
     else:
@@ -205,6 +236,8 @@ def show_stats(metric: str, summary_df: pd.DataFrame, indices: list) -> pd.DataF
     Calculate the stats for metric across all scenarios. Indices represents the index of the summary_df, and the
     dataframe returned by this function is indexed by the same set of indices.
     """
+    logging.debug(f"Calculating stats for '{metric}'")
+
     summary_xarray = summary_df[metric].to_xarray()
     summary_xarray = summary_xarray.fillna(0.0)
     df = az.summary(summary_xarray)
@@ -268,3 +301,27 @@ def write_top_X_to_st(max_players, df: pd.DataFrame, indices: list, reference_df
         st.subheader(f'Top {number_of_players} Batters')
         show_top_X(f'batting_rewards{column_suffix}', df, indices,
                    number_of_players=number_of_players, reference_df=reference_df)
+
+
+def reset_rewards_cache():
+    """
+    Reset the cache for all granularities
+    """
+    for granularity in get_granularity_list():
+        if f'TournamentRewards_{granularity}' in st.session_state:
+            del st.session_state[f'TournamentRewards_{granularity}']
+
+
+def get_rewards(tournament_simulator, granularity, regenerate):
+    """
+    Gets the rewards from the current tournament simulator. This function uses a cache to improve the usability of the
+    page, but the cache can be invalidated via the 'regenerate' parameter.
+    """
+    if not regenerate and (f'TournamentRewards_{granularity}' in st.session_state):
+        return st.session_state[f'TournamentRewards_{granularity}']
+
+    logging.debug("Running the function call")
+    rewards_list = tournament_simulator.get_rewards(granularity)
+    st.session_state[f'TournamentRewards_{granularity}'] = rewards_list
+
+    return rewards_list

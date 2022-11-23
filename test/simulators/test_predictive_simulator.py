@@ -1,7 +1,7 @@
 import pytest
 from test.conftest import get_test_cases
 from simulators.perfect_simulator import PerfectSimulator
-from test.data_selection.conftest import prepare_for_tests, setup_training_and_testing
+from test.data_selection.conftest import prepare_tests, setup_training_and_testing_windows
 from simulators.utils.predictive_utils import PredictiveUtils
 import pandas as pd
 
@@ -14,7 +14,8 @@ import pandas as pd
 class TestPredictiveSimulator:
 
     def test_bowling_probability_distribution(self, predictive_simulator):
-        utils = PredictiveUtils(predictive_simulator.data_selection)
+        utils = PredictiveUtils(predictive_simulator.data_selection,
+                                predictive_simulator.batter_runs_model)
         utils.setup()
 
         for key in utils.bowling_probabilities.probability_map.keys():
@@ -22,7 +23,7 @@ class TestPredictiveSimulator:
             assert sum(a) > 0.9999999
 
     def test_generate_scenario(self, predictive_simulator, setup_and_teardown):
-        prepare_for_tests(predictive_simulator.data_selection, True)
+        prepare_tests(predictive_simulator.data_selection, True)
 
         test_case, config_instance = setup_and_teardown
         number_of_scenarios = config_instance.get_predictive_simulator_info()
@@ -149,7 +150,7 @@ class TestPredictiveSimulator:
     @pytest.mark.parametrize('granularity', ['tournament', 'tournament_stage', 'match', 'innings'])
     def test_get_error_measures_predictive_simulator(self, predictive_simulator, granularity):
 
-        prepare_for_tests(predictive_simulator.data_selection, True)
+        prepare_tests(predictive_simulator.data_selection, True)
         predictive_simulator.generate_scenario()
 
         perfect_simulator_for_testing = PerfectSimulator(predictive_simulator.data_selection,

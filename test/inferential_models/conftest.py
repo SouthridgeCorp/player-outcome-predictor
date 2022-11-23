@@ -4,12 +4,14 @@ import numpy as np
 import pandas as pd
 from scipy.special import softmax
 from collections import Counter
+import datetime
 
-from data_selection.data_selection import DataSelection
+from data_selection.data_selection import DataSelection, DataSelectionType
 from historical_data.singleton import Helper
 from inferential_models.batter_runs_models import BatterRunsModel
 from rewards_configuration.rewards_configuration import RewardsConfiguration
 from simulators.perfect_simulator import PerfectSimulator
+from test.data_selection.conftest import prepare_tests
 
 
 def get_toss_winning_team(row):
@@ -246,6 +248,20 @@ def simulate_fake_data():
     bowling_outcome_rv = np.where(bowling_outcome_encoded_rv == 1)[1]
     yield batter_rv, bowling_outcome_encoded_rv, bowling_outcome_rv
 
+def prepare_data_selection_for_batter_runs_model(data_selection_instance,
+                                                 selection_type):
+    tournaments = data_selection_instance.historical_data_helper.tournaments
+    tournaments.set_testing_details("Indian Premier League", "2009")
+    seasons_df = tournaments.get_tournament_and_season_details()
+    end_date = tournaments.get_first_testing_date()
+    start_date = seasons_df[seasons_df['date'] < end_date]['date'].min()
+    tournaments.set_training_window(start_date, end_date)
+    selection_options = {
+        'or_selection': DataSelectionType.OR_SELECTION,
+        'and_selection': DataSelectionType.AND_SELECTION
+    }
+    data_selection_instance.set_selection_type(selection_options[selection_type])
+
 @pytest.fixture
 def batter_runs_model(setup_and_teardown):
     test_case, config_instance = setup_and_teardown
@@ -256,8 +272,14 @@ def batter_runs_model(setup_and_teardown):
     data_selection = DataSelection(helper)
 
     simulator = PerfectSimulator(data_selection, rewards_config)
+    prepare_data_selection_for_batter_runs_model(simulator.data_selection,
+                                                 test_case['selection_type'])
 
-    model = BatterRunsModel(simulator)
+    model_directory_path = config_instance.get_batter_runs_model_info()['model_directory_path']
+    model_type = test_case['model_type']
+    model = BatterRunsModel(simulator,
+                            model_directory_path=model_directory_path,
+                            model_type=model_type)
 
     yield model
 

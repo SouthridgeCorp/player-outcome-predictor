@@ -8,6 +8,8 @@ import aesara.tensor as at
 from simulators.perfect_simulator import PerfectSimulator
 import pickle
 import logging
+from sklearn.metrics import classification_report, confusion_matrix
+
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -22,8 +24,8 @@ def load_idata_trained(model_path):
 
 def load_random_forest_classifier(model_path):
     with open(model_path, 'rb') as buff:
-        clf = pickle.load(buff)
-    return clf
+        payload = pickle.load(buff)
+    return payload['classifier'], payload['one_hot_encoders']
 
 def save_idata_trained(idata_trained,
                        model_path):
@@ -31,9 +33,19 @@ def save_idata_trained(idata_trained,
         pickle.dump({'trace': idata_trained}, buff)
 
 def save_random_forest_classifier(clf,
+                                  one_hot_encoders,
                                   model_path):
     with open(model_path, 'wb') as buff:
-        pickle.dump(clf, buff)
+        payload = {
+            'classifier': clf,
+            'one_hot_encoders': one_hot_encoders
+        }
+        pickle.dump(payload, buff)
+
+def get_cr_and_cm(true,pred):
+    cr = classification_report(true,pred)
+    cm = confusion_matrix(true,pred)
+    return cr,pd.DataFrame(cm)
 
 def build_categoricals_for_column(df,column):
     categorical = pd.Categorical(df[column])
@@ -175,19 +187,22 @@ def get_batter_runs_bi_model_from_perfect_simulator(perfect_simulator):
     return batter_runs_model
 
 def get_batter_runs_rf_model_from_perfect_simulator(perfect_simulator):
-    train_match_state_df = perfect_simulator.get_match_state_by_ball_and_innings(False)
-    train_bowling_outcomes_df = perfect_simulator.get_bowling_outcomes_by_ball_and_innings(False)
+    train_match_state_df,train_bowling_outcomes_df,_ = perfect_simulator.get_match_state_by_balls_for_training()
+    train_match_state_df = train_match_state_df.reset_index()
     one_hot_encoders = {}
     train_ohe_features = {}
     for feature in ['batter', 'bowler', 'venue', 'over', 'inning', 'wickets_fallen']:
-        ohe = OneHotEncoder(sparse=False)
+        ohe = OneHotEncoder(sparse=False,
+                            handle_unknown='infrequent_if_exist')
         train_features = ohe.fit_transform(train_match_state_df[[feature]])
         one_hot_encoders[feature] = ohe
         train_ohe_features[feature] = train_features
 
-    for feature in ['innings_strike_rate']:
+    for feature in [innings_strike_rate]:
         add_column_to_df(train_match_state_df,
                          feature)
+
+    for feature in ['innings_strike_rate']:
         train_ohe_features[feature] = train_match_state_df[[feature]].values
 
     train_ohe_feature_array = np.hstack(
@@ -314,8 +329,8 @@ def get_categorical_column_index_for_df(df,
     return idx
 
 def innings_strike_rate(df):
-    if 'current_total' in df and 'total_ball_bowled' in df:
-        df['innings_strike_rate'] = df['current_total'] / df['total_balls_bowled']
+    if 'previous_total' in df.columns and 'total_balls_bowled' in df.columns:
+        df['innings_strike_rate'] = df['previous_total'] / df['total_balls_bowled']
     else:
         df['innings_strike_rate'] = df['previous_total'] / (df['over']*6 + df['ball'])
     df['innings_strike_rate'].fillna(0, inplace=True)
@@ -355,8 +370,8 @@ def prepare_match_state_df_for_rf(match_state_df,
                                   one_hot_encoders):
 
     feature_data = {}
-    for dim in ['batter_featured_id',
-                'bowler_featured_id',
+    for dim in ['batter',
+                'bowler',
                 'venue',
                 'wickets_fallen',
                 'over',
@@ -369,12 +384,12 @@ def prepare_match_state_df_for_rf(match_state_df,
                          column)
 
     for dim in ['innings_strike_rate']:
-        feature_data[dim] = match_state_df[dim]
+        feature_data[dim] = match_state_df[[dim]]
 
     feature_array = np.hstack(
         [v[1] for v in feature_data.items()]
     )
-    return feature_data, feature_array
+    return feature_array, feature_data
 
 def predictions_from_idata(idata,
                            var_name):
@@ -398,8 +413,7 @@ class BatterRunsModel:
     def __init__(self,
                  perfect_simulator: PerfectSimulator,
                  model_directory_path: str,
-                 model_type: str
-                 ):
+                 model_type: str):
         self.perfect_simulator = perfect_simulator
         self.model_directory_path = model_directory_path
         self.model_type = model_type
@@ -407,28 +421,30 @@ class BatterRunsModel:
 
     def construct_model_path(self):
         try:
-            test_tournament = self.perfect_simulator.data_selection.get_test_tournament()
-            test_season = self.perfect_simulator.data_selection.get_test_season()
-            (train_start_date, train_end_date) = self.perfect_simulator.data_selection.get_training_window()
-            data_selection_type = self.perfect_simulator.data_selection.get_data_selection_type()
+            test_tournament = self.perfect_simulator.data_selection.historical_data_helper.tournaments.testing_selected_tournament
+            test_season = self.perfect_simulator.data_selection.historical_data_helper.tournaments.testing_selected_season
+            (train_start_date, train_end_date) = self.perfect_simulator.data_selection.historical_data_helper.tournaments.get_training_start_end_dates()
+            data_selection_type = self.perfect_simulator.data_selection.get_selection_type()
             model_path = f"{self.model_directory_path}/" \
                          f"{self.model_type}/" \
-                         f"{test_tournament}-" \
-                         f"{test_season}-" \
-                         f"{train_start_date}-" \
-                         f"{train_end_date}-" \
+                         f"{test_tournament}~" \
+                         f"{test_season}~" \
+                         f"{train_start_date}~" \
+                         f"{train_end_date}~" \
                          f"{data_selection_type}.pkl"
         except Exception as e:
             model_path = f"{self.model_directory_path}/" \
                          f"{self.model_type}/" \
                          'Indian Premier League_2009_or_selection_with_SR.pkl'
+        logger.info(f"Instantiated with model_path = {model_path}")
         return model_path
 
-    def initate_model(self,session_type='training'):
+    def initiate_model(self,session_type='training'):
+        logger.info(f"Initating {self.model_type} for {session_type}")
         if self.model_type == 'bayesian_inference':
-            self.initate_bayesian_inference_model(session_type)
+            self.initiate_bayesian_inference_model(session_type)
         if self.model_type == 'random_forest':
-            self.initate_random_forest_model(session_type)
+            self.initiate_random_forest_model(session_type)
 
     def initiate_bayesian_inference_model(self,session_type='training'):
         if session_type == 'training':
@@ -449,11 +465,13 @@ class BatterRunsModel:
              self.train_ohe_feature_array,
              self.one_hot_encoders,
              self.targets)  = get_batter_runs_rf_model_from_perfect_simulator(self.perfect_simulator)
+            logger.info(f"Initated random forest model with training shape = {self.train_ohe_feature_array.shape}")
         if session_type == 'testing':
-            self.rf_classifier = load_random_forest_classifier(
+            self.random_forest_classifier,self.one_hot_encoders = load_random_forest_classifier(
                 self.model_path
             )
             self.training_status = True
+            logger.info(f"Initated random forest model with for testing using {self.model_path}")
 
     def run_training(self):
         if self.model_type == 'bayesian_inference':
@@ -473,7 +491,9 @@ class BatterRunsModel:
         clf.fit(self.train_ohe_feature_array,
                 self.targets)
         self.random_forest_classifier = clf
+        self.training_status = True
         save_random_forest_classifier(self.random_forest_classifier,
+                                      self.one_hot_encoders,
                                       self.model_path)
 
     def run_testing(self):
@@ -482,6 +502,18 @@ class BatterRunsModel:
         if self.model_type == 'random_forest':
             testing_stats = self.test_random_forest()
         return testing_stats
+
+    def test_random_forest(self):
+        test_match_state_df = self.perfect_simulator.get_match_state_by_ball_and_innings(True)
+        test_bowling_outcomes_df = self.perfect_simulator.get_bowling_outcomes_by_ball_and_innings(True)
+        predictions_df = self.run_random_forest_prediction(test_match_state_df)
+        cr,cm = get_cr_and_cm(test_bowling_outcomes_df['batter_runs'],
+                              predictions_df['batter_runs'])
+        ret =  {
+            "classification_report": cr,
+            "confusion_matrix": cm
+        }
+        return ret
 
     def prepare_for_prediction(self,
                                test_combined_df):
