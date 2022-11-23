@@ -124,5 +124,56 @@ class TestDataSelection:
 
         assert tournaments == expected_tournaments
 
+    @pytest.mark.parametrize('is_testing', [True, False])
+    def test_get_selected_teams(self, data_selection_instance: DataSelection, is_testing):
+        prepare_tests(data_selection_instance, is_testing)
+        selected_teams = data_selection_instance.get_selected_teams(is_testing)
+        selected_teams.sort()
+        if is_testing:
+            testing_teams = ["Perth Scorchers", "Hobart Hurricanes", "Melbourne Stars", "Sydney Thunder",
+                             "Melbourne Renegades", "Adelaide Strikers", "Sydney Sixers", "Brisbane Heat"]
+            testing_teams.sort()
+            assert selected_teams == testing_teams
+        else:
+            training_teams = ["Kandahar Knights", "Paktia Panthers", "Nangarhar Leopards", "Kabul Zwanan",
+                              "Perth Scorchers", "Hobart Hurricanes", "Melbourne Stars", "Sydney Thunder",
+                              "Melbourne Renegades", "Adelaide Strikers", "Sydney Sixers", "Brisbane Heat"]
+            training_teams.sort()
+            assert selected_teams == training_teams
+
+    @pytest.mark.parametrize('is_testing', [True, False])
+    def test_get_selected_venues(self, data_selection_instance: DataSelection, is_testing):
+        prepare_tests(data_selection_instance, is_testing)
+        selected_venues = data_selection_instance.get_selected_venues(is_testing)
+        selected_venues.sort()
+        if is_testing:
+            testing_venues = ["W.A.C.A. Ground, Perth", "Melbourne Cricket Ground, Melbourne",
+                              "Docklands Stadium, Melbourne","Adelaide Oval, Adelaide", "Manuka Oval, Canberra",
+                              "Bellerive Oval, Hobart", "Simonds Stadium, South Geelong, Victoria",
+                              "Sydney Cricket Ground, Sydney", "Brisbane Cricket Ground, Brisbane",
+                              "Sydney Showground Stadium, Sydney", "Perth Stadium, Perth",
+                              "Aurora Stadium, Launceston", "Traeger Park, Alice Springs"]
+            testing_venues.sort()
+            assert selected_venues == testing_venues
+        else:
+            training_venues = ["Sharjah Cricket Stadium, Sharjah", "W.A.C.A. Ground, Perth",
+                               "Melbourne Cricket Ground, Melbourne", "Docklands Stadium, Melbourne",
+                               "Adelaide Oval, Adelaide", "Manuka Oval, Canberra", "Bellerive Oval, Hobart",
+                               "Simonds Stadium, South Geelong, Victoria", "Sydney Cricket Ground, Sydney",
+                               "Brisbane Cricket Ground, Brisbane", "Sydney Showground Stadium, Sydney",
+                               "Carrara Oval, Carrara", "Perth Stadium, Perth", "Aurora Stadium, Launceston",
+                               "Traeger Park, Alice Springs"]
+            training_venues.sort()
+            assert selected_venues == training_venues
+
+    def test_get_all_seasons(self, data_selection_instance: DataSelection):
+        expected_seasons_bbl = ["2018/19", "2017/18", "2014/15", "2013/14", "2021/22", "2019/20", "2012/13", "2016/17"]
+        expected_seasons_apl = ["2018/19"]
+
+        received_seasons_bbl = data_selection_instance.get_all_seasons("bbl")
+        received_seasons_apl = data_selection_instance.get_all_seasons("apl")
+
+        assert expected_seasons_bbl == received_seasons_bbl
+        assert expected_seasons_apl == received_seasons_apl
 
 

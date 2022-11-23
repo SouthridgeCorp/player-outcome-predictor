@@ -4,7 +4,9 @@ from historical_data.playing_xi import PlayingXI
 import logging
 
 import warnings
+
 warnings.filterwarnings('ignore')
+
 
 class PlayerInformation:
     """
@@ -34,8 +36,13 @@ class PlayerInformation:
 
 
 class DataSelectionType:
+    """
+    Enum representing the data selection types available
+    """
     AND_SELECTION = "And Selection"
     OR_SELECTION = "Or Selection"
+
+
 class DataSelection:
 
     def __init__(self,
@@ -56,9 +63,9 @@ class DataSelection:
         """
         return self.historical_data_helper
 
-    def set_simulated_data(self, matches_df: pd.DataFrame=pd.DataFrame(),
-                           innings_df: pd.DataFrame=pd.DataFrame(),
-                           playing_xi_df: pd.DataFrame=pd.DataFrame()):
+    def set_simulated_data(self, matches_df: pd.DataFrame = pd.DataFrame(),
+                           innings_df: pd.DataFrame = pd.DataFrame(),
+                           playing_xi_df: pd.DataFrame = pd.DataFrame()):
         """
         Sets the simulated datasets to be used by this object
         :param matches_df: the simulated matches object
@@ -179,7 +186,7 @@ class DataSelection:
         df = df.assign(best_rank=lambda x: x[columns].min(axis=1))
 
         # TODO: Blocking the frequent player mapping till we figure out a good way to use it
-        #df = df.assign(featured_player=lambda x: df['best_rank'] <= 11)
+        # df = df.assign(featured_player=lambda x: df['best_rank'] <= 11)
         df['featured_player'] = True
 
         df = self.merge_with_players(df, 'player_key')
@@ -242,13 +249,22 @@ class DataSelection:
         """
         return self.historical_data_helper.players.get_players()
 
-    def get_all_seasons(self, tournament):
-        match = self.historical_data_helper.tournaments.matches(tournament)
+    def get_all_seasons(self, tournament_key: str) -> list:
+        """
+        Gets all seasons associated with the specified tournament key
+        """
+        match = self.historical_data_helper.tournaments.matches(tournament_key)
         return match.get_all_seasons()
 
-    def set_selection_type(self, selection_type):
+    def set_selection_type(self, selection_type: str):
+        """
+        Sets the data selection type for this object
+        :param selection_type: The selection type to set, must be one of the DataSelectionType enums.
+        """
         self.selection_type = selection_type
 
-    def get_selection_type(self):
+    def get_selection_type(self) -> str:
+        """
+        Returns the data selection type for this object
+        """
         return self.selection_type
-

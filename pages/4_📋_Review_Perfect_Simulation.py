@@ -43,13 +43,13 @@ def app():
 
     granularity, metric, metrics, error_metrics = show_granularity_metrics("perfect")
 
+    perfect_simulator = PerfectSimulator(data_selection, rewards)
+
+    show_perfect_simulator_stats(perfect_simulator)
+
     if granularity == 'None':
         st.write("Please select a valid Granularity")
     else:
-
-        perfect_simulator = PerfectSimulator(data_selection, rewards)
-
-        show_perfect_simulator_stats(perfect_simulator)
 
         with st.spinner("Calculating Simulation Metrics.."):
             perfect_simulator_df = get_perfect_simulator_data(perfect_simulator, granularity, rewards)

@@ -551,11 +551,11 @@ class PerfectSimulator:
         train_bowling_outcomes_df = unqualified_train_bowling_outcomes_df.loc[selection_options[selection]]
 
         stats = {"Number of balls selected for training": train_match_state_df.shape[0],
-                 "Number of bowlers in test season bowlers": train_match_state_df. \
+                 "Number of balls with bowler in test season bowlers": train_match_state_df. \
                      query('bowler in @test_season_bowlers').shape[0],
-                 "Number of batters in test season batters": train_match_state_df. \
+                 "Number of balls with batters in test season batters": train_match_state_df. \
                      query('batter in @test_season_bowlers').shape[0],
-                 "Number of venues in test season venues": train_match_state_df. \
+                 "Number of balls with venues in test season venues": train_match_state_df. \
                      query('venue in @test_season_venues').shape[0]}
 
         return train_match_state_df, train_bowling_outcomes_df, stats

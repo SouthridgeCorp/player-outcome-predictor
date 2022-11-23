@@ -117,6 +117,7 @@ class ConfigUtils:
     def create_local_feedback_storage(self):
         """Ensures that a local feedback storage backend is created when called"""
 
+        logging.debug("Creating local feedback storage")
         feedback_path = self.get_feedback_path()
         if not (os.path.exists(feedback_path)):
             logging.info(f"Creating feedback path directory: {feedback_path}")
@@ -128,6 +129,7 @@ class ConfigUtils:
             feedback_df.to_csv(feedback_file,
                                index=False)
             logging.info(f"Initiated empty feedback form backend file at {feedback_file}")
+
 
     def get_feedback_snowflake_path(self):
         database_name = f"{self.config['feedback_form']['storage_dir']}_{self.config['app']['environment']}"

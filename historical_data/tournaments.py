@@ -4,7 +4,10 @@ from historical_data.matches import Matches
 from historical_data.playing_xi import PlayingXI
 from historical_data.innings import Innings
 import datetime
+import logging
 
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 class ArtefactsPerTournament:
     """
@@ -24,6 +27,8 @@ class Tournaments:
     """
 
     def __init__(self, base_path, tournament_file):
+
+        logger.debug("Initialising tournaments")
         self.base_path = base_path
         tournament_file_name = f"{base_path}/{tournament_file}"
 
@@ -47,14 +52,22 @@ class Tournaments:
         self.testing_selected_tournament_name = ""
         self.testing_selected_season = ""
 
+        logger.debug("Getting all artefacts")
+
         # Populate the artefacts related to the tournament
         tournaments = self.df["key"].to_list()
         self.artefacts = {}
         for tournament in tournaments:
             self.artefacts[tournament] = ArtefactsPerTournament(base_path, tournament)
 
+        logger.debug("Getting all innings")
         self.all_innings = self.get_all_innings()
+
+        logger.debug("Getting all matches")
         self.all_matches = self.get_all_matches()
+
+        logger.debug("Done Initialising tournaments")
+
 
     def get_training_start_end_dates(self) -> (datetime.date, datetime.date):
         """
@@ -255,7 +268,7 @@ class Tournaments:
     def get_selected_venues(self, is_testing: bool) -> list:
 
         if is_testing:
-            return self.matches(self.testing_selected_tournament).get_selected_teams_by_season(
+            return self.matches(self.testing_selected_tournament).get_selected_venues_by_season(
                 [self.testing_selected_season])
         else:
             start_date, end_date = self.get_training_start_end_dates()
@@ -283,7 +296,7 @@ class Tournaments:
         for key in self.artefacts.keys():
             match = self.artefacts[key].matches
 
-            seasons_df = pd.concat([seasons_df, match.get_seasons_df_by_window(start_date, end_date)])
+            seasons_df = pd.concat([seasons_df, match.get_seasons_df_for_window(start_date, end_date)])
 
         seasons_df.rename(columns={"key": "number_of_matches"}, inplace=True)
         seasons_df = pd.merge(seasons_df, self.df[['key', 'name']], left_on='tournament_key', right_on='key')

@@ -6,6 +6,7 @@ import os
 import pytest
 import test.conftest
 from test.conftest import get_test_cases
+import datetime
 
 
 # Helper function to look for a file name
@@ -83,3 +84,14 @@ class TestHistoricalData:
             else:
                 assert number_of_innings == 2, f"Match {match_key} ({tournament}) does not have 2 innings. " \
                                                f"'result_if_no_winner = {match['result_if_no_winner']}"
+
+    def test_selected_match_count_by_seasons(self, setup_and_teardown, tournament):
+        test_case, config_instance = setup_and_teardown
+        helper = Helper(config_instance)
+        tournaments = helper.tournaments
+
+        start_date = datetime.strptime("01/01/2018", "%d/%m/%Y").date()
+        end_date = datetime.strptime("31/12/2018", "%d/%m/%Y").date()
+
+        list_of_seasons = ["2018/19", "2017/18", "2014/15", "2013/14", "2021/22", "2019/20", "2012/13", "2016/17"]
+        seasons_df = tournaments.get_season_details_for_window(start_date, end_date)
