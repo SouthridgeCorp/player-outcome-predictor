@@ -3,6 +3,7 @@ import pandas as pd
 import pymc as pm
 from pymc.util import dataset_to_point_list
 from sklearn.preprocessing import OneHotEncoder
+from sklearn.ensemble import RandomForestClassifier
 import aesara.tensor as at
 from simulators.perfect_simulator import PerfectSimulator
 import pickle
@@ -14,12 +15,189 @@ logger = logging.getLogger(__name__)
 RANDOM_SEED = 8265
 
 def load_idata_trained(model_path):
-    with open(f'data/inferential_models/{model_path}.pkl', 'rb') as buff:
+    with open(model_path, 'rb') as buff:
         data = pickle.load(buff)
     idata = data['trace']
     return idata
 
-def get_batter_runs_model(idata_trained):
+def load_random_forest_classifier(model_path):
+    with open(model_path, 'rb') as buff:
+        clf = pickle.load(buff)
+    return clf
+
+def save_idata_trained(idata_trained,
+                       model_path):
+    with open(model_path, 'wb') as buff:
+        pickle.dump({'trace': idata_trained}, buff)
+
+def save_random_forest_classifier(clf,
+                                  model_path):
+    with open(model_path, 'wb') as buff:
+        pickle.dump(clf, buff)
+
+def build_categoricals_for_column(df,column):
+    categorical = pd.Categorical(df[column])
+    return categorical.categories
+
+def build_xarray(feature_dict,
+                 outcome_dict,
+                 index_df):
+    feature_df = pd.DataFrame(feature_dict)
+    feature_df.index = index_df.index
+    outcome_df = pd.DataFrame(outcome_dict)
+    outcome_df.index = index_df.index
+    combined_df = pd.merge(outcome_df,
+                           feature_df,
+                           left_index = True,
+                           right_index = True)
+    return combined_df, combined_df.to_xarray()
+
+def prepare_training_data(match_state_df,
+                          bowling_outcomes_df):
+    temp_match_state_df = match_state_df.reset_index()
+    COORDS = {}
+    train_feature_data = {}
+    for dim in ['batter',
+                'bowler',
+                'venue',
+                'wickets_fallen',
+                'over',
+                'match_key',
+                'inning',
+                'ball']:
+        categories = build_categoricals_for_column(temp_match_state_df,
+                                                   dim)
+        COORDS[dim] = categories
+        train_feature_data[dim] = get_categorical_column_index_for_df(temp_match_state_df,
+                                                                      categories,
+                                                                      dim)
+    train_outcome_data = {}
+
+    for dim in ['batter_runs']:
+        categories = build_categoricals_for_column(bowling_outcomes_df,
+                                                   dim)
+        COORDS[dim] = categories
+        train_outcome_data[dim] = get_categorical_column_index_for_df(bowling_outcomes_df,
+                                                                      categories,
+                                                                      dim)
+    train_combined_df, train_combined_xarray = build_xarray(train_feature_data,
+                                                            train_outcome_data,
+                                                            match_state_df)
+    return COORDS,train_combined_df,train_combined_xarray
+
+def get_batter_runs_bi_model_from_perfect_simulator(perfect_simulator):
+    train_match_state_df = perfect_simulator.get_match_state_by_ball_and_innings(False)
+    train_bowling_outcomes_df = perfect_simulator.get_bowling_outcomes_by_ball_and_innings(False)
+    COORDS, train_combined_df,train_combined_xarray = prepare_training_data(train_match_state_df,
+                                                                            train_bowling_outcomes_df)
+    with pm.Model(coords=COORDS) as batter_runs_model:
+        batter_runs_model.add_coord('ball_ids',
+                                    values=np.arange(train_combined_df.shape[0]),
+                                    mutable=True)
+        batter_runs_outcomes_data = pm.MutableData("batter_runs_outcomes_data",
+                                                   train_combined_df['batter_runs'],
+                                                   dims='ball_ids')
+        batter_featured_id_feature_data = pm.MutableData("batter_featured_id_feature_data",
+                                                         train_combined_df['batter'],
+                                                         dims='ball_ids')
+        bowler_featured_id_feature_data = pm.MutableData("bowler_featured_id_feature_data",
+                                                         train_combined_df['bowler'],
+                                                         dims='ball_ids')
+        venue_feature_data = pm.MutableData("venue_feature_data",
+                                            train_combined_df['venue'],
+                                            dims='ball_ids')
+        over_feature_data = pm.MutableData("over_feature_data",
+                                           train_combined_df['over'],
+                                           dims='ball_ids')
+        inning_feature_data = pm.MutableData("inning_feature_data",
+                                             train_combined_df['inning'],
+                                             dims='ball_ids')
+    with batter_runs_model:
+        wickets_fallen_feature_data = pm.MutableData("wickets_fallen_feature_data",
+                                                     train_combined_df['wickets_fallen'],
+                                                     dims='ball_ids')
+        innings_strike_rate_feature_data = pm.MutableData("innings_strike_rate_feature_data",
+                                                          train_combined_df[['innings_strike_rate']].values)
+        batter_runs_outcome_alpha = pm.Normal('batter_runs_outcome_alpha',
+                                              mu=0,
+                                              sigma=3,
+                                              dims='batter_runs')
+        batter_runs_outcome_alpha_by_over = pm.Normal('batter_runs_outcome_alpha_by_over',
+                                                      mu=0,
+                                                      sigma=3.0,
+                                                      dims=('over',
+                                                            'batter_runs'))
+        batter_runs_outcome_alpha_mu_by_batter_global = 0
+        batter_runs_outcome_alpha_sigma_by_batter_global = 3.0
+        batter_runs_outcome_alpha_by_batter = pm.Normal('batter_runs_outcome_alpha_by_batter',
+                                                        mu=batter_runs_outcome_alpha_mu_by_batter_global,
+                                                        sigma=batter_runs_outcome_alpha_sigma_by_batter_global,
+                                                        dims=('batter_featured_id',
+                                                              'batter_runs'))
+        batter_runs_outcome_alpha_by_bowler = pm.Normal('batter_runs_outcome_alpha_by_bowler',
+                                                        mu=0,
+                                                        sigma=3.0,
+                                                        dims=('bowler_featured_id',
+                                                              'batter_runs'))
+        batter_runs_outcome_alpha_by_venue = pm.Normal('batter_runs_outcome_alpha_by_venue',
+                                                       mu=0,
+                                                       sigma=3.0,
+                                                       dims=('venue',
+                                                             'batter_runs'))
+        batter_runs_outcome_alpha_by_wickets_fallen = pm.Normal('batter_runs_outcome_alpha_by_wickets_fallen',
+                                                                mu=0,
+                                                                sigma=3.0,
+                                                                dims=('wickets_fallen',
+                                                                      'batter_runs'))
+        batter_runs_outcome_beta_by_innings_strike_rate = pm.Normal("beta",
+                                                                    mu=0,
+                                                                    sigma=1,
+                                                                    shape=(1,
+                                                                           COORDS['batter_runs'].shape[0]))
+        batter_runs_outcome_mu = pm.Deterministic('mu_batter_runs_outcome_rv',
+                                                  batter_runs_outcome_alpha +
+                                                  batter_runs_outcome_alpha_by_batter[
+                                                      batter_featured_id_feature_data] +
+                                                  batter_runs_outcome_alpha_by_bowler[
+                                                      bowler_featured_id_feature_data] +
+                                                  batter_runs_outcome_alpha_by_over[over_feature_data] +
+                                                  batter_runs_outcome_alpha_by_wickets_fallen[
+                                                      wickets_fallen_feature_data] +
+                                                  batter_runs_outcome_beta_by_innings_strike_rate * innings_strike_rate_feature_data +
+                                                  batter_runs_outcome_alpha_by_venue[venue_feature_data])
+        probability_of_batter_runs_outcome_rv = pm.Deterministic('probability_of_batter_runs_outcome',
+                                                                 at.nnet.softmax(batter_runs_outcome_mu),
+                                                                 dims=('ball_ids', 'batter_runs'))
+        batter_outcomes_by_ball_and_innings_rv = pm.Categorical('batter_runs_outcome_by_ball_and_innings_rv',
+                                                                p=probability_of_batter_runs_outcome_rv,
+                                                                observed=batter_runs_outcomes_data,
+                                                                dims='ball_ids')
+    return batter_runs_model
+
+def get_batter_runs_rf_model_from_perfect_simulator(perfect_simulator):
+    train_match_state_df = perfect_simulator.get_match_state_by_ball_and_innings(False)
+    train_bowling_outcomes_df = perfect_simulator.get_bowling_outcomes_by_ball_and_innings(False)
+    one_hot_encoders = {}
+    train_ohe_features = {}
+    for feature in ['batter', 'bowler', 'venue', 'over', 'inning', 'wickets_fallen']:
+        ohe = OneHotEncoder(sparse=False)
+        train_features = ohe.fit_transform(train_match_state_df[[feature]])
+        one_hot_encoders[feature] = ohe
+        train_ohe_features[feature] = train_features
+
+    for feature in ['innings_strike_rate']:
+        add_column_to_df(train_match_state_df,
+                         feature)
+        train_ohe_features[feature] = train_match_state_df[[feature]].values
+
+    train_ohe_feature_array = np.hstack(
+        [v[1] for v in train_ohe_features.items()]
+    )
+
+    targets = train_bowling_outcomes_df['batter_runs']
+    return train_ohe_features, train_ohe_feature_array, one_hot_encoders, targets
+
+def get_batter_runs_model_from_idata(idata_trained):
     COORDS = {
         'batter_runs': idata_trained.posterior.batter_runs.values,
         'batter_featured_id': idata_trained.posterior.batter_featured_id.values,
@@ -135,7 +313,6 @@ def get_categorical_column_index_for_df(df,
                          categories).codes
     return idx
 
-
 def innings_strike_rate(df):
     if 'current_total' in df and 'total_ball_bowled' in df:
         df['innings_strike_rate'] = df['current_total'] / df['total_balls_bowled']
@@ -149,8 +326,8 @@ def add_column_to_df(df,
                      column_name):
     column_name(df)
 
-def prepare_match_state_df(match_state_df,
-                           idata_trained):
+def prepare_match_state_df_for_bi(match_state_df,
+                                  idata_trained):
 
     feature_data = {}
     for dim in ['batter_featured_id',
@@ -174,6 +351,31 @@ def prepare_match_state_df(match_state_df,
     feature_data_df = pd.DataFrame(feature_data)
     return feature_data_df
 
+def prepare_match_state_df_for_rf(match_state_df,
+                                  one_hot_encoders):
+
+    feature_data = {}
+    for dim in ['batter_featured_id',
+                'bowler_featured_id',
+                'venue',
+                'wickets_fallen',
+                'over',
+                'inning']:
+        ohe = one_hot_encoders[dim]
+        feature_data[dim] = ohe.transform(match_state_df[[dim]])
+
+    for column in [innings_strike_rate]:
+        add_column_to_df(match_state_df,
+                         column)
+
+    for dim in ['innings_strike_rate']:
+        feature_data[dim] = match_state_df[dim]
+
+    feature_array = np.hstack(
+        [v[1] for v in feature_data.items()]
+    )
+    return feature_data, feature_array
+
 def predictions_from_idata(idata,
                            var_name):
     preds_helper = lambda ds: ds.to_dataframe()[var_name].value_counts(normalize=True).to_xarray()
@@ -195,13 +397,91 @@ class BatterRunsModel:
 
     def __init__(self,
                  perfect_simulator: PerfectSimulator,
+                 model_directory_path: str,
+                 model_type: str
                  ):
         self.perfect_simulator = perfect_simulator
-        self.idata_trained = load_idata_trained(
-            "batter_runs_model/bayesian_inference/Indian Premier League_2009_or_selection_with_SR"
-        )
+        self.model_directory_path = model_directory_path
+        self.model_type = model_type
+        self.model_path = self.construct_model_path()
+
+    def construct_model_path(self):
+        try:
+            test_tournament = self.perfect_simulator.data_selection.get_test_tournament()
+            test_season = self.perfect_simulator.data_selection.get_test_season()
+            (train_start_date, train_end_date) = self.perfect_simulator.data_selection.get_training_window()
+            data_selection_type = self.perfect_simulator.data_selection.get_data_selection_type()
+            model_path = f"{self.model_directory_path}/" \
+                         f"{self.model_type}/" \
+                         f"{test_tournament}-" \
+                         f"{test_season}-" \
+                         f"{train_start_date}-" \
+                         f"{train_end_date}-" \
+                         f"{data_selection_type}.pkl"
+        except Exception as e:
+            model_path = f"{self.model_directory_path}/" \
+                         f"{self.model_type}/" \
+                         'Indian Premier League_2009_or_selection_with_SR.pkl'
+        return model_path
+
+    def initate_model(self,session_type='training'):
+        if self.model_type == 'bayesian_inference':
+            self.initate_bayesian_inference_model(session_type)
+        if self.model_type == 'random_forest':
+            self.initate_random_forest_model(session_type)
+
+    def initiate_bayesian_inference_model(self,session_type='training'):
+        if session_type == 'training':
+            self.training_status = False
+            self.pymc_model = get_batter_runs_bi_model_from_perfect_simulator(self.perfect_simulator)
+        if session_type == 'testing':
+            self.idata_trained = load_idata_trained(
+                self.model_path
+            )
+            self.posterior_point_list = dataset_to_point_list(self.idata_trained.posterior)
+            self.pymc_model = get_batter_runs_model_from_idata(self.idata_trained)
+            self.training_status = True
+
+    def initiate_random_forest_model(self,session_type='training'):
+        if session_type == 'training':
+            self.training_status = False
+            (self.train_ohe_features,
+             self.train_ohe_feature_array,
+             self.one_hot_encoders,
+             self.targets)  = get_batter_runs_rf_model_from_perfect_simulator(self.perfect_simulator)
+        if session_type == 'testing':
+            self.rf_classifier = load_random_forest_classifier(
+                self.model_path
+            )
+            self.training_status = True
+
+    def run_training(self):
+        if self.model_type == 'bayesian_inference':
+            self.train_bayesian_inference()
+        if self.model_type == 'random_forest':
+            self.train_random_forest()
+
+    def train_bayesian_inference(self):
+        self.idata_trained = self.pymc_model.sample(random_seed=RANDOM_SEED)
         self.posterior_point_list = dataset_to_point_list(self.idata_trained.posterior)
-        self.pymc_model = get_batter_runs_model(self.idata_trained)
+        self.training_status = True
+        save_idata_trained(self.idata_trained,
+                           self.model_path)
+
+    def train_random_forest(self):
+        clf = RandomForestClassifier()
+        clf.fit(self.train_ohe_feature_array,
+                self.targets)
+        self.random_forest_classifier = clf
+        save_random_forest_classifier(self.random_forest_classifier,
+                                      self.model_path)
+
+    def run_testing(self):
+        if self.model_type == 'bayesian_inference':
+            testing_stats = self.test_bayesian_inference()
+        if self.model_type == 'random_forest':
+            testing_stats = self.test_random_forest()
+        return testing_stats
 
     def prepare_for_prediction(self,
                                test_combined_df):
@@ -220,11 +500,10 @@ class BatterRunsModel:
                 "batter_runs_outcomes_data": -1*np.ones_like(test_combined_df.venue.values)
             })
 
-    def get_batter_runs_given_match_state(self,
+    def run_bayesian_inference_prediction(self,
                                           match_state_df):
-
-        test_combined_df = prepare_match_state_df(match_state_df.reset_index(),
-                                                  self.idata_trained)
+        test_combined_df = prepare_match_state_df_for_bi(match_state_df.reset_index(),
+                                                         self.idata_trained)
         logger.info(f'Received match state with {test_combined_df.shape[0]} balls for inference')
         self.prepare_for_prediction(test_combined_df)
         logger.info(f'Prepared for inference for {test_combined_df.shape[0]} balls')
@@ -243,5 +522,23 @@ class BatterRunsModel:
             logger.error(f"Error while formatting inference for {test_combined_df.shape[0]} balls: {e}")
             predictions_df = pd.DataFrame()
         logger.info(f'Inferred batter runs for {predictions_df.shape[0]} balls')
+
+    def run_random_forest_prediction(self,
+                                     match_state_df):
+        rf_feature_array, rf_feature_data = prepare_match_state_df_for_rf(match_state_df.reset_index(),
+                                                                          self.one_hot_encoders)
+        logger.info(f'Received match state with {match_state_df.shape[0]} balls for inference')
+        predictions_array = self.random_forest_classifier.predict(rf_feature_array)
+        predictions_df = pd.DataFrame({'batter_runs': predictions_array})
+        logger.info(f'Inferred batter runs for {predictions_df.shape[0]} balls')
+        return predictions_df
+
+    def get_batter_runs_given_match_state(self,
+                                          match_state_df):
+        if self.model_type == 'bayesian_inference':
+            predictions_df = self.run_bayesian_inference_prediction(match_state_df)
+        if self.model_type == 'random_forest':
+            predictions_df = self.run_random_forest_prediction(match_state_df)
+
         return predictions_df
 

@@ -1,3 +1,4 @@
+from inferential_models.batter_runs_models import BatterRunsModel
 from utils.config_utils import ConfigUtils
 from data_selection.data_selection import DataSelection
 from rewards_configuration.rewards_configuration import RewardsConfiguration
@@ -78,12 +79,15 @@ class TournamentSimulator:
 
         return source_playing_xi_df
 
-    def __init__(self, data_selection: DataSelection, rewards_configuration: RewardsConfiguration,
+    def __init__(self, data_selection: DataSelection,
+                 rewards_configuration: RewardsConfiguration,
+                 batter_runs_model: BatterRunsModel,
                  config_utils: ConfigUtils):
         self.number_of_scenarios, self.matches_file_name, self.playing_xi_file_name = \
             config_utils.get_tournament_simulator_info()
         self.data_selection = data_selection
         self.rewards_configuration = rewards_configuration
+        self.batter_runs_model = batter_runs_model
 
         self.source_matches_df = pd.read_csv(self.matches_file_name)
         self.source_matches_df['stage'] = self.source_matches_df['stage'].fillna('')
@@ -271,7 +275,9 @@ class TournamentSimulator:
 
         # Setup the predictive simulator
         predictive_simulator = PredictiveSimulator(data_selection_for_simulations,
-                                                   self.rewards_configuration, number_of_scenarios=1,
+                                                   self.rewards_configuration,
+                                                   self.batter_runs_model,
+                                                   number_of_scenarios=1,
                                                    match_columns_to_persist=['tournament_scenario'])
 
         # Generate the matches & innings

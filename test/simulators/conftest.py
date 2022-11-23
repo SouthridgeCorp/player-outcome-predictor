@@ -53,5 +53,12 @@ def tournament_simulator(setup_and_teardown):
 
     data_selection = DataSelection(helper)
 
-    simulator = TournamentSimulator(data_selection, rewards_config, config_instance)
+    perf_simulator = PerfectSimulator(data_selection, rewards_config)
+
+    batter_runs_model = BatterRunsModel(perf_simulator)
+
+    simulator = TournamentSimulator(data_selection,
+                                    rewards_config,
+                                    batter_runs_model,
+                                    config_instance)
     yield simulator
