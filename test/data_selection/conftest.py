@@ -17,34 +17,27 @@ def data_selection_instance(tournament_helper):
     yield instance
 
 
-def prepare_for_tests(data_selection_instance, is_testing):
+def prepare_tests(data_selection_instance, is_testing):
     tournaments = data_selection_instance.historical_data_helper.tournaments
 
-    tournaments.set_selected_tournament_names(["Big Bash League", "Afghanistan Premier League"], is_testing)
-    start_date = datetime.datetime.strptime("01/01/2018", "%d/%m/%Y").date()
-    end_date = datetime.datetime.strptime("31/12/2018", "%d/%m/%Y").date()
+    tournaments.set_testing_details("Big Bash League", "2017/18")
 
-    tournaments.set_start_end_dates(start_date, end_date, is_testing)
+    if not is_testing:
+        tournaments.set_training_selected_tournament_names(["Big Bash League", "Afghanistan Premier League"])
+        start_date = datetime.datetime.strptime("01/01/2018", "%d/%m/%Y").date()
+        end_date = datetime.datetime.strptime("31/12/2018", "%d/%m/%Y").date()
 
-    return start_date, end_date
+        tournaments.set_training_window(start_date, end_date)
 
 
-def setup_training_and_testing(data_selection_instance, is_testing):
+def setup_training_and_testing_windows(data_selection_instance):
     tournaments = data_selection_instance.historical_data_helper.tournaments
 
-    tournaments.set_selected_tournament_names(["Big Bash League", "Afghanistan Premier League"], is_testing)
+    tournaments.set_testing_details("Big Bash League", "2019/20")
 
-    # Setup the training window
-    start_date = datetime.datetime.strptime("01/01/2018", "%d/%m/%Y").date()
+    tournaments.set_training_selected_tournament_names(["Big Bash League", "Afghanistan Premier League"])
+    start_date = datetime.datetime.strptime("01/01/2017", "%d/%m/%Y").date()
     end_date = datetime.datetime.strptime("31/12/2018", "%d/%m/%Y").date()
 
-    tournaments.set_start_end_dates(start_date, end_date, is_testing)
+    tournaments.set_training_window(start_date, end_date)
 
-    # Setup the testing window
-    tournaments.set_selected_tournament_names(["Big Bash League"], not is_testing)
-    start_date = datetime.datetime.strptime("01/01/2019", "%d/%m/%Y").date()
-    end_date = datetime.datetime.strptime("31/12/2021", "%d/%m/%Y").date()
-
-    tournaments.set_start_end_dates(start_date, end_date, not is_testing)
-
-    return start_date, end_date

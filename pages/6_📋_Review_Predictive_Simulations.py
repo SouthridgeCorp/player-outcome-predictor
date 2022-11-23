@@ -1,7 +1,7 @@
 import streamlit as st
 import utils.page_utils as page_utils
 from utils.config_utils import create_utils_object
-from utils.app_utils import data_selection_instance, rewards_instance, data_selection_summary, \
+from utils.app_utils import data_selection_instance, rewards_instance, prep_simulator_pages, \
     get_predictive_simulator, show_granularity_metrics, show_stats, write_top_X_to_st
 from simulators.perfect_simulator import PerfectSimulator
 import pandas as pd
@@ -40,8 +40,8 @@ def app():
     tournaments = data_selection.get_helper().tournaments
     rewards = rewards_instance()
 
-    # Show a summary of selected training & testing windows
-    data_selection_summary(tournaments)
+    if not prep_simulator_pages(data_selection, "Predictive Simulator"):
+        return
 
     config_utils = create_utils_object()
     number_of_scenarios = config_utils.get_predictive_simulator_info()

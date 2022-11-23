@@ -1,8 +1,8 @@
 import utils.app_utils
 import utils.page_utils as page_utils
 import streamlit as st
-from utils.app_utils import data_selection_instance, reset_session_states
-
+from utils.app_utils import data_selection_instance, reset_session_states, show_data_selection_summary
+from data_selection.data_selection import DataSelectionType
 
 
 def on_date_change(tournaments, key, is_testing):
@@ -25,47 +25,50 @@ def on_tournament_change(tournaments):
     reset_session_states()
 
 
-def set_start_end_date(is_testing, tournaments):
+def set_training_start_end_date(tournaments):
     """
     Helper function for building out the date / time widget for testing & training
     :param is_testing: True = Inputs are for the testing mode, False = Inputs are for the training mode
     :param tournaments: The tournaments object that consists of all tournament meta-data
     :return: None
     """
-    if is_testing:
-        mode = "testing"
-    else:
-        mode = "training"
+    st.header(f"Training Window")
 
-    st.header(f"Select the {mode} window")
+    seasons_df = tournaments.get_tournament_and_season_details()
 
-    start_date, end_date = tournaments.get_start_end_dates(is_testing)
+    end_date = tournaments.get_first_testing_date()
 
-    key = f"{mode}_start"
-    start_date, end_date = \
-        st.slider("Select the {mode} window:", min_value=tournaments.first_match_date,
-                  max_value=tournaments.last_match_date,
-                  value=(start_date, end_date), key=key, on_change=on_date_change,
-                  args=(tournaments, key, is_testing))
+    dates = seasons_df[seasons_df['date'] < end_date]['date'].tolist()
 
-    if start_date > end_date:
-        st.error('Error: End date must fall after start date.')
+    start_date = st.selectbox("Select the training start date", dates,
+                              key="training_start", on_change=reset_session_states)
 
-    tournaments.set_start_end_dates(start_date, end_date, is_testing)
+    tournaments.set_training_window(start_date, end_date)
 
-    st.subheader(f"Summary for the {mode} window")
-    st.markdown(f"**Start Date** = {start_date}")
-    st.markdown(f"**End Date**= {end_date}")
 
-    if len(tournaments.selected) == 0:
-        st.markdown(f"_Please select tournaments for {mode}_")
-    else:
-        st.markdown(f"_Selected Tournaments & Match counts for {mode}:_")
-    for tournament in tournaments.selected:
-        matches = tournaments.matches(tournament)
-        match_count = matches.get_selected_match_count(start_date, end_date)
-        st.markdown(f"- **{tournament.upper()}** = {match_count} matches")
+def select_testing_window(tournaments, data_selection):
+    st.header(f"Testing Window")
 
+    tournament_list = tournaments.df["name"].to_list()
+    tournament_name = st.selectbox("Select the tournament", tournament_list,
+                                   key="testing_tournaments", on_change=reset_session_states)
+    tournament = tournaments.get_key(tournament_name)
+
+    seasons = data_selection.get_all_seasons(tournament)
+    season = st.selectbox("Select the season", seasons, key="testing_seasons")
+
+    tournaments.set_testing_details(tournament_name, season)
+
+
+def set_selection_type(data_selection):
+
+    st.header(f"Selection Type")
+
+    selection_types = [DataSelectionType.AND_SELECTION, DataSelectionType.OR_SELECTION]
+
+    selection_type = st.radio("Selection Type:", options=selection_types, on_change=reset_session_states)
+
+    data_selection.set_selection_type(selection_type)
 
 def app():
     """
@@ -78,21 +81,18 @@ def app():
     data_selection = data_selection_instance()
     tournaments = data_selection.get_helper().tournaments
 
-    testing_column, training_column = st.columns(2, gap="large")
+    testing_column, training_column, selection_type_column = st.columns(3, gap="large")
 
     with testing_column:
-        tournaments = tournaments.df["name"].to_list()
-        tournament = st.selectbox("Select the Testing window", tournaments, key="testing_tournaments")
-
+        select_testing_window(tournaments, data_selection)
 
     with training_column:
-        set_start_end_date(False, tournaments)
+        set_training_start_end_date(tournaments)
 
+    with selection_type_column:
+        set_selection_type(data_selection)
 
-    st.header("List of tournaments available for training & testing")
-
-    with st.expander("Expand to see the list"):
-        st.dataframe(tournaments.df, use_container_width=True)
+    show_data_selection_summary(data_selection)
 
     show_player_universe = st.checkbox("Show Player Universe")
 
@@ -105,4 +105,6 @@ def app():
             st.write("Please select the target tournaments before calculating the player universe")
         else:
             st.dataframe(pu, use_container_width=True)
+
+
 app()

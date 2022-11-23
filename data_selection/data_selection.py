@@ -33,6 +33,9 @@ class PlayerInformation:
         return player_dict
 
 
+class DataSelectionType:
+    AND_SELECTION = "And Selection"
+    OR_SELECTION = "Or Selection"
 class DataSelection:
 
     def __init__(self,
@@ -43,6 +46,8 @@ class DataSelection:
         self.simulated_matches = pd.DataFrame()
         self.simulated_innings = pd.DataFrame()
         self.simulated_playing_xi = pd.DataFrame()
+
+        self.selection_type = DataSelectionType.AND_SELECTION
 
     def get_helper(self) -> Helper:
         """
@@ -240,3 +245,10 @@ class DataSelection:
     def get_all_seasons(self, tournament):
         match = self.historical_data_helper.tournaments.matches(tournament)
         return match.get_all_seasons()
+
+    def set_selection_type(self, selection_type):
+        self.selection_type = selection_type
+
+    def get_selection_type(self):
+        return self.selection_type
+

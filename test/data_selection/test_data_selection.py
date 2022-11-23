@@ -10,13 +10,13 @@ def prepare_tests(data_selection_instance, is_testing):
     tournaments = data_selection_instance.historical_data_helper.tournaments
 
     if is_testing:
-        tournaments.set_testing_details("Big Bash League", ["2017/18", "2018/19"])
+        tournaments.set_testing_details("Big Bash League", "2017/18")
     else:
         tournaments.set_training_selected_tournament_names(["Big Bash League", "Afghanistan Premier League"])
         start_date = datetime.strptime("01/01/2018", "%d/%m/%Y").date()
         end_date = datetime.strptime("31/12/2018", "%d/%m/%Y").date()
 
-        tournaments.set_training_start_end_date(start_date, end_date)
+        tournaments.set_training_window(start_date, end_date)
 
 
 @pytest.mark.parametrize(
@@ -31,7 +31,10 @@ class TestDataSelection:
         prepare_tests(data_selection_instance, is_testing)
         selected_matches = data_selection_instance.get_selected_matches(is_testing)
 
-        assert len(selected_matches) == 47
+        if is_testing:
+            assert len(selected_matches) == 43
+        else:
+            assert len(selected_matches) == 47
 
     @pytest.mark.parametrize('is_testing', [True, False])
     def test_playing_xi(self, data_selection_instance: DataSelection, is_testing):
@@ -39,7 +42,10 @@ class TestDataSelection:
 
         playing_xi = data_selection_instance.get_playing_xi_for_selected_matches(is_testing)
         expected_columns = ["team", "match_key", "player_key"]
-        assert len(playing_xi) == 1034
+        if is_testing:
+            assert len(playing_xi) == 946
+        else:
+            assert len(playing_xi) == 1034
         assert playing_xi.columns.tolist() == expected_columns, \
             f"Received columns {playing_xi.columns.tolist()}; expected {expected_columns}"
 
@@ -56,7 +62,10 @@ class TestDataSelection:
 
         received_columns = innings.columns.values.tolist()
         received_columns.sort()
-        assert len(innings) == 11123
+        if is_testing:
+            assert len(innings) == 10263
+        else:
+            assert len(innings) == 11123
         assert received_columns == expected_columns, \
             f"Received columns {received_columns};\nexpected {expected_columns}"
 

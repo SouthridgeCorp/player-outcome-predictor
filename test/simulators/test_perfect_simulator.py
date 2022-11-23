@@ -1,6 +1,6 @@
 from test.conftest import get_test_cases
 import pytest
-from test.data_selection.conftest import prepare_for_tests, setup_training_and_testing
+from test.data_selection.conftest import prepare_tests, setup_training_and_testing_windows
 import pandas as pd
 import logging
 import datetime
@@ -72,7 +72,7 @@ class TestPerfectSimulator:
 
     @pytest.mark.parametrize('is_testing', [True, False])
     def test_get_bowling_outcomes_by_ball_and_innings(self, perfect_simulator, setup_and_teardown, is_testing):
-        prepare_for_tests(perfect_simulator.data_selection, is_testing)
+        prepare_tests(perfect_simulator.data_selection, is_testing)
         df = perfect_simulator.get_bowling_outcomes_by_ball_and_innings(is_testing)
 
         for index, row in df.iterrows():
@@ -84,7 +84,7 @@ class TestPerfectSimulator:
 
     @pytest.mark.parametrize('is_testing', [True, False])
     def test_get_match_state_by_ball_and_innings(self, perfect_simulator, setup_and_teardown, is_testing):
-        setup_training_and_testing(perfect_simulator.data_selection, is_testing)
+        setup_training_and_testing_windows(perfect_simulator.data_selection)
 
         match_state_df = perfect_simulator.get_match_state_by_ball_and_innings(is_testing)
         player_universe_df = perfect_simulator.data_selection.get_frequent_players_universe()
@@ -190,7 +190,7 @@ class TestPerfectSimulator:
 
     @pytest.mark.parametrize('is_testing', [True, False])
     def test_get_batting_outcomes_by_ball_and_innings(self, perfect_simulator, is_testing):
-        prepare_for_tests(perfect_simulator.data_selection, is_testing)
+        prepare_tests(perfect_simulator.data_selection, is_testing)
 
         df = perfect_simulator.get_batting_outcomes_by_ball_and_innings(is_testing)
 
@@ -227,7 +227,7 @@ class TestPerfectSimulator:
 
     @pytest.mark.parametrize('is_testing', [True, False])
     def test_get_fielding_outcomes_by_ball_and_innings(self, perfect_simulator, is_testing):
-        prepare_for_tests(perfect_simulator.data_selection, is_testing)
+        prepare_tests(perfect_simulator.data_selection, is_testing)
 
         df = perfect_simulator.get_fielding_outcomes_by_ball_and_innings(is_testing)
 
@@ -244,7 +244,7 @@ class TestPerfectSimulator:
 
     @pytest.mark.parametrize('is_testing', [True, False])
     def test_get_outcomes_by_ball_and_innings(self, perfect_simulator, is_testing):
-        prepare_for_tests(perfect_simulator.data_selection, is_testing)
+        prepare_tests(perfect_simulator.data_selection, is_testing)
 
         df = perfect_simulator.get_outcomes_by_ball_and_innings(is_testing)
 
@@ -261,7 +261,7 @@ class TestPerfectSimulator:
 
     def test_get_outcomes_by_player_and_innings(self, perfect_simulator, setup_and_teardown):
         is_testing = False
-        prepare_for_tests(perfect_simulator.data_selection, is_testing)
+        prepare_tests(perfect_simulator.data_selection, is_testing)
 
         df = perfect_simulator.get_outcomes_by_player_and_innings(is_testing)
 
@@ -288,7 +288,7 @@ class TestPerfectSimulator:
 
     @pytest.mark.parametrize('is_testing', [True, False])
     def test_get_outcomes_by_team_and_innings(self, perfect_simulator, is_testing):
-        prepare_for_tests(perfect_simulator.data_selection, is_testing)
+        prepare_tests(perfect_simulator.data_selection, is_testing)
 
         df = perfect_simulator.get_outcomes_by_team_and_innings(is_testing)
 
@@ -367,7 +367,7 @@ class TestPerfectSimulator:
 
     @pytest.mark.parametrize('is_testing', [True, False])
     def test_base_rewards(self, perfect_simulator, is_testing):
-        prepare_for_tests(perfect_simulator.data_selection, is_testing)
+        prepare_tests(perfect_simulator.data_selection, is_testing)
 
         base_rewards_df, bonus_penalty_df = perfect_simulator.get_rewards_components(is_testing, generate_labels=True)
 
@@ -413,7 +413,7 @@ class TestPerfectSimulator:
     def test_get_simulation_evaluation_metrics_by_granularity(self, perfect_simulator, is_testing, granularity,
                                                               expected_columns):
 
-        prepare_for_tests(perfect_simulator.data_selection, is_testing)
+        prepare_tests(perfect_simulator.data_selection, is_testing)
         rewards_df = perfect_simulator.get_simulation_evaluation_metrics_by_granularity(is_testing, granularity)
 
         rewards_df = rewards_df.reset_index()
@@ -429,7 +429,7 @@ class TestPerfectSimulator:
     @pytest.mark.parametrize('granularity', ['tournament', 'tournament_stage', 'match', 'innings'])
     def test_get_error_measures(self, perfect_simulator, is_testing, granularity):
 
-        prepare_for_tests(perfect_simulator.data_selection, is_testing)
+        prepare_tests(perfect_simulator.data_selection, is_testing)
 
         rewards_df = perfect_simulator.get_simulation_evaluation_metrics_by_granularity(is_testing, granularity)
 

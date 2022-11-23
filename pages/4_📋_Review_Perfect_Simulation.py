@@ -2,7 +2,8 @@ import streamlit as st
 
 import utils.page_utils as page_utils
 from simulators.perfect_simulator import PerfectSimulator
-from utils.app_utils import data_selection_instance, rewards_instance, data_selection_summary, show_granularity_metrics
+from utils.app_utils import data_selection_instance, rewards_instance, prep_simulator_pages, \
+    show_granularity_metrics
 from rewards_configuration.rewards_configuration import RewardsConfiguration
 import pandas as pd
 
@@ -20,6 +21,15 @@ def get_perfect_simulator_data(perfect_simulator: PerfectSimulator, granularity:
     """
     return perfect_simulator.get_simulation_evaluation_metrics_by_granularity(True, granularity)
 
+def show_perfect_simulator_stats(perfect_simulator):
+    with st.expander("Click to see training stats"):
+        train_match_state_df, train_bowling_outcomes_df, stats =\
+            perfect_simulator.get_match_state_by_balls_for_training()
+
+        for key in stats.keys():
+            st.markdown(f"**{key}:** {stats[key]}")
+
+
 
 def app():
     data_selection = data_selection_instance()
@@ -28,8 +38,8 @@ def app():
 
     page_utils.setup_page(" Review Perfect Simulation ")
 
-    # Show a summary of selected training & testing windows
-    data_selection_summary(tournaments)
+    if not prep_simulator_pages(data_selection, "Perfect Simulator"):
+        return
 
     granularity, metric, metrics, error_metrics = show_granularity_metrics("perfect")
 
@@ -38,6 +48,8 @@ def app():
     else:
 
         perfect_simulator = PerfectSimulator(data_selection, rewards)
+
+        show_perfect_simulator_stats(perfect_simulator)
 
         with st.spinner("Calculating Simulation Metrics.."):
             perfect_simulator_df = get_perfect_simulator_data(perfect_simulator, granularity, rewards)

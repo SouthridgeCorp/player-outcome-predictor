@@ -51,29 +51,54 @@ def get_helper(config_utils: ConfigUtils) -> Helper:
         st.session_state['MatchUtilsHelper'] = Helper(config_utils)
     return st.session_state['MatchUtilsHelper']
 
+def prep_simulator_pages(data_selection, page_name):
+    tournaments = data_selection.get_helper().tournaments
+    st.subheader("Data Selection Summary")
+    with st.expander("Click to see a summary of data selection"):
+        # Show a summary of selected training & testing windows
+        show_data_selection_summary(data_selection)
 
-def data_selection_summary(tournaments: Tournaments):
+    test_tournament_key, test_tournament_name, test_season = tournaments.get_testing_details()
+    if test_tournament_key == "":
+        st.error("Please select your data selection metrics before proceeding")
+        return False
+
+    st.subheader(page_name)
+    return True
+
+
+def show_data_selection_summary(data_selection):
     """
     Builds out the summary of data selection fields for displaying in streamlit. Can be used to summarise the current
     state of data selection on any streamlit page.
     """
-    selected_tournaments, training, testing = st.columns(3)
+    tournaments = data_selection.get_helper().tournaments
+    test_tournament_key, test_tournament_name, test_season = tournaments.get_testing_details()
 
-    with selected_tournaments:
-        st.subheader("Selected Tournaments:")
-        st.write(tournaments.get_selected_tournament_names())
+    if test_tournament_key == "":
+        st.write("Please setup your data selection criteria before proceeding")
+        return
 
-    with training:
-        st.subheader("Training Details:")
-        training_start_date, training_end_date = tournaments.get_start_end_dates(False)
-        st.write(f"Start Date: {training_start_date}")
-        st.write(f"End Date: {training_end_date}")
+    testing, training = st.columns(2)
 
     with testing:
         st.subheader("Testing Details:")
-        testing_start_date, testing_end_date = tournaments.get_start_end_dates(True)
-        st.write(f"Start Date: {testing_start_date}")
-        st.write(f"End Date: {testing_end_date}")
+        matches = tournaments.get_selected_matches(True)
+        st.markdown(f"**Test Tournament:** {test_tournament_name}")
+        st.markdown(f"**Test Season:**= {test_season}")
+        st.markdown(f"**Number of matches**= {len(matches.index)}")
+
+        st.subheader("Selection Type Details:")
+        st.markdown(f"**Selection Type:** {data_selection.get_selection_type()}")
+
+    with training:
+        st.subheader("Training Details:")
+        training_start_date, training_end_date = tournaments.get_training_start_end_dates()
+        st.markdown(f"**Start Date:** {training_start_date}")
+        st.markdown(f"**End Date:** {training_end_date}")
+
+        seasons_df = tournaments.get_season_details_for_window(training_start_date, training_end_date)
+        st.dataframe(seasons_df, use_container_width=True)
 
 
 def get_metrics_to_show() -> (list, list):
@@ -97,6 +122,7 @@ def reset_session_states(reset_tournament_simulator=True):
     To be called whenever a major change requires a session state reset. Keep updating this function as and when new
     session objects are added.
     """
+    st.sidebar.info("Resetting session states")
     if 'PredictiveSimulator' in st.session_state:
         del st.session_state['PredictiveSimulator']
 
