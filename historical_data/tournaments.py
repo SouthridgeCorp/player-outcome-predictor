@@ -9,6 +9,7 @@ import logging
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+
 class ArtefactsPerTournament:
     """
     A collection of all artefacts organised under a tournament
@@ -42,12 +43,12 @@ class Tournaments:
         self.first_match_date = self.df["first_match_date"].min()
         self.last_match_date = self.df["last_match_date"].max()
 
-        # Set default limits for training & testing date ranges
+        # Represents the selected training details
         self.training_selected_tournaments = []
         self.training_start = self.first_match_date
         self.training_end = self.last_match_date
 
-        # represents the selected set of tournaments, based on user selection
+        # represents the selected testing details
         self.testing_selected_tournament = ""
         self.testing_selected_tournament_name = ""
         self.testing_selected_season = ""
@@ -68,21 +69,18 @@ class Tournaments:
 
         logger.debug("Done Initialising tournaments")
 
-
     def get_training_start_end_dates(self) -> (datetime.date, datetime.date):
         """
-        Get the start / end dates set in the Tournaments object
-        :param is_testing: True for testing, False for training
+        Get the start / end dates set in the for training
         :return: A tuple of 2 dates
         """
         return self.training_start, self.training_end
 
     def set_training_window(self, start_date: datetime.date, end_date: datetime.date):
         """
-        Sets the testing window
+        Sets the training window
         :param start_date: The start date to be set
         :param end_date: The end date to be set
-        :param is_testing: True for testing, False for training
         :return: None
         """
         self.training_start = start_date
@@ -91,22 +89,22 @@ class Tournaments:
 
     def get_selected_training_tournaments(self) -> list:
         """
-        Gets the list of selected tournaments
-        :return: A list of tournaments
+        Gets the list of selected tournaments for training
+        :return: A list of tournament keys
         """
         return self.training_selected_tournaments
 
     def get_selected_training_tournament_names(self) -> list:
         """
-        Gets the list of selected tournaments
-        :return: A list of tournaments
+        Gets the list of selected tournaments for training
+        :return: A list of tournament names
         """
         tournaments = self.get_selected_tournaments()
         return self.df[self.df["key"].isin(tournaments)]["name"].tolist()
 
     def set_training_selected_tournament_names(self, selected_names: list):
         """
-        Set the selected tournament details based on user selection
+        Set the selected training tournament details based on the input list
         :param selected_names: The names of tournaments that have been selected
         :return: None
         """
@@ -114,19 +112,19 @@ class Tournaments:
 
     def set_testing_details(self, tournament, season):
         """
-        Set the selected tournament details based on user selection
-        :param selected_names: The names of tournaments that have been selected
+        Set the selected testing details
+        :param tournament: The name of the testing tournament
+        :param season: The specific season to test for
         :return: None
         """
         self.testing_selected_tournament = self.df[self.df["name"] == tournament].iloc[0]['key']
         self.testing_selected_tournament_name = tournament
         self.testing_selected_season = season
 
-    def get_testing_details(self):
+    def get_testing_details(self) -> (str, str, str):
         """
-        Set the selected tournament details based on user selection
-        :param selected_names: The names of tournaments that have been selected
-        :return: None
+        Get the selected testing details
+        :return: The selected tournament key, name and season as a tuple
         """
         return self.testing_selected_tournament, self.testing_selected_tournament_name, self.testing_selected_season
 
@@ -287,7 +285,7 @@ class Tournaments:
         seasons_df = pd.DataFrame()
         for key in self.artefacts.keys():
             match = self.artefacts[key].matches
-            seasons_df = pd.concat([seasons_df, match.get_seasons_df()])
+            seasons_df = pd.concat([seasons_df, match.get_season_with_start_date_df()])
 
         return seasons_df
 
@@ -297,8 +295,6 @@ class Tournaments:
             match = self.artefacts[key].matches
 
             seasons_df = pd.concat([seasons_df, match.get_seasons_df_for_window(start_date, end_date)])
-
-        seasons_df.rename(columns={"key": "number_of_matches"}, inplace=True)
         seasons_df = pd.merge(seasons_df, self.df[['key', 'name']], left_on='tournament_key', right_on='key')
 
         return seasons_df[['name', 'season', 'number_of_matches']]

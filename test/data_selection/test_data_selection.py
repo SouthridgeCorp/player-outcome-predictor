@@ -148,7 +148,7 @@ class TestDataSelection:
         selected_venues.sort()
         if is_testing:
             testing_venues = ["W.A.C.A. Ground, Perth", "Melbourne Cricket Ground, Melbourne",
-                              "Docklands Stadium, Melbourne","Adelaide Oval, Adelaide", "Manuka Oval, Canberra",
+                              "Docklands Stadium, Melbourne", "Adelaide Oval, Adelaide", "Manuka Oval, Canberra",
                               "Bellerive Oval, Hobart", "Simonds Stadium, South Geelong, Victoria",
                               "Sydney Cricket Ground, Sydney", "Brisbane Cricket Ground, Brisbane",
                               "Sydney Showground Stadium, Sydney", "Perth Stadium, Perth",
@@ -176,4 +176,51 @@ class TestDataSelection:
         assert expected_seasons_bbl == received_seasons_bbl
         assert expected_seasons_apl == received_seasons_apl
 
+    def test_get_seasons_by_window(self, data_selection_instance: DataSelection):
+        tournaments = data_selection_instance.historical_data_helper.tournaments
+        start_date = datetime.strptime("01/01/2018", "%d/%m/%Y").date()
+        end_date = datetime.strptime("31/12/2018", "%d/%m/%Y").date()
 
+        list_of_seasons = {"bbl": ["2018/19", "2017/18"],
+                           "apl": ["2018/19"]}
+        seasons_df = tournaments.get_season_details_for_window(start_date, end_date)
+        expected_seasons_columns = ["name", "season", "number_of_matches"]
+        expected_seasons_columns.sort()
+        seasons_columns = list(seasons_df.columns)
+        seasons_columns.sort()
+        assert expected_seasons_columns == seasons_columns
+
+        for tournament in ["Afghanistan Premier League", "Big Bash League"]:
+            key = tournaments.get_key(tournament)
+            expected_seasons = list_of_seasons[key]
+            expected_seasons.sort()
+
+            received_seasons = list(seasons_df[seasons_df['name'] == tournament]['season'].unique())
+            received_seasons.sort()
+            assert received_seasons == expected_seasons
+
+    def test_get_season_with_start_date_df(self, data_selection_instance: DataSelection):
+        tournaments = data_selection_instance.historical_data_helper.tournaments
+        seasons_df = tournaments.get_tournament_and_season_details()
+
+        expected_seasons = {"bbl": {'2012/13': "2013-01-07", '2013/14': "2014-01-16", '2014/15': "2014-12-18",
+                                    '2016/17': "2017-01-25", '2017/18': "2017-12-19", '2018/19': "2018-12-19",
+                                    '2019/20': "2019-12-17", '2021/22': "2022-01-19"},
+                            "apl": {"2018/19": "2018-10-05"}
+                            }
+
+        for index, row in seasons_df.iterrows():
+            season = row['season']
+            tournament_key = row['tournament_key']
+            date = row['date']
+            expected_date = expected_seasons[tournament_key][season]
+            assert str(date) == expected_date, f"Date mismatch tournament {tournament_key} season {season}\n" \
+                                               f"expected date: {expected_date} received date: {date}"
+
+        for tournament in ["apl", "bbl"]:
+            expected_list_of_seasons = list(expected_seasons[tournament].keys())
+            received_list_of_seasons = list(seasons_df[seasons_df["tournament_key"] == tournament]['season'].unique())
+
+            expected_list_of_seasons.sort()
+            received_list_of_seasons.sort()
+            assert expected_list_of_seasons == received_list_of_seasons
