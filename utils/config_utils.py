@@ -129,6 +129,7 @@ class ConfigUtils:
                                index=False)
             logging.info(f"Initiated empty feedback form backend file at {feedback_file}")
 
+
     def get_feedback_snowflake_path(self):
         database_name = f"{self.config['feedback_form']['storage_dir']}_{self.config['app']['environment']}"
         schema_name, table_name = tuple(self.config['feedback_form']['storage_path'].split("."))

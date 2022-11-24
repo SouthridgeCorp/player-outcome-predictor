@@ -6,7 +6,10 @@ from utils.app_utils import data_selection_instance, rewards_instance, prep_simu
     show_granularity_metrics
 from rewards_configuration.rewards_configuration import RewardsConfiguration
 import pandas as pd
+import logging
 
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 @st.cache
 def get_perfect_simulator_data(perfect_simulator: PerfectSimulator, granularity: str,
@@ -21,14 +24,16 @@ def get_perfect_simulator_data(perfect_simulator: PerfectSimulator, granularity:
     """
     return perfect_simulator.get_simulation_evaluation_metrics_by_granularity(True, granularity)
 
+
 def show_perfect_simulator_stats(perfect_simulator):
-    with st.expander("Click to see training stats"):
-        train_match_state_df, train_bowling_outcomes_df, stats =\
-            perfect_simulator.get_match_state_by_balls_for_training()
+    logger.debug("Writing stats")
+    with st.spinner("Calculating Training stats"):
+        with st.expander("Click to see training stats"):
+            _, _, stats = perfect_simulator.get_match_state_by_balls_for_training(calculate_bowling_options=False,
+                                                                                  one_hot_encoding=False)
 
-        for key in stats.keys():
-            st.markdown(f"**{key}:** {stats[key]}")
-
+            for key in stats.keys():
+                st.markdown(f"**{key}:** {stats[key]}")
 
 
 def app():
@@ -43,13 +48,13 @@ def app():
 
     granularity, metric, metrics, error_metrics = show_granularity_metrics("perfect")
 
+    perfect_simulator = PerfectSimulator(data_selection, rewards)
+
+    show_perfect_simulator_stats(perfect_simulator)
+
     if granularity == 'None':
         st.write("Please select a valid Granularity")
     else:
-
-        perfect_simulator = PerfectSimulator(data_selection, rewards)
-
-        show_perfect_simulator_stats(perfect_simulator)
 
         with st.spinner("Calculating Simulation Metrics.."):
             perfect_simulator_df = get_perfect_simulator_data(perfect_simulator, granularity, rewards)

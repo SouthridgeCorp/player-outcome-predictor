@@ -63,9 +63,9 @@ class DataSelection:
         """
         return self.historical_data_helper
 
-    def set_simulated_data(self, matches_df: pd.DataFrame=pd.DataFrame(),
-                           innings_df: pd.DataFrame=pd.DataFrame(),
-                           playing_xi_df: pd.DataFrame=pd.DataFrame()):
+    def set_simulated_data(self, matches_df: pd.DataFrame = pd.DataFrame(),
+                           innings_df: pd.DataFrame = pd.DataFrame(),
+                           playing_xi_df: pd.DataFrame = pd.DataFrame()):
         """
         Sets the simulated datasets to be used by this object
         :param matches_df: the simulated matches object
@@ -186,7 +186,7 @@ class DataSelection:
         df = df.assign(best_rank=lambda x: x[columns].min(axis=1))
 
         # TODO: Blocking the frequent player mapping till we figure out a good way to use it
-        #df = df.assign(featured_player=lambda x: df['best_rank'] <= 11)
+        # df = df.assign(featured_player=lambda x: df['best_rank'] <= 11)
         df['featured_player'] = True
 
         df = self.merge_with_players(df, 'player_key')

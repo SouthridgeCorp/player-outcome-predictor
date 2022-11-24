@@ -13,6 +13,9 @@ from simulators.predictive_simulator import PredictiveSimulator
 from simulators.perfect_simulator import Granularity, PerfectSimulator
 from simulators.tournament_simulator import TournamentSimulator
 
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
 
 def data_selection_instance():
     """
@@ -20,7 +23,9 @@ def data_selection_instance():
     :return: An instance of DataSelection
     """
     if 'DataSelection' not in st.session_state:
+        logger.debug("Building the data selection instance")
         config_utils = create_utils_object()
+        logger.debug("Creating the helper")
         # get the helper from the singleton instance
         helper = get_helper(config_utils)
         # get a data selection instance from the singleton
@@ -77,7 +82,11 @@ def get_helper(config_utils: ConfigUtils) -> Helper:
         st.session_state['MatchUtilsHelper'] = Helper(config_utils)
     return st.session_state['MatchUtilsHelper']
 
-def prep_simulator_pages(data_selection, page_name):
+
+def prep_simulator_pages(data_selection: DataSelection, page_name: str):
+    """
+    Utility function to setup the simulator pages to display data selection summary. To be only used with streamlit.
+    """
     tournaments = data_selection.get_helper().tournaments
     st.subheader("Data Selection Summary")
     with st.expander("Click to see a summary of data selection"):
@@ -124,6 +133,7 @@ def show_data_selection_summary(data_selection):
         st.markdown(f"**End Date:** {training_end_date}")
 
         seasons_df = tournaments.get_season_details_for_window(training_start_date, training_end_date)
+        st.markdown(f"**Total Number of Matches:** {seasons_df['number_of_matches'].sum()}")
         st.dataframe(seasons_df, use_container_width=True)
 
 
@@ -148,7 +158,7 @@ def reset_session_states(reset_tournament_simulator=True):
     To be called whenever a major change requires a session state reset. Keep updating this function as and when new
     session objects are added.
     """
-    st.sidebar.info("Resetting session states")
+    logger.debug("Resetting session states")
     if 'PredictiveSimulator' in st.session_state:
         del st.session_state['PredictiveSimulator']
 
@@ -270,7 +280,7 @@ def show_stats(metric: str, summary_df: pd.DataFrame, indices: list) -> pd.DataF
     return df
 
 
-def show_top_X(metric: str, df: pd.DataFrame, indices: list, number_of_players: int, reference_df: pd.DataFrame=None):
+def show_top_X(metric: str, df: pd.DataFrame, indices: list, number_of_players: int, reference_df: pd.DataFrame = None):
     """
     Show the top X rows sorted by the metric - streamlit helper function which also displays the tables in the UI
     @param metric: the metric to summarise

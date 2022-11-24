@@ -12,18 +12,17 @@ def display_data(tournament_simulator, data_selection, regenerate):
     """
     granularity, metric, metrics, error_metrics = show_granularity_metrics("tournament", show_error_metrics=False)
 
+    # Summarise the tournament structure which is being simulated
+    with st.expander("Expand to see tournament config parameters"):
+        st.markdown(f"__Using Match config from:__ *{tournament_simulator.matches_file_name}*")
+        st.markdown(f"__Using Playing XI from:__ *{tournament_simulator.playing_xi_file_name}*")
+
+        st.markdown("__Simulating the following Tournament:__")
+        st.dataframe(tournament_simulator.source_matches_df, use_container_width=True)
+
     if granularity == 'None':
         st.write("Please select a valid Granularity")
     else:
-        # Summarise the tournament structure which is being simulated
-        with st.expander("Expand to see tournament config parameters"):
-            st.markdown(f"__Using Match config from:__ *{tournament_simulator.matches_file_name}*")
-            st.markdown(f"__Using Playing XI from:__ *{tournament_simulator.playing_xi_file_name}*")
-
-            st.markdown("__Simulating the following Tournament:__")
-            st.dataframe(tournament_simulator.source_matches_df, use_container_width=True)
-
-
         with st.spinner("Generating Rewards"):
             # Get the rewards details
             all_rewards_df = get_rewards(tournament_simulator, granularity, regenerate).copy()

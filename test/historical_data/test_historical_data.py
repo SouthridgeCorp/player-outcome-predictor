@@ -6,6 +6,7 @@ import os
 import pytest
 import test.conftest
 from test.conftest import get_test_cases
+import datetime
 
 
 # Helper function to look for a file name
@@ -33,6 +34,7 @@ class TestHistoricalData:
         # Read the files & validate the generated datasets
         helper = Helper(config_instance)
         assert (len(helper.tournaments.artefacts.keys()) == 1)
+
 
         # Ensure the tournament is associated with the right number of matches
         matches_list = []
