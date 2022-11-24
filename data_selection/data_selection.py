@@ -4,7 +4,9 @@ from historical_data.playing_xi import PlayingXI
 import logging
 
 import warnings
+
 warnings.filterwarnings('ignore')
+
 
 class PlayerInformation:
     """
@@ -33,6 +35,14 @@ class PlayerInformation:
         return player_dict
 
 
+class DataSelectionType:
+    """
+    Enum representing the data selection types available
+    """
+    AND_SELECTION = "And Selection"
+    OR_SELECTION = "Or Selection"
+
+
 class DataSelection:
 
     def __init__(self,
@@ -44,6 +54,8 @@ class DataSelection:
         self.simulated_innings = pd.DataFrame()
         self.simulated_playing_xi = pd.DataFrame()
 
+        self.selection_type = DataSelectionType.AND_SELECTION
+
     def get_helper(self) -> Helper:
         """
         Returns the underlying Helper object
@@ -51,9 +63,9 @@ class DataSelection:
         """
         return self.historical_data_helper
 
-    def set_simulated_data(self, matches_df: pd.DataFrame=pd.DataFrame(),
-                           innings_df: pd.DataFrame=pd.DataFrame(),
-                           playing_xi_df: pd.DataFrame=pd.DataFrame()):
+    def set_simulated_data(self, matches_df: pd.DataFrame = pd.DataFrame(),
+                           innings_df: pd.DataFrame = pd.DataFrame(),
+                           playing_xi_df: pd.DataFrame = pd.DataFrame()):
         """
         Sets the simulated datasets to be used by this object
         :param matches_df: the simulated matches object
@@ -76,17 +88,7 @@ class DataSelection:
         if is_testing and not self.simulated_matches.empty:
             return self.simulated_matches
 
-        start_date, end_date = self.historical_data_helper.tournaments.get_start_end_dates(is_testing)
-
-        selected_matches_list = []
-        for tournament in self.historical_data_helper.tournaments.get_selected_tournaments():
-            matches = self.historical_data_helper.tournaments.matches(tournament).get_selected_matches(start_date,
-                                                                                                       end_date)
-            selected_matches_list.append(matches)
-
-        selected_matches_df = pd.concat(selected_matches_list)
-
-        return selected_matches_df
+        return self.historical_data_helper.tournaments.get_selected_matches(is_testing)
 
     def get_playing_xi_for_selected_matches(self, is_testing: bool) -> pd.DataFrame:
         """
@@ -99,24 +101,7 @@ class DataSelection:
         if is_testing and not self.simulated_playing_xi.empty:
             return self.simulated_playing_xi
 
-        playing_xi_list = []
-        start_date, end_date = self.historical_data_helper.tournaments.get_start_end_dates(is_testing)
-
-        for tournament in self.historical_data_helper.tournaments.get_selected_tournaments():
-            matches = self.historical_data_helper.tournaments.matches(tournament)
-            match_keys = matches.get_selected_match_keys(start_date, end_date)
-            for key in match_keys:
-                team1, team2 = matches.get_teams(key)
-                playing_xi_list.append(
-                    self.historical_data_helper.tournaments.playing_xi(tournament).get_playing_xi(key, team1))
-                playing_xi_list.append(
-                    self.historical_data_helper.tournaments.playing_xi(tournament).get_playing_xi(key, team2))
-
-        if len(playing_xi_list) > 0:
-            playing_xi_df = pd.concat(playing_xi_list)
-        else:
-            playing_xi_df = pd.DataFrame()
-        return playing_xi_df
+        return self.historical_data_helper.tournaments.get_selected_playing_xi(is_testing)
 
     def get_innings_for_selected_matches(self, is_testing: bool) -> pd.DataFrame:
         """
@@ -130,16 +115,7 @@ class DataSelection:
         if is_testing and not self.simulated_innings.empty:
             return self.simulated_innings
 
-        innings_list = []
-        start_date, end_date = self.historical_data_helper.tournaments.get_start_end_dates(is_testing)
-
-        for tournament in self.historical_data_helper.tournaments.get_selected_tournaments():
-            matches = self.historical_data_helper.tournaments.matches(tournament)
-            match_keys = matches.get_selected_match_keys(start_date, end_date)
-            innings_list.append(self.historical_data_helper.tournaments.innings(tournament).
-                                get_innings_from_match_list(match_keys))
-
-        innings_df = pd.concat(innings_list)
+        innings_df = self.historical_data_helper.tournaments.get_selected_innings(is_testing)
 
         matches_df = self.get_selected_matches(is_testing)
         innings_df = pd.merge(innings_df, matches_df[["key", "team1", "team2"]], left_on="match_key", right_on="key")
@@ -210,7 +186,7 @@ class DataSelection:
         df = df.assign(best_rank=lambda x: x[columns].min(axis=1))
 
         # TODO: Blocking the frequent player mapping till we figure out a good way to use it
-        #df = df.assign(featured_player=lambda x: df['best_rank'] <= 11)
+        # df = df.assign(featured_player=lambda x: df['best_rank'] <= 11)
         df['featured_player'] = True
 
         df = self.merge_with_players(df, 'player_key')
@@ -233,25 +209,13 @@ class DataSelection:
         """
         Get a list of selected teams from the underlying helper
         """
-        start_date, end_date = self.historical_data_helper.tournaments.get_start_end_dates(is_testing)
-        selected_teams = []
-        for tournament in self.historical_data_helper.tournaments.get_selected_tournaments():
-            match = self.historical_data_helper.tournaments.matches(tournament)
-            selected_teams += match.get_selected_teams(start_date, end_date)
-
-        return list(set(selected_teams))
+        return self.historical_data_helper.tournaments.get_selected_teams(is_testing)
 
     def get_selected_venues(self, is_testing: bool) -> list:
         """
         Get a list of selected venues from the underlying helper
         """
-        start_date, end_date = self.historical_data_helper.tournaments.get_start_end_dates(is_testing)
-        selected_venues = []
-        for tournament in self.historical_data_helper.tournaments.get_selected_tournaments():
-            match = self.historical_data_helper.tournaments.matches(tournament)
-            selected_venues += match.get_selected_venues(start_date, end_date)
-
-        return list(set(selected_venues))
+        return self.historical_data_helper.tournaments.get_selected_venues(is_testing)
 
     def get_all_matches(self) -> pd.DataFrame:
         """
@@ -284,3 +248,23 @@ class DataSelection:
         :return: pd.DataFrame listing all the player information available
         """
         return self.historical_data_helper.players.get_players()
+
+    def get_all_seasons(self, tournament_key: str) -> list:
+        """
+        Gets all seasons associated with the specified tournament key
+        """
+        match = self.historical_data_helper.tournaments.matches(tournament_key)
+        return match.get_all_seasons()
+
+    def set_selection_type(self, selection_type: str):
+        """
+        Sets the data selection type for this object
+        :param selection_type: The selection type to set, must be one of the DataSelectionType enums.
+        """
+        self.selection_type = selection_type
+
+    def get_selection_type(self) -> str:
+        """
+        Returns the data selection type for this object
+        """
+        return self.selection_type

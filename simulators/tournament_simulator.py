@@ -42,8 +42,8 @@ class TournamentSimulator:
 
         if not received_teams.issubset(expected_teams):
             logging.debug(f"Couldn't find some teams in the historical data.\n"
-                             f"Received: {received_teams}\n"
-                             f"Expected: {expected_teams}")
+                          f"Received: {received_teams}\n"
+                          f"Expected: {expected_teams}")
 
         # Set the match key to a sequential number > total number of historical matches
         match_key_start = matches_df['key'].max() + 1
@@ -299,16 +299,16 @@ class TournamentSimulator:
         logging.debug(f"Playing Qualifier 1 & Eliminator: "
                       f"{first_non_group_input_matches_df.shape[0]} matches")
         self.first_non_group_matches_predictive_simulator, first_non_group_winner_df, first_non_group_matches_df, \
-            first_non_group_innings_df = self.get_match_results(first_non_group_input_matches_df,
-                                                                first_non_group_input_playing_xi_df)
+        first_non_group_innings_df = self.get_match_results(first_non_group_input_matches_df,
+                                                            first_non_group_input_playing_xi_df)
 
         # Play the Q2 matches
         second_non_group_input_matches_df, second_non_group_input_playing_xi_df = \
             self.prepare_q2_matches_and_players(first_non_group_matches_df)
         logging.debug(f"Playing Qualifier 2: {second_non_group_input_matches_df.shape[0]} matches")
         self.second_non_group_matches_predictive_simulator, second_non_group_winner_df, second_non_group_matches_df, \
-            second_non_group_innings_df = self.get_match_results(second_non_group_input_matches_df,
-                                                                 second_non_group_input_playing_xi_df)
+        second_non_group_innings_df = self.get_match_results(second_non_group_input_matches_df,
+                                                             second_non_group_input_playing_xi_df)
 
         # Play all the Final matches
         final_input_matches_df, final_input_playing_xi_df = \
@@ -339,7 +339,6 @@ class TournamentSimulator:
 
         first_non_group_rewards_df = self.first_non_group_matches_predictive_simulator.get_rewards(
             0, granularity, columns_to_persist=columns_to_persist)
-
 
         logging.debug("Getting Q2 Rewards")
         second_non_group_rewards_df = self.second_non_group_matches_predictive_simulator.get_rewards(

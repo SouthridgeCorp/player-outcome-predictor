@@ -1,6 +1,6 @@
 import streamlit as st
 import utils.page_utils as page_utils
-from utils.app_utils import data_selection_instance, data_selection_summary, show_granularity_metrics, \
+from utils.app_utils import data_selection_instance, prep_simulator_pages, show_granularity_metrics, \
     show_stats, write_top_X_to_st, get_tournament_simulator, has_tournament_simulator, reset_rewards_cache, get_rewards
 import logging
 import pandas as pd
@@ -12,18 +12,17 @@ def display_data(tournament_simulator, data_selection, regenerate):
     """
     granularity, metric, metrics, error_metrics = show_granularity_metrics("tournament", show_error_metrics=False)
 
+    # Summarise the tournament structure which is being simulated
+    with st.expander("Expand to see tournament config parameters"):
+        st.markdown(f"__Using Match config from:__ *{tournament_simulator.matches_file_name}*")
+        st.markdown(f"__Using Playing XI from:__ *{tournament_simulator.playing_xi_file_name}*")
+
+        st.markdown("__Simulating the following Tournament:__")
+        st.dataframe(tournament_simulator.source_matches_df, use_container_width=True)
+
     if granularity == 'None':
         st.write("Please select a valid Granularity")
     else:
-        # Summarise the tournament structure which is being simulated
-        with st.expander("Expand to see tournament config parameters"):
-            st.markdown(f"__Using Match config from:__ *{tournament_simulator.matches_file_name}*")
-            st.markdown(f"__Using Playing XI from:__ *{tournament_simulator.playing_xi_file_name}*")
-
-            st.markdown("__Simulating the following Tournament:__")
-            st.dataframe(tournament_simulator.source_matches_df, use_container_width=True)
-
-
         with st.spinner("Generating Rewards"):
             # Get the rewards details
             all_rewards_df = get_rewards(tournament_simulator, granularity, regenerate).copy()
@@ -76,8 +75,8 @@ def app():
     data_selection = data_selection_instance()
     tournaments = data_selection.get_helper().tournaments
 
-    # Show a summary of selected training & testing windows
-    data_selection_summary(tournaments)
+    if not prep_simulator_pages(data_selection, "Tournament Simulator"):
+        return
 
     display = False
     if has_tournament_simulator():

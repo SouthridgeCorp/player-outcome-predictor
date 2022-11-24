@@ -1,14 +1,23 @@
 import pandas as pd
-
+import logging
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 # This class contains a bunch of functions which are used to calculate the dataframe in
 # get_match_state_by_ball_and_innings()
 
 def initialise_match_state(data_selection, is_testing: bool) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
+
+    logger.debug("Getting selected innings")
     innings_df = data_selection.get_innings_for_selected_matches(is_testing)
+
+    logger.debug("Getting selected matches")
     matches_df = data_selection.get_selected_matches(is_testing)
+
+    logger.debug("Getting player universe")
     player_universe_df = data_selection.get_frequent_players_universe()
 
+    logger.debug("Setting up filters & merges")
     index_columns = ['match_key', 'inning', 'over', 'ball']
     other_columns = ['batter', 'bowler', 'batting_team', 'total_runs', 'is_wicket', 'target_runs', 'target_overs']
     match_state_df = innings_df.filter(index_columns + other_columns, axis=1)
@@ -28,6 +37,7 @@ def initialise_match_state(data_selection, is_testing: bool) -> (pd.DataFrame, p
     match_state_df.drop('key', axis=1, inplace=True)
 
     match_state_df = match_state_df.fillna(False)
+    logger.debug("Done initialising match state")
 
     return match_state_df, player_universe_df, index_columns
 
