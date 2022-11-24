@@ -179,16 +179,21 @@ def get_predictive_simulator(rewards,
     return predictive_simulator
 
 
-def get_tournament_simulator(force_initialise: bool) -> TournamentSimulator:
+def get_tournament_simulator(force_initialise: bool,
+                             use_inferential_model: bool) -> TournamentSimulator:
     """
     Helper instance to cache & acquire the tournament simulator.
     @param force_initialise: If true, forces a new instance to be initialised and replaced in the cache.
     @return An instance of TournamentSimulator which has already generated its scenarios
     """
     if ('TournamentSimulator' not in st.session_state) or force_initialise:
-        tournament_simulator = TournamentSimulator(data_selection_instance(), rewards_instance(), create_utils_object())
+        batter_runs_model = st.session_state['BatterRunsModel']
+        tournament_simulator = TournamentSimulator(data_selection_instance(),
+                                                   rewards_instance(),
+                                                   batter_runs_model,
+                                                   create_utils_object())
         with st.spinner("Generating Scenarios"):
-            tournament_simulator.generate_scenarios()
+            tournament_simulator.generate_scenarios(use_inferential_model)
         if 'TournamentSimulator' in st.session_state:
             del st.session_state['TournamentSimulator']
         st.session_state['TournamentSimulator'] = tournament_simulator
