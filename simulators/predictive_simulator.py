@@ -190,7 +190,7 @@ class PredictiveSimulator:
         return simulated_innings_df
 
     def generate_scenario(self,
-                          use_inferential_model = True):
+                          use_inferential_model = False):
         """
         Generate all the required scenarios
         """

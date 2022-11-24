@@ -42,9 +42,9 @@ class TournamentSimulator:
         expected_teams = set(matches_df['team1'].unique().tolist() + matches_df['team2'].unique().tolist())
 
         if not received_teams.issubset(expected_teams):
-            raise ValueError(f"Couldn't find some teams in the historical data.\n"
-                             f"Received: {received_teams}\n"
-                             f"Expected: {expected_teams}")
+            logging.debug(f"Couldn't find some teams in the historical data.\n"
+                          f"Received: {received_teams}\n"
+                          f"Expected: {expected_teams}")
 
         # Set the match key to a sequential number > total number of historical matches
         match_key_start = matches_df['key'].max() + 1
