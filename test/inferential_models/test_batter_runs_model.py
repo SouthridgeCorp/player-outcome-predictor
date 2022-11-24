@@ -12,11 +12,20 @@ import pymc as pm
 )
 class TestBatterRunsModel:
 
+    #@pytest.mark.skip(reason="Only run this to test the training workflow. Will overwrite existing models")
     def test_model_trained(self,batter_runs_model:BatterRunsModel):
         model = batter_runs_model
         session_type = 'training'
         model.initiate_model(session_type)
         model.run_training()
+        session_type = 'testing'
+        model.initiate_model(session_type)
+        testing_stats = model.run_testing()
+        assert 'classification_report' in testing_stats
+        assert 'confusion_matrix' in testing_stats
+
+    def test_testing_stats(self,batter_runs_model:BatterRunsModel):
+        model = batter_runs_model
         session_type = 'testing'
         model.initiate_model(session_type)
         testing_stats = model.run_testing()

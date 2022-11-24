@@ -14,7 +14,7 @@ def choose_model_type(config_utils):
                               options=['random_forest','bayesian_inference'])
     session_type = st.selectbox("Choose session type",
                               key="session_type",
-                              options=['training','testing'])
+                              options=['testing','training'])
 
 def execute_session(batter_runs_model:BatterRunsModel):
     session_type = st.session_state['session_type']
@@ -24,7 +24,8 @@ def execute_session(batter_runs_model:BatterRunsModel):
         st.write("Training completed")
     if session_type == 'testing':
         testing_stats = batter_runs_model.run_testing()
-        st.write(testing_stats)
+        st.write(testing_stats['classification_report'])
+        st.dataframe(testing_stats['confusion_matrix'])
 
 
 def app():
@@ -32,6 +33,7 @@ def app():
     config_utils = create_utils_object()
     choose_model_type(config_utils)
     batter_runs_model = batter_runs_model_instance()
+    execute_session(batter_runs_model)
 
 
 

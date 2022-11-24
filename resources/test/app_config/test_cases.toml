@@ -54,6 +54,12 @@ config_file_path = "resources/test/app_config/tournament_simulator/AppConfigurat
 [[test_case]]
 test_class = "TestBatterRunsModel"
 config_file_path = "resources/test/app_config/batter_runs_model/AppConfiguration_local_happy.toml"
+model_type = "bayesian_inference"
+selection_type = "and_selection"
+
+[[test_case]]
+test_class = "TestBatterRunsModel"
+config_file_path = "resources/test/app_config/batter_runs_model/AppConfiguration_local_happy.toml"
 model_type = "random_forest"
 selection_type = "or_selection"
 
@@ -61,10 +67,4 @@ selection_type = "or_selection"
 test_class = "TestBatterRunsModel"
 config_file_path = "resources/test/app_config/batter_runs_model/AppConfiguration_local_happy.toml"
 model_type = "random_forest"
-selection_type = "and_selection"
-
-[[test_case]]
-test_class = "TestBatterRunsModel"
-config_file_path = "resources/test/app_config/batter_runs_model/AppConfiguration_local_happy.toml"
-model_type = "bayesian_inference"
 selection_type = "and_selection"

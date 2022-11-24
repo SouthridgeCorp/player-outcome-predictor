@@ -148,8 +148,11 @@ class Matches:
         seasons_df = self.df.copy().groupby('season').min().reset_index()
         return seasons_df[['tournament_key', 'season', 'date']].sort_values(by=['date'], ascending=False)
 
-    def get_seasons_df_by_window(self, start_date, end_date):
-        seasons_df = self.df[(self.df['date'] >= start_date) & (self.df['date'] <= end_date)]
+    def get_seasons_df_for_window(self, start_date, end_date):
+        """
+        Gets a
+        """
+        seasons_df = self.df[(self.df['date'] >= start_date) & (self.df['date'] < end_date)]
         seasons_df = seasons_df.copy().groupby(['tournament_key', 'season'])['key'].count().reset_index()
         seasons_df = seasons_df[['tournament_key', 'season', 'key']]
         return seasons_df

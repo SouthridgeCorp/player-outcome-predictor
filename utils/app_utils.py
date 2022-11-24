@@ -159,13 +159,19 @@ def reset_session_states(reset_tournament_simulator=True):
     reset_rewards_cache()
 
 
-def get_predictive_simulator(rewards, number_of_scenarios) -> PredictiveSimulator:
+def get_predictive_simulator(rewards,
+                             number_of_scenarios,
+                             use_inferential_model) -> PredictiveSimulator:
     """
     Helper instance to cache & acquire the predictive simulator.
     """
     if 'PredictiveSimulator' not in st.session_state:
-        predictive_simulator = PredictiveSimulator(data_selection_instance(), rewards, number_of_scenarios)
-        predictive_simulator.generate_scenario()
+        batter_runs_model = st.session_state['BatterRunsModel']
+        predictive_simulator = PredictiveSimulator(data_selection_instance(),
+                                                   rewards,
+                                                   batter_runs_model,
+                                                   number_of_scenarios)
+        predictive_simulator.generate_scenario(use_inferential_model=use_inferential_model)
         st.session_state['PredictiveSimulator'] = predictive_simulator
     else:
         predictive_simulator = st.session_state['PredictiveSimulator']
