@@ -116,7 +116,7 @@ class Matches:
         Get a list of venues corresponding to the start & end date windows
         :param start_date: The starting date of the window
         :param end_date: The ending state of the window
-        :return: A list of keys
+        :return: A list of venues
         """
         selected_df = self.get_selected_matches(start_date, end_date)
         return list(set(list(selected_df["venue"])))

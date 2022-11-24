@@ -1,4 +1,3 @@
-import utils.app_utils
 import utils.page_utils as page_utils
 import streamlit as st
 from utils.app_utils import data_selection_instance, reset_session_states, show_data_selection_summary
@@ -8,24 +7,30 @@ import logging
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+
 def on_training_date_change(tournaments, end_date):
+    """
+    Record the training dates when the user selects something from the training start date dropdown
+    """
     value = st.session_state.training_start
     tournaments.set_training_window(value, end_date)
     # A change to this object is a big deal - make sure subsequent pages also reset their caches
     reset_session_states()
 
+
 def on_testing_tournament_change(tournaments):
     """
-    Callback function to persist the value of changing tournaments through the multi-select dropdown
+    Callback function to persist the value of changing the testing tournament dropdown
     """
     value = st.session_state.testing_tournaments
     tournaments.set_testing_details(value, "")
     # A change to this object is a big deal - make sure subsequent pages also reset their caches
     reset_session_states()
 
+
 def on_testing_season_change(tournaments):
     """
-    Callback function to persist the value of changing tournaments through the multi-select dropdown
+    Callback function to persist the value of changing the testing season dropdown
     """
     value = st.session_state.testing_seasons
     test_tournament_key, test_tournament_name, test_season = tournaments.get_testing_details()
@@ -33,23 +38,28 @@ def on_testing_season_change(tournaments):
     # A change to this object is a big deal - make sure subsequent pages also reset their caches
     reset_session_states()
 
+
 def set_training_start_end_date(tournaments):
     """
-    Helper function for building out the date / time widget for testing & training
-    :param is_testing: True = Inputs are for the testing mode, False = Inputs are for the training mode
+    Helper function for building out the date / time widget for training
     :param tournaments: The tournaments object that consists of all tournament meta-data
     :return: None
     """
     st.header(f"Training Window")
 
+    # get a list of all seasons available
     seasons_df = tournaments.get_tournament_and_season_details()
 
+    # figure out the current tournament start date and hardcode the end date to the start of testing
     start_date, end_date = tournaments.get_training_start_end_dates()
     end_date = tournaments.get_first_testing_date()
 
+    # Get a list of start dates for each season of each tournament, up until the start of the testing season
     dates = seasons_df[seasons_df['date'] < end_date]['date'].tolist()
     dates.sort(reverse=True)
     index = 0
+
+    # Set up the dropdown function & the training window
     if start_date in dates:
         index = dates.index(start_date)
     start_date = st.selectbox("Select the training start date", dates, index=index,
@@ -59,12 +69,18 @@ def set_training_start_end_date(tournaments):
 
 
 def select_testing_window(tournaments, data_selection):
+    """
+    Sets up the dropdowns to source testing windows
+    """
     st.header(f"Testing Window")
 
+    # Get current selection details
     tournament_list = tournaments.df["name"].to_list()
     test_tournament_key, test_tournament_name, test_season = tournaments.get_testing_details()
-    tournament_index=0
+    tournament_index = 0
     season_index = 0
+
+    # Setup the tournament details
     if test_tournament_name in tournament_list:
         tournament_index = tournament_list.index(test_tournament_name)
 
@@ -72,19 +88,21 @@ def select_testing_window(tournaments, data_selection):
                                    key="testing_tournaments", on_change=on_testing_tournament_change,
                                    args=([tournaments]), index=tournament_index)
 
+    # Setup the corresponding season details
     seasons = data_selection.get_all_seasons(tournaments.get_key(tournament_name))
     if test_season in seasons:
         season_index = seasons.index(test_season)
 
     season = st.selectbox("Select the season", seasons, key="testing_seasons", on_change=on_testing_season_change,
-                 args=([tournaments]), index=season_index)
+                          args=([tournaments]), index=season_index)
 
     tournaments.set_testing_details(tournament_name, season)
 
 
-
 def set_selection_type(data_selection):
-
+    """
+    Show the UI for selecting the data type selection
+    """
     st.header(f"Selection Type")
 
     selection_types = [DataSelectionType.AND_SELECTION, DataSelectionType.OR_SELECTION]
@@ -92,6 +110,7 @@ def set_selection_type(data_selection):
     selection_type = st.radio("Selection Type:", options=selection_types, on_change=reset_session_states)
 
     data_selection.set_selection_type(selection_type)
+
 
 def app():
     """
@@ -121,7 +140,6 @@ def app():
 
     logger.debug("Showing data selection summary")
     show_data_selection_summary(data_selection)
-
 
     show_player_universe = st.checkbox("Show Player Universe")
 

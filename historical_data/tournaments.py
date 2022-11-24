@@ -183,6 +183,11 @@ class Tournaments:
         return self.all_matches.copy(), self.all_innings.copy()
 
     def get_selected_matches(self, is_testing: bool) -> pd.DataFrame:
+        """
+        Get all matches from selected tournaments filtered for is_testing
+        :param is_testing: Set True if testing data is needed, else set False
+        :return: pd.DataFrame listing all matches from selected tournaments in training/testing window
+        """
         if is_testing:
             return self.matches(self.testing_selected_tournament).get_selected_matches_by_seasons(
                 [self.testing_selected_season])
@@ -197,6 +202,12 @@ class Tournaments:
             return selected_matches_df
 
     def get_selected_innings(self, is_testing: bool) -> pd.DataFrame:
+        """
+        Get ball_by_ball pre-processed innings data from matches in selected tournaments filtered for is_testing
+        :param is_testing: Set True if testing data is needed, else set False
+        :return: pd.DataFrame listing all balls in all innings from matches in selected tournaments in training/testing
+        window
+        """
         if is_testing:
             match_keys = self.matches(self.testing_selected_tournament). \
                 get_selected_match_keys_by_seasons([self.testing_selected_season])
@@ -215,7 +226,11 @@ class Tournaments:
             return innings_df
 
     def get_selected_teams(self, is_testing: bool) -> list:
-
+        """
+        Gets the teams for the testing or training window
+        :param is_testing True for testing, false for training
+        :return: A list of teams
+        """
         if is_testing:
             return self.matches(self.testing_selected_tournament).get_selected_teams_by_season(
                 [self.testing_selected_season])
@@ -228,7 +243,12 @@ class Tournaments:
 
             return list(set(selected_teams))
 
-    def get_selected_playing_xi(self, is_testing: bool) -> list:
+    def get_selected_playing_xi(self, is_testing: bool) -> pd.DataFrame:
+        """
+        Gets the playing xi for the testing or training window
+        :param is_testing True for testing, false for training
+        :return: A dataframe with the following columns: ["team", "match_key", "player_key"]
+        """
 
         if is_testing:
             playing_xi_list = []
@@ -260,14 +280,21 @@ class Tournaments:
             playing_xi_df = pd.DataFrame()
         return playing_xi_df
 
-    def get_key(self, name):
+    def get_key(self, name) -> str:
+        """
+        Maps the tournament name to its key
+        """
         return self.df[self.df["name"] == name].iloc[0]["key"]
 
     def get_selected_venues(self, is_testing: bool) -> list:
-
+        """
+        Get a list of venues associated with the testing or training window
+        :param is_testing True for testing, false for training
+        :return: A list of venues
+        """
         if is_testing:
-            return self.matches(self.testing_selected_tournament).get_selected_venues_by_season(
-                [self.testing_selected_season])
+            return self.matches(self.testing_selected_tournament).\
+                get_selected_venues_by_season([self.testing_selected_season])
         else:
             start_date, end_date = self.get_training_start_end_dates()
             selected_venues = []
@@ -277,11 +304,21 @@ class Tournaments:
 
             return list(set(selected_venues))
 
-    def get_first_testing_date(self):
+    def get_first_testing_date(self) -> datetime.date:
+        """
+        Get the date when the first match of the testing season was played
+        """
         testing_matches = self.get_selected_matches(True)
         return testing_matches["date"].min()
 
-    def get_tournament_and_season_details(self):
+    def get_tournament_and_season_details(self) -> pd.DataFrame:
+        """
+        Returns all the seasons associated with this object
+        @return a dataframe containing:
+            'tournament_key': the key of the tournament
+            'season': The specific season of the tournament
+            'date': The start date of the season in question
+        """
         seasons_df = pd.DataFrame()
         for key in self.artefacts.keys():
             match = self.artefacts[key].matches
@@ -289,7 +326,14 @@ class Tournaments:
 
         return seasons_df
 
-    def get_season_details_for_window(self, start_date, end_date):
+    def get_season_details_for_window(self, start_date: datetime.date, end_date: datetime.date) -> pd.DataFrame:
+        """
+       Gets a list of seasons and their corresponding match counts
+       @return a dataframe containing:
+           'name': the name of the tournament
+           'season': The specific season of the tournament
+           'number_of_matches': The number of matches played for the specific tournament & season
+       """
         seasons_df = pd.DataFrame()
         for key in self.artefacts.keys():
             match = self.artefacts[key].matches

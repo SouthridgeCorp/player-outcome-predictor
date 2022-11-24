@@ -224,6 +224,9 @@ class MatchState:
                 'previous_total': self.previous_total,
                 'previous_number_of_wickets': self.previous_num_wickets,
                 # TODO: Blocking the frequent player mapping till we figure out a good way to use it
+                # 'bowler': self.player_label_mapping[self.bowler],
+                # 'batter': self.player_label_mapping[self.batter],
+                # 'non_striker': self.player_label_mapping[self.non_striker],
                 'bowler': self.bowler,
                 'batter': self.batter,
                 'non_striker': self.non_striker,

@@ -11,6 +11,9 @@ from simulators.utils.match_state_utils import setup_data_labels, initialise_mat
 from simulators.utils.utils import aggregate_base_rewards
 from data_selection.data_selection import DataSelectionType
 
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
 
 class Granularity:
     """
@@ -70,7 +73,8 @@ class PerfectSimulator:
         return bowling_outcomes_df
 
     def get_match_state_by_ball_and_innings(self,
-                                            is_testing: bool) -> pd.DataFrame:
+                                            is_testing: bool,
+                                            one_hot_encoding=True) -> pd.DataFrame:
         """
         Returns a dataframe representing the state of the match before a given ball in a given innings was bowled:
         df schema:
@@ -100,41 +104,53 @@ class PerfectSimulator:
         :return: pd.DataFrame listing match_state for each ball in each innings in training/testing matches for
         selected tournaments
         """
+        logger.debug("Setting up match state")
         match_state_df, player_universe_df, index_columns = initialise_match_state(self.data_selection, is_testing)
+
+        logger.debug("Setting up data labels")
         setup_data_labels(match_state_df)
+
+        logger.debug("Setting up data labels with training information")
         training_teams, venues = setup_data_labels_with_training(self.data_selection, match_state_df)
 
-        match_state_df = pd.get_dummies(match_state_df, columns=['batting_labels', 'bowling_labels', 'venue_labels',
-                                                                 'batting_team_labels', 'bowling_team_labels'],
-                                        prefix="", prefix_sep="")
-        match_state_df = pd.get_dummies(match_state_df, columns=['over_number', 'ball_number_in_over'])
+        if one_hot_encoding:
+            logger.debug("Blowing up the match state df")
+            match_state_df = pd.get_dummies(match_state_df, columns=['batting_labels', 'bowling_labels', 'venue_labels',
+                                                                     'batting_team_labels', 'bowling_team_labels'],
+                                            prefix="", prefix_sep="")
+            match_state_df = pd.get_dummies(match_state_df, columns=['over_number', 'ball_number_in_over'])
 
-        columns_to_check = ['over_number_21', 'ball_number_in_over_7', 'batter_non_frequent_player',
-                            'bowler_non_frequent_player', 'batting_team_not_in_training',
-                            'bowling_team_not_in_training', 'venue_not_in_training']
+            columns_to_check = ['over_number_21', 'ball_number_in_over_7', 'batter_non_frequent_player',
+                                'bowler_non_frequent_player', 'batting_team_not_in_training',
+                                'bowling_team_not_in_training', 'venue_not_in_training']
 
-        for column in columns_to_check:
-            add_missing_columns(match_state_df, column, 0)
+            logger.debug("Adding missing columns")
 
-        for venue in venues:
-            add_missing_columns(match_state_df, f"venue_{venue}", 0)
+            for column in columns_to_check:
+                add_missing_columns(match_state_df, column, 0)
 
-        for team in training_teams:
-            add_missing_columns(match_state_df, f"batting_team_{team}", 0)
-            add_missing_columns(match_state_df, f"bowling_team_{team}", 0)
+            for venue in venues:
+                add_missing_columns(match_state_df, f"venue_{venue}", 0)
 
-        featured_player_list = player_universe_df[player_universe_df['featured_player'] == True].index.tolist()
-        match_state_columns = match_state_df.columns.values.tolist()
-        for featured_player in featured_player_list:
-            expected_columns = [f"batter_{featured_player}", f"bowler_{featured_player}"]
-            for expected_column in expected_columns:
-                if expected_column not in match_state_columns:
-                    match_state_df[expected_column] = 0
+            for team in training_teams:
+                add_missing_columns(match_state_df, f"batting_team_{team}", 0)
+                add_missing_columns(match_state_df, f"bowling_team_{team}", 0)
+
+            featured_player_list = player_universe_df[player_universe_df['featured_player'] == True].index.tolist()
+            match_state_columns = match_state_df.columns.values.tolist()
+            for featured_player in featured_player_list:
+                expected_columns = [f"batter_{featured_player}", f"bowler_{featured_player}"]
+                for expected_column in expected_columns:
+                    if expected_column not in match_state_columns:
+                        match_state_df[expected_column] = 0
 
         match_state_df.set_index(index_columns, inplace=True, verify_integrity=True)
         match_state_df = match_state_df.sort_values(index_columns)
 
+        logger.debug("Calculating ball by ball stats")
         match_state_df = calculate_ball_by_ball_stats(match_state_df, index_columns)
+        logger.debug("Done with match state")
+
         return match_state_df
 
     def get_batting_outcomes_by_ball_and_innings(self, is_testing: bool) -> pd.DataFrame:
@@ -354,22 +370,22 @@ class PerfectSimulator:
         :param columns_to_persist: The list of columns to persist in the output dataframes
         :return: pd.DataFrame as above"""
 
-        logging.debug("Getting ball & inning outcomes")
+        logger.debug("Getting ball & inning outcomes")
         outcomes_df = self.get_outcomes_by_ball_and_innings(is_testing, generate_labels)
 
-        logging.debug("Calculating base rewards")
+        logger.debug("Calculating base rewards")
         outcomes_df['batter_base_rewards'], outcomes_df['non_striker_base_rewards'], \
         outcomes_df['bowling_base_rewards'], outcomes_df['fielding_base_rewards'] = zip(*outcomes_df.apply(
             lambda x: get_base_rewards(x, self.rewards_configuration), axis=1))
 
-        logging.debug("Getting player outcomes by innings")
+        logger.debug("Getting player outcomes by innings")
 
         bonus_penalty_df = self.get_outcomes_by_player_and_innings(is_testing, columns_to_persist=columns_to_persist)
 
-        logging.debug("Calculating outcomes by team and innings")
+        logger.debug("Calculating outcomes by team and innings")
         team_stats_df = self.get_outcomes_by_team_and_innings(is_testing, bonus_penalty_df)
 
-        logging.debug("Aggregating base rewards")
+        logger.debug("Aggregating base rewards")
 
         # Calculate cumulative base rewards per player
         base_rewards_per_player_dict = {}
@@ -392,7 +408,7 @@ class PerfectSimulator:
         base_rewards_per_player_df.set_index(index_columns, inplace=True, verify_integrity=True)
         base_rewards_per_player_df = base_rewards_per_player_df.sort_values(index_columns)
 
-        logging.debug("Calculating bonus / penalty")
+        logger.debug("Calculating bonus / penalty")
 
         bonus_penalty_df = pd.merge(bonus_penalty_df,
                                     base_rewards_per_player_df[['batter_base_rewards',
@@ -410,7 +426,7 @@ class PerfectSimulator:
         bonus_penalty_df['batting_rewards'], bonus_penalty_df['fielding_rewards'] = zip(*bonus_penalty_df.apply(
             lambda x: get_bonus_penalty(x, self.rewards_configuration), axis=1))
 
-        logging.debug("DONE with rewards")
+        logger.debug("DONE with rewards")
 
         return outcomes_df, bonus_penalty_df
 
@@ -438,14 +454,14 @@ class PerfectSimulator:
         :param granularity: The granularity level, must be one of the levels specified in Granularity
         :return: pd.DataFrame as above"""
 
-        logging.debug("Getting rewards components")
+        logger.debug("Getting rewards components")
         base_rewards_df, bonus_penalty_df = self.get_rewards_components(is_testing,
                                                                         columns_to_persist=columns_to_persist)
 
         group_by_columns = get_index_columns(granularity) + columns_to_persist
         rewards_df = pd.DataFrame()
 
-        logging.debug(f"Calculating total rewards for {bonus_penalty_df.shape}")
+        logger.debug(f"Calculating total rewards for {bonus_penalty_df.shape}")
 
         for g, g_df in bonus_penalty_df.groupby(group_by_columns):
             input_dict = {'number_of_matches': len(g_df.reset_index()['match_key'].unique()),
@@ -464,7 +480,7 @@ class PerfectSimulator:
         rewards_df = self.data_selection.merge_with_players(rewards_df, 'player_key')
 
         rewards_df.set_index(group_by_columns, inplace=True, verify_integrity=True)
-        logging.debug("Returning the total DF")
+        logger.debug("Returning the total DF")
 
         return rewards_df
 
@@ -497,13 +513,13 @@ class PerfectSimulator:
         :raises: Exception if the contender_simulation_evaluation_metrics does not have a matching index
         to the result of self.get_simulation_evaluation_metrics(is_testing,granularity [as implied by the contender df]"""
 
-        logging.debug("Starting error measure calc")
+        logger.debug("Starting error measure calc")
         if perfect_simulator_rewards_ref is not None:
             perfect_simulator_rewards_df = perfect_simulator_rewards_ref.copy()
         else:
             perfect_simulator_rewards_df = self.get_simulation_evaluation_metrics_by_granularity(
                 is_testing, granularity, columns_to_persist=columns_to_persist)
-        logging.debug("Received baseline data and comparing errors")
+        logger.debug("Received baseline data and comparing errors")
 
         # Make sure the two dataframes are always the same shape. This merge ensures the same number of
         # players are evaluated
@@ -525,18 +541,35 @@ class PerfectSimulator:
                 abs(100 * perfect_simulator_rewards_df[f'{column}_absolute_error'] / \
                     perfect_simulator_rewards_df[f"{column}_expected"])
 
-        logging.debug("Done with error measurements")
+        logger.debug("Done with error measurements")
 
         return perfect_simulator_rewards_df
 
-    def get_match_state_by_balls_for_training(self):
-        unqualified_train_bowling_outcomes_df = self.get_bowling_outcomes_by_ball_and_innings(False)
-        unqualified_train_match_state_df = self.get_match_state_by_ball_and_innings(False)
+    def get_match_state_by_balls_for_training(self, calculate_bowling_options=True, one_hot_encoding=True) \
+            -> (pd.DataFrame, pd.DataFrame, dict):
+        """
+        Gets the match state for the specified selection type. If requested, also gets the corresponding bowling options
+        :param calculate_bowling_options: If true, the bowling options for the corresponding selection type is returned.
+        If false, an empty dataframe is returned for bowling options.
+        :param one_hot_encoding: If true, the match state columns for batter, bowler, venue, over, ball and innings are
+        one-hot encoded
+        :return: dataframe for match state, dataframe for bowling outcomes and a set of stats representing the deviation
+        from the raw data
+        """
+        logger.info("Getting match state by balls and innings")
+        unqualified_train_match_state_df = self.get_match_state_by_ball_and_innings(False, one_hot_encoding)
 
+        logger.debug("Getting selected matches")
         test_season_matches = self.data_selection.get_selected_matches(True)
+
+        logger.debug("Getting selected innings")
+        test_season_innings = self.data_selection.get_innings_for_selected_matches(True)
+
+        logger.debug("Applying masks")
+
         test_season_venues = test_season_matches.venue.unique().tolist()
-        test_season_batters = unqualified_train_match_state_df.batter.unique().tolist()
-        test_season_bowlers = unqualified_train_match_state_df.bowler.unique().tolist()
+        test_season_batters = test_season_innings.batter.unique().tolist()
+        test_season_bowlers = test_season_innings.bowler.unique().tolist()
 
         is_test_season_venue = unqualified_train_match_state_df.venue.isin(test_season_venues)
         is_test_season_batter = unqualified_train_match_state_df.batter.isin(test_season_batters)
@@ -548,15 +581,27 @@ class PerfectSimulator:
         }
         selection = self.data_selection.get_selection_type()
         train_match_state_df = unqualified_train_match_state_df.loc[selection_options[selection]]
-        train_bowling_outcomes_df = unqualified_train_bowling_outcomes_df.loc[selection_options[selection]]
+
+        if calculate_bowling_options:
+            logger.debug("Calculating bowling options")
+
+            unqualified_train_bowling_outcomes_df = self.get_bowling_outcomes_by_ball_and_innings(False)
+            logger.debug("Applying bowling mask")
+            train_bowling_outcomes_df = unqualified_train_bowling_outcomes_df.loc[selection_options[selection]]
+        else:
+            train_bowling_outcomes_df = pd.DataFrame
+
+        logger.debug("Calculating stats")
 
         stats = {"Number of balls selected for training": train_match_state_df.shape[0],
                  "Number of balls with bowler in test season bowlers": train_match_state_df. \
-                     query('bowler in @test_season_bowlers').shape[0],
+                    query('bowler in @test_season_bowlers').shape[0],
                  "Number of balls with batters in test season batters": train_match_state_df. \
-                     query('batter in @test_season_bowlers').shape[0],
+                    query('batter in @test_season_bowlers').shape[0],
                  "Number of balls with venues in test season venues": train_match_state_df. \
-                     query('venue in @test_season_venues').shape[0]}
+                    query('venue in @test_season_venues').shape[0]}
+
+        logger.debug("Done with get_match_state_by_balls_for_training")
 
         return train_match_state_df, train_bowling_outcomes_df, stats
 
