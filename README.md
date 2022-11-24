@@ -1,6 +1,9 @@
 # player-outcome-predictor
 Predictive modeling to forecast player outcomes over a T20 tournament
 
+# Video Walkthrough of v1.0
+https://www.loom.com/share/a7f9efe85c1d47a1a7b42c504a0af366
+
 ## Getting the data ready
 Before running the app, input data must be prepared: 
 - Run `scripts/helpers/parse_cricsheet_inputs.py`
