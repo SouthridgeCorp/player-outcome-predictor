@@ -87,14 +87,6 @@ class TestPerfectSimulator:
     def test_get_match_state_by_ball_and_innings(self, perfect_simulator, setup_and_teardown, is_testing):
         setup_training_and_testing_windows(perfect_simulator.data_selection)
 
-        start_date = datetime.datetime.strptime("01/01/1999", "%d/%m/%Y").date()
-        end_date = datetime.datetime.strptime("31/12/2022", "%d/%m/%Y").date()
-
-        tournaments = perfect_simulator.data_selection.historical_data_helper.tournaments
-
-        tournaments.set_start_end_dates(start_date, end_date, True)
-
-
         match_state_df = perfect_simulator.get_match_state_by_ball_and_innings(is_testing)
         player_universe_df = perfect_simulator.data_selection.get_frequent_players_universe()
 
@@ -404,6 +396,7 @@ class TestPerfectSimulator:
             else:
                 assert row['bowling_rewards'] == row['bowling_base_rewards'] + row['bowling_bonus_wickets'] \
                        + row['bowling_bonus'] - row['bowling_penalty']
+
 
     @pytest.mark.parametrize('is_testing', [True, False])
     @pytest.mark.parametrize('granularity, expected_columns',
