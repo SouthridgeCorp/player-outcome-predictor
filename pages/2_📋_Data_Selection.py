@@ -7,7 +7,6 @@ import logging
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-
 def on_training_date_change(tournaments, end_date):
     """
     Record the training dates when the user selects something from the training start date dropdown
@@ -16,7 +15,6 @@ def on_training_date_change(tournaments, end_date):
     tournaments.set_training_window(value, end_date)
     # A change to this object is a big deal - make sure subsequent pages also reset their caches
     reset_session_states()
-
 
 def on_testing_tournament_change(tournaments):
     """
@@ -27,6 +25,15 @@ def on_testing_tournament_change(tournaments):
     # A change to this object is a big deal - make sure subsequent pages also reset their caches
     reset_session_states()
 
+def on_testing_season_change(tournaments):
+    """
+    Callback function to persist the value of changing tournaments through the multi-select dropdown
+    """
+    value = st.session_state.testing_seasons
+    test_tournament_key, test_tournament_name, test_season = tournaments.get_testing_details()
+    tournaments.set_testing_details(test_tournament_name, value)
+    # A change to this object is a big deal - make sure subsequent pages also reset their caches
+    reset_session_states()
 
 def on_testing_season_change(tournaments):
     """
@@ -111,6 +118,17 @@ def set_selection_type(data_selection):
 
     data_selection.set_selection_type(selection_type)
 
+
+
+def set_selection_type(data_selection):
+
+    st.header(f"Selection Type")
+
+    selection_types = [DataSelectionType.AND_SELECTION, DataSelectionType.OR_SELECTION]
+
+    selection_type = st.radio("Selection Type:", options=selection_types, on_change=reset_session_states)
+
+    data_selection.set_selection_type(selection_type)
 
 def app():
     """

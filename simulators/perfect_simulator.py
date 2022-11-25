@@ -14,7 +14,6 @@ from data_selection.data_selection import DataSelectionType
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-
 class Granularity:
     """
     Structure to represent acceptable levels of granularity
@@ -573,7 +572,6 @@ class PerfectSimulator:
         test_season_venues = test_season_matches.venue.unique().tolist()
         test_season_batters = test_season_innings.batter.unique().tolist()
         test_season_bowlers = test_season_innings.bowler.unique().tolist()
-
         is_test_season_venue = unqualified_train_match_state_df.venue.isin(test_season_venues)
         is_test_season_batter = unqualified_train_match_state_df.batter.isin(test_season_batters)
         is_test_season_bowler = unqualified_train_match_state_df.bowler.isin(test_season_bowlers)
@@ -605,7 +603,6 @@ class PerfectSimulator:
                     query('venue in @test_season_venues').shape[0]}
 
         logger.debug("Done with get_match_state_by_balls_for_training")
-
         return train_match_state_df, train_bowling_outcomes_df, stats
 
 

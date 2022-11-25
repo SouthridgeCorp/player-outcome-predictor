@@ -24,6 +24,15 @@ def get_perfect_simulator_data(perfect_simulator: PerfectSimulator, granularity:
     """
     return perfect_simulator.get_simulation_evaluation_metrics_by_granularity(True, granularity)
 
+def show_perfect_simulator_stats(perfect_simulator):
+    with st.expander("Click to see training stats"):
+        train_match_state_df, train_bowling_outcomes_df, stats =\
+            perfect_simulator.get_match_state_by_balls_for_training()
+
+        for key in stats.keys():
+            st.markdown(f"**{key}:** {stats[key]}")
+
+
 
 def show_perfect_simulator_stats(perfect_simulator):
     logger.debug("Writing stats")

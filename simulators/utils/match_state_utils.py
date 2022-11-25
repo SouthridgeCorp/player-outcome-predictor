@@ -147,6 +147,9 @@ def calculate_ball_by_ball_stats(match_state_df, index_columns):
     match_state_df['current_total'] = grouping['total_runs'].cumsum()
     match_state_df['wickets_fallen'] = grouping['is_wicket'].cumsum()
 
+    match_state_df['previous_total'] = match_state_df['current_total'] - match_state_df['total_runs']
+    match_state_df['previous_wickets_fallen'] = match_state_df['wickets_fallen'] - match_state_df['is_wicket']
+
     match_state_df['runs_to_target'] = -1
     mask = match_state_df['target_runs'] != -1
     match_state_df.loc[mask, 'runs_to_target'] = match_state_df['target_runs'] - match_state_df['current_total']

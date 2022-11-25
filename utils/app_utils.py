@@ -38,18 +38,23 @@ def batter_runs_model_instance():
     Helper function to get a singleton instance of the data_selection config. To only be used within streamlit
     :return: An instance of DataSelection
     """
-    if 'BatterRunsModel' not in st.session_state:
-        # get the helper from the singleton instance
-        data_selection = data_selection_instance()
-        rewards = rewards_instance()
-        perfect_simulator = PerfectSimulator(data_selection, rewards)
-        config_utils = create_utils_object()
-        batter_runs_model_info = config_utils.get_batter_runs_model_info()
-        batter_runs_model = BatterRunsModel(perfect_simulator,
-                                            model_directory_path = batter_runs_model_info['model_directory_path'],
-                                            model_type = st.session_state['model_type'])
-        # get a data selection instance from the singleton
-        st.session_state['BatterRunsModel'] = batter_runs_model
+     # get the helper from the singleton instance
+    data_selection = data_selection_instance()
+    rewards = rewards_instance()
+    perfect_simulator = PerfectSimulator(data_selection, rewards)
+    config_utils = create_utils_object()
+    batter_runs_model_info = config_utils.get_batter_runs_model_info()
+    batter_runs_model = BatterRunsModel(perfect_simulator,
+                                        model_directory_path = batter_runs_model_info['model_directory_path'],
+                                        model_type = st.session_state['model_type'])
+    session_type = st.session_state['session_type']
+    batter_runs_model.initiate_model(st.session_state['session_type'])
+    if session_type == 'training':
+        batter_runs_model.run_training()
+    if session_type == 'testing':
+        batter_runs_model.run_testing()
+    # get a data selection instance from the singleton
+    st.session_state['BatterRunsModel'] = batter_runs_model
 
     return st.session_state['BatterRunsModel']
 
@@ -77,6 +82,12 @@ def get_helper(config_utils: ConfigUtils) -> Helper:
         st.session_state['MatchUtilsHelper'] = Helper(config_utils)
     return st.session_state['MatchUtilsHelper']
 
+def prep_simulator_pages(data_selection, page_name):
+    tournaments = data_selection.get_helper().tournaments
+    st.subheader("Data Selection Summary")
+    with st.expander("Click to see a summary of data selection"):
+        # Show a summary of selected training & testing windows
+        show_data_selection_summary(data_selection)
 
 def prep_simulator_pages(data_selection: DataSelection, page_name: str):
     """
@@ -169,12 +180,7 @@ def get_predictive_simulator(rewards, number_of_scenarios) -> PredictiveSimulato
     Helper instance to cache & acquire the predictive simulator.
     """
     if 'PredictiveSimulator' not in st.session_state:
-        data_selection = data_selection_instance()
-        batter_runs_model = batter_runs_model_instance()
-        predictive_simulator = PredictiveSimulator(data_selection,
-                                                   rewards,
-                                                   batter_runs_model,
-                                                   number_of_scenarios)
+        predictive_simulator = PredictiveSimulator(data_selection_instance(), rewards, number_of_scenarios)
         predictive_simulator.generate_scenario()
         st.session_state['PredictiveSimulator'] = predictive_simulator
     else:

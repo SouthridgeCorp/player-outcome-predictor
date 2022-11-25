@@ -14,7 +14,8 @@ import pandas as pd
 class TestPredictiveSimulator:
 
     def test_bowling_probability_distribution(self, predictive_simulator):
-        utils = PredictiveUtils(predictive_simulator.data_selection)
+        utils = PredictiveUtils(predictive_simulator.data_selection,
+                                predictive_simulator.batter_runs_model)
         utils.setup()
 
         for key in utils.bowling_probabilities.probability_map.keys():

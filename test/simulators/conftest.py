@@ -35,7 +35,11 @@ def predictive_simulator(setup_and_teardown):
 
     perf_simulator = PerfectSimulator(data_selection, rewards_config)
 
-    batter_runs_model = BatterRunsModel(perf_simulator)
+    model_directory_path = config_instance.get_batter_runs_model_info()['model_directory_path']
+    model_type = test_case['model_type']
+    batter_runs_model = BatterRunsModel(perf_simulator,
+                            model_directory_path=model_directory_path,
+                            model_type=model_type)\
 
     simulator = PredictiveSimulator(data_selection,
                                     rewards_config,
@@ -55,7 +59,11 @@ def tournament_simulator(setup_and_teardown):
 
     perf_simulator = PerfectSimulator(data_selection, rewards_config)
 
-    batter_runs_model = BatterRunsModel(perf_simulator)
+    model_directory_path = config_instance.get_batter_runs_model_info()['model_directory_path']
+    model_type = test_case['model_type']
+    batter_runs_model = BatterRunsModel(perf_simulator,
+                            model_directory_path=model_directory_path,
+                            model_type=model_type)
 
     simulator = TournamentSimulator(data_selection,
                                     rewards_config,

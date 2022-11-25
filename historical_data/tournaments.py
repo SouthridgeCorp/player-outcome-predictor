@@ -9,7 +9,6 @@ import logging
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-
 class ArtefactsPerTournament:
     """
     A collection of all artefacts organised under a tournament
@@ -249,7 +248,6 @@ class Tournaments:
         :param is_testing True for testing, false for training
         :return: A dataframe with the following columns: ["team", "match_key", "player_key"]
         """
-
         if is_testing:
             playing_xi_list = []
             matches = self.matches(self.testing_selected_tournament)
