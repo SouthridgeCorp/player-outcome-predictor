@@ -82,7 +82,11 @@ def get_helper(config_utils: ConfigUtils) -> Helper:
         st.session_state['MatchUtilsHelper'] = Helper(config_utils)
     return st.session_state['MatchUtilsHelper']
 
-def prep_simulator_pages(data_selection, page_name):
+
+def prep_simulator_pages(data_selection: DataSelection, page_name: str):
+    """
+    Utility function to setup the simulator pages to display data selection summary. To be only used with streamlit.
+    """
     tournaments = data_selection.get_helper().tournaments
     st.subheader("Data Selection Summary")
     with st.expander("Click to see a summary of data selection"):

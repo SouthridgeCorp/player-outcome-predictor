@@ -12,7 +12,7 @@ import pymc as pm
 )
 class TestBatterRunsModel:
 
-    #@pytest.mark.skip(reason="Only run this to test the training workflow. Will overwrite existing models")
+    @pytest.mark.skip(reason="Only run this to test the training workflow. Will overwrite existing models")
     def test_model_trained(self,batter_runs_model:BatterRunsModel):
         model = batter_runs_model
         session_type = 'training'

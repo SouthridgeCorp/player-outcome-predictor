@@ -9,6 +9,7 @@ import logging
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+
 class ArtefactsPerTournament:
     """
     A collection of all artefacts organised under a tournament
