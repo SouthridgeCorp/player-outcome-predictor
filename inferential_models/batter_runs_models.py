@@ -541,26 +541,42 @@ class BatterRunsModel:
             })
 
     def run_bayesian_inference_prediction(self,
-                                          match_state_df):
+                                          match_state_df,
+                                          sample_once = True):
         test_combined_df = prepare_match_state_df_for_bi(match_state_df.reset_index(),
                                                          self.idata_trained)
         logger.info(f'Received match state with {test_combined_df.shape[0]} balls for inference')
         self.prepare_for_prediction(test_combined_df)
         logger.info(f'Prepared for inference for {test_combined_df.shape[0]} balls')
         with self.pymc_model:
-            idata_predicted = pm.sample_posterior_predictive(
-                self.posterior_point_list,
-                predictions=True,
-                extend_inferencedata=False,
-                random_seed=RANDOM_SEED,
-            )
+            if sample_once:
+                idata_predicted = pm.sample_posterior_predictive(
+                    self.posterior_point_list,
+                    samples=1,
+                    keep_size=False,
+                    predictions=True,
+                    extend_inferencedata=False,
+                    random_seed=RANDOM_SEED,
+                    return_inferencedata=False
+                )
+            else:
+                idata_predicted = pm.sample_posterior_predictive(
+                    self.posterior_point_list,
+                    keep_size=False,
+                    predictions=True,
+                    extend_inferencedata=False,
+                    random_seed=RANDOM_SEED
+                )
         logger.info(f'Formatting inference for {test_combined_df.shape[0]} balls')
-        try:
-            predictions_xarray,predictions_df = predictions_from_idata(idata_predicted,
-                                                                       'batter_runs_outcome_by_ball_and_innings_rv')
-        except Exception as e:
-            logger.error(f"Error while formatting inference for {test_combined_df.shape[0]} balls: {e}")
-            predictions_df = pd.DataFrame()
+        if sample_once:
+            predictions_df = pd.DataFrame({'batter_runs':idata_predicted['batter_runs_outcome_by_ball_and_innings_rv'][0]})
+        else:
+            try:
+                predictions_xarray,predictions_df = predictions_from_idata(idata_predicted,
+                                                                           'batter_runs_outcome_by_ball_and_innings_rv')
+            except Exception as e:
+                logger.error(f"Error while formatting inference for {test_combined_df.shape[0]} balls: {e}")
+                predictions_df = pd.DataFrame()
         logger.info(f'Inferred batter runs for {predictions_df.shape[0]} balls')
         return predictions_df
 

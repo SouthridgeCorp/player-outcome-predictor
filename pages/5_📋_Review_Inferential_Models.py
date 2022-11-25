@@ -24,7 +24,10 @@ def execute_session(batter_runs_model:BatterRunsModel):
         st.write("Training completed")
     if session_type == 'testing':
         testing_stats = batter_runs_model.run_testing()
-        st.write(testing_stats['classification_report'])
+        st.title("Classification Report")
+        st.markdown(testing_stats['classification_report'])
+
+        st.title("Confusion Matrix")
         st.dataframe(testing_stats['confusion_matrix'])
 
 
@@ -32,8 +35,11 @@ def app():
     page_utils.setup_page(" Review Inferential Models ")
     config_utils = create_utils_object()
     choose_model_type(config_utils)
-    batter_runs_model = batter_runs_model_instance()
-    execute_session(batter_runs_model)
+    if st.button("Execute Session"):
+        with st.spinner("Instantiating model"):
+            batter_runs_model = batter_runs_model_instance()
+        with st.spinner("Running test inference"):
+            execute_session(batter_runs_model)
 
 
 
