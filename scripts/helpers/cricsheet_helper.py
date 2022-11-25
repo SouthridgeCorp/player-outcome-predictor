@@ -225,7 +225,6 @@ def parse_innings_data(json_innings, match_key, innings_list, player_map):
                 innings_list.append(ball_map)
 
 
-
 def parse_json_match_data(input_file, tournament_key, match_dict_list, playing_xi_dict_list, innings_list, player_map):
     """
     Parses all information (matches, innings, players) for a specific match.

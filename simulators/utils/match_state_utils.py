@@ -105,14 +105,20 @@ def setup_data_labels_with_references(match_state_df, column_name, reference_lis
     match_state_df.loc[mask, f'{column_name}_labels'] = column_name + "_" + match_state_df[column_name]
 
 
+def setup_data_labels_with_references(match_state_df, column_name, reference_list):
+    match_state_df[f'{column_name}_labels'] = f"{column_name}_not_in_training"
+
+    mask = match_state_df[column_name].isin(reference_list)
+    match_state_df.loc[mask, f'{column_name}_labels'] = column_name + "_" + match_state_df[column_name]
+
 def setup_data_labels_with_training(data_selection, match_state_df):
+    logging.info("Getting selections")
     training_teams = data_selection.get_selected_teams(is_testing=False)
     venues = data_selection.get_selected_venues(is_testing=False)
 
     setup_data_labels_with_references(match_state_df, 'batting_team', training_teams)
     setup_data_labels_with_references(match_state_df, 'bowling_team', training_teams)
     setup_data_labels_with_references(match_state_df, 'venue', venues)
-
     return training_teams, venues
 
 

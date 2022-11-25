@@ -107,6 +107,12 @@ class PerfectSimulator:
         selected tournaments
         """
         logger.debug("Setting up match state")
+
+        #TODO: this function needs a fair bit of performance optimisations - to be scheduled separately if there is a
+        #need for faster execution.
+
+        logging.info("****************Initialising match state")
+
         match_state_df, player_universe_df, index_columns = initialise_match_state(self.data_selection, is_testing)
 
         logger.debug("Setting up data labels")
