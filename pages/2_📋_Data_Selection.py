@@ -121,19 +121,6 @@ def set_selection_type(data_selection):
     data_selection.set_selection_type(selection_type)
 
 
-def set_selection_type(data_selection):
-    """
-    Show the UI for selecting the data type selection
-    """
-    st.header(f"Selection Type")
-
-    selection_types = [DataSelectionType.AND_SELECTION, DataSelectionType.OR_SELECTION]
-
-    selection_type = st.radio("Selection Type:", options=selection_types, on_change=reset_session_states)
-
-    data_selection.set_selection_type(selection_type)
-
-
 def app():
     """
     Input page for requesting the training & testing window, which will be used to configure the rest of the models.

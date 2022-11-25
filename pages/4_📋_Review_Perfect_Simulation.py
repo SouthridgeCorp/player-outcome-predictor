@@ -36,16 +36,6 @@ def show_perfect_simulator_stats(perfect_simulator):
                 st.markdown(f"**{key}:** {stats[key]}")
 
 
-def show_perfect_simulator_stats(perfect_simulator):
-    logger.debug("Writing stats")
-    with st.spinner("Calculating Training stats"):
-        with st.expander("Click to see training stats"):
-            _, _, stats = perfect_simulator.get_match_state_by_balls_for_training(calculate_bowling_options=False,
-                                                                                  one_hot_encoding=False)
-
-            for key in stats.keys():
-                st.markdown(f"**{key}:** {stats[key]}")
-
 
 def app():
     data_selection = data_selection_instance()

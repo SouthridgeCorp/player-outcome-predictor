@@ -36,6 +36,7 @@ class Matches:
         :param list_of_seasons: The list of seasons to look for
         :return: A dataframe containing all the matches which took place for the specified seasons
       """
+
         return self.df[self.df["season"].isin(list_of_seasons)]
 
     def get_selected_match_count(self, start_date, end_date):

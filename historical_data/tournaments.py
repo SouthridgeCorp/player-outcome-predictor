@@ -99,7 +99,7 @@ class Tournaments:
         Gets the list of selected tournaments for training
         :return: A list of tournament names
         """
-        tournaments = self.get_selected_tournaments()
+        tournaments = self.get_selected_training_tournaments()
         return self.df[self.df["key"].isin(tournaments)]["name"].tolist()
 
     def set_training_selected_tournament_names(self, selected_names: list):
@@ -249,6 +249,7 @@ class Tournaments:
         :param is_testing True for testing, false for training
         :return: A dataframe with the following columns: ["team", "match_key", "player_key"]
         """
+
         if is_testing:
             playing_xi_list = []
             matches = self.matches(self.testing_selected_tournament)
