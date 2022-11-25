@@ -3,6 +3,7 @@ import logging
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+
 # This class contains a bunch of functions which are used to calculate the dataframe in
 # get_match_state_by_ball_and_innings()
 
@@ -18,6 +19,7 @@ def initialise_match_state(data_selection, is_testing: bool) -> (pd.DataFrame, p
     player_universe_df = data_selection.get_frequent_players_universe()
 
     logger.debug("Setting up filters & merges")
+
     index_columns = ['match_key', 'inning', 'over', 'ball']
     other_columns = ['batter', 'bowler', 'batting_team', 'total_runs', 'is_wicket', 'target_runs', 'target_overs']
     match_state_df = innings_df.filter(index_columns + other_columns, axis=1)
@@ -47,6 +49,19 @@ def identify_featured_player_for_type(match_state_df, label_name, is_batter):
     Creates a new column 'label_name' in match_state_df and updates with the label for the batter or bowler, depending
     on whether they are featured players or not
     """
+    if is_batter:
+        header = 'batter'
+        featured_player_label = "batting_featured_player"
+    else:
+        header = 'bowler'
+        featured_player_label = "bowling_featured_player"
+
+    mask = match_state_df[featured_player_label] == True
+    match_state_df[label_name] = f"{header}_non_frequent_player"
+    match_state_df.loc[mask, label_name] = header + "_" + match_state_df[header]
+
+
+def identify_featured_player_for_type(match_state_df, label_name, is_batter):
     if is_batter:
         header = 'batter'
         featured_player_label = "batting_featured_player"

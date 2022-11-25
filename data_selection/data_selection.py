@@ -4,7 +4,6 @@ from historical_data.playing_xi import PlayingXI
 import logging
 
 import warnings
-
 warnings.filterwarnings('ignore')
 
 
