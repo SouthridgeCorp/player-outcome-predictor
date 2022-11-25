@@ -1,7 +1,10 @@
 import pandas as pd
+<<<<<<< HEAD
 import logging
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+=======
+>>>>>>> 9f94f8f (Self review #2)
 
 
 # This class contains a bunch of functions which are used to calculate the dataframe in
@@ -14,12 +17,17 @@ def initialise_match_state(data_selection, is_testing: bool) -> (pd.DataFrame, p
 
     logger.debug("Getting selected matches")
     matches_df = data_selection.get_selected_matches(is_testing)
+<<<<<<< HEAD
 
     logger.debug("Getting player universe")
     player_universe_df = data_selection.get_frequent_players_universe()
 
     logger.debug("Setting up filters & merges")
 
+=======
+    player_universe_df = data_selection.get_frequent_players_universe()
+
+>>>>>>> 9f94f8f (Self review #2)
     index_columns = ['match_key', 'inning', 'over', 'ball']
     other_columns = ['batter', 'bowler', 'batting_team', 'total_runs', 'is_wicket', 'target_runs', 'target_overs']
     match_state_df = innings_df.filter(index_columns + other_columns, axis=1)
@@ -112,13 +120,16 @@ def setup_data_labels_with_references(match_state_df, column_name, reference_lis
     match_state_df.loc[mask, f'{column_name}_labels'] = column_name + "_" + match_state_df[column_name]
 
 def setup_data_labels_with_training(data_selection, match_state_df):
-    logging.info("Getting selections")
     training_teams = data_selection.get_selected_teams(is_testing=False)
     venues = data_selection.get_selected_venues(is_testing=False)
 
     setup_data_labels_with_references(match_state_df, 'batting_team', training_teams)
     setup_data_labels_with_references(match_state_df, 'bowling_team', training_teams)
     setup_data_labels_with_references(match_state_df, 'venue', venues)
+<<<<<<< HEAD
+=======
+
+>>>>>>> 9f94f8f (Self review #2)
     return training_teams, venues
 
 

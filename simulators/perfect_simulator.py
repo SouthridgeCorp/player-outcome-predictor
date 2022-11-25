@@ -4,8 +4,6 @@ from data_selection.data_selection import DataSelection
 from rewards_configuration.rewards_configuration import RewardsConfiguration
 
 import pandas as pd
-import warnings
-warnings.filterwarnings('ignore')
 from simulators.utils.outcomes_calculator import get_base_rewards, get_bonus_penalty, \
     get_all_outcomes_by_ball_and_innnings
 from simulators.utils.match_state_utils import setup_data_labels, initialise_match_state, \
@@ -111,10 +109,7 @@ class PerfectSimulator:
         #TODO: this function needs a fair bit of performance optimisations - to be scheduled separately if there is a
         #need for faster execution.
 
-        logging.info("****************Initialising match state")
-
         match_state_df, player_universe_df, index_columns = initialise_match_state(self.data_selection, is_testing)
-
         logger.debug("Setting up data labels")
         setup_data_labels(match_state_df)
 
@@ -158,7 +153,6 @@ class PerfectSimulator:
         logger.debug("Calculating ball by ball stats")
         match_state_df = calculate_ball_by_ball_stats(match_state_df, index_columns)
         logger.debug("Done with match state")
-
 
         return match_state_df
 
