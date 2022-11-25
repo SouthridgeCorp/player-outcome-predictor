@@ -3,6 +3,7 @@ import pandas as pd
 import warnings
 warnings.filterwarnings('ignore')
 
+
 class Innings:
     """
     A class to store all innings data corresponding to a tournament

@@ -7,6 +7,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
+
 class PlayerInformation:
     """
     Helper class - do not use outside this context - used to keep count of all the matches per team played by a player
