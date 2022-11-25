@@ -17,24 +17,36 @@ logger = logging.getLogger(__name__)
 RANDOM_SEED = 8265
 
 def load_idata_trained(model_path):
+    """
+    Loads a trained Bayesian Inference model from model_path and returns the trace
+    :param model_path: File with the stored model
+    :return: InferenceData instance which is the trace
+    """
     with open(model_path, 'rb') as buff:
         data = pickle.load(buff)
     idata = data['trace']
     return idata
 
 def load_random_forest_classifier(model_path):
+    """
+    Loads a trained Random Forest classifier model from model_path and returns the trace
+    :param model_path: File with the stored model
+    :return: tuple containing the classifier instance and the one-hot encoders for the model
+    """
     with open(model_path, 'rb') as buff:
         payload = pickle.load(buff)
     return payload['classifier'], payload['one_hot_encoders']
 
 def save_idata_trained(idata_trained,
                        model_path):
+    """Saves a trained bayesian inf model (idata_trained, an InferenceData instance) to model_path"""
     with open(model_path, 'wb') as buff:
         pickle.dump({'trace': idata_trained}, buff)
 
 def save_random_forest_classifier(clf,
                                   one_hot_encoders,
                                   model_path):
+    """Saves a trained random forest model (clf) and its one-hot encoders to model_path"""
     with open(model_path, 'wb') as buff:
         payload = {
             'classifier': clf,
@@ -43,17 +55,20 @@ def save_random_forest_classifier(clf,
         pickle.dump(payload, buff)
 
 def get_cr_and_cm(true,pred):
+    """Returns the classification report and confusion matrix comparing true with pred"""
     cr = classification_report(true,pred)
     cm = confusion_matrix(true,pred)
     return cr,pd.DataFrame(cm)
 
 def build_categoricals_for_column(df,column):
+    """Returns the categories found in d[column] for converting pd.Categorical variables in other dataframes"""
     categorical = pd.Categorical(df[column])
     return categorical.categories
 
 def build_xarray(feature_dict,
-                 outcome_dict,
-                 index_df):
+                 outcome_dict):
+    """Stack feature_dict and outcome_dict to produce a combined feature + outcome array.
+    Returns this in dataframe and xarray formats"""
     feature_df = pd.DataFrame(feature_dict)
     #feature_df.index = index_df.index
     outcome_df = pd.DataFrame(outcome_dict)
@@ -64,8 +79,17 @@ def build_xarray(feature_dict,
                            right_index = True)
     return combined_df, combined_df.to_xarray()
 
-def prepare_training_data(match_state_df,
-                          bowling_outcomes_df):
+def prepare_training_data_for_bayesian_inference(match_state_df,
+                                                 bowling_outcomes_df):
+    """
+    Prepare all the artefacts required to set up a pymc model for training
+    :param match_state_df: DataFrame representing state of the match before a ball is bowled
+    :param bowling_outcomes_df: DataFrame representing the outcomes of the ball
+    :return:
+        COORDS: Dictionary that catalogs all the dimensions and co-ordinates for the PyMC model
+        train_combined_df: Combined dataframe that includes match state and outcome data
+        train_combined_xarray: Combined xArray that includes match state and outcome data
+    """
     temp_match_state_df = match_state_df.reset_index()
     COORDS = {}
     train_feature_data = {}
@@ -105,9 +129,15 @@ def prepare_training_data(match_state_df,
     return COORDS,train_combined_df,train_combined_xarray
 
 def get_batter_runs_bi_model_from_perfect_simulator(perfect_simulator):
+    """
+    Instantinate a pymc model from a perfect simulator instance
+    :param perfect_simulator: Instance of perfect simulator that represents the test and train data for the model
+    :return:
+        batter_runs_model: Untrained PyMC model (network only) for inferring batter_runs from match state
+    """
     train_match_state_df,train_bowling_outcomes_df,_ = perfect_simulator.get_match_state_by_balls_for_training()
-    COORDS, train_combined_df,train_combined_xarray = prepare_training_data(train_match_state_df,
-                                                                            train_bowling_outcomes_df)
+    COORDS, train_combined_df,train_combined_xarray = prepare_training_data_for_bayesian_inference(train_match_state_df,
+                                                                                                   train_bowling_outcomes_df)
     with pm.Model(coords=COORDS) as batter_runs_model:
         batter_runs_model.add_coord('ball_ids',
                                     values=np.arange(train_combined_df.shape[0]),
@@ -193,6 +223,15 @@ def get_batter_runs_bi_model_from_perfect_simulator(perfect_simulator):
     return batter_runs_model
 
 def get_batter_runs_rf_model_from_perfect_simulator(perfect_simulator):
+    """
+    Instantiate inputs for a random forest model from a perfect simulator instance
+    :param perfect_simulator: Instance of perfect simulator that represents the test and train data for the model
+    :return:
+        train_ohe_features: dictionary mapping feature names to feature vectors
+        train_ohe_feature_array: numpy array with all features include OHE features
+        one_hot_encoders: dict mapping feature names to OHEs that can be used to encode other feature vectors
+        targets: batter runs outcomes from perfect simulator
+    """
     train_match_state_df,train_bowling_outcomes_df,_ = perfect_simulator.get_match_state_by_balls_for_training()
     train_match_state_df = train_match_state_df.reset_index()
     one_hot_encoders = {}
@@ -219,6 +258,12 @@ def get_batter_runs_rf_model_from_perfect_simulator(perfect_simulator):
     return train_ohe_features, train_ohe_feature_array, one_hot_encoders, targets
 
 def get_batter_runs_model_from_idata(idata_trained):
+    """
+    Instantinate a trained pymc model from an inference data object that reprsents its trace
+    :param idata_trained: InferenceData instance that contains the trace for the model
+    :return:
+        batter_runs_model: Trained PyMC model for inferring batter_runs from match state
+    """
     logger.info(f"Preparing bayesian inference model trained on {idata_trained.constant_data.ball_ids.shape}")
     COORDS = {
         'batter_runs': idata_trained.posterior.batter_runs.values,
@@ -310,6 +355,7 @@ def get_batter_runs_model_from_idata(idata_trained):
 def get_categorical_column_index_for_df(df,
                                         categories,
                                         column):
+    """Returns the categorical index for df[column] based on categories"""
     transformed_column_name = column.split('_')[0] if 'featured_id' in column else column
     if transformed_column_name == 'wickets_fallen' and 'wickets_fallen' not in df:
         transformed_column_name = 'previous_number_of_wickets'
@@ -318,6 +364,7 @@ def get_categorical_column_index_for_df(df,
     return idx
 
 def innings_strike_rate(df):
+    """Add the innings_strike_rate feature to the input df"""
     if 'previous_total' in df.columns and 'total_balls_bowled' in df.columns:
         df['innings_strike_rate'] = df['previous_total'] / df['total_balls_bowled']
     else:
@@ -328,11 +375,20 @@ def innings_strike_rate(df):
 
 def add_column_to_df(df,
                      column_name):
+    """Pass df to the column_name function and have it operate on the whole df. Usually to add a column
+    to it"""
     column_name(df)
 
 def prepare_match_state_df_for_bi(match_state_df,
                                   idata_trained):
-
+    """
+    Restructure a match_state_df generated by a simulator instance into a feature dataframe that will be understood
+    by a pymc model that uses idata_trained.posterior as its trace.
+    :param match_state_df: DataFrame representing match state before a ball is bowled
+    :param idata_trained: InferenceData instance representing the trained model
+    :return:
+        feature_data_df: DataFrame with all features needed by idata_trained, properly categorized.
+    """
     feature_data = {}
     for dim in ['batter',
                 'bowler',
@@ -357,6 +413,15 @@ def prepare_match_state_df_for_bi(match_state_df,
 
 def prepare_match_state_df_for_rf(match_state_df,
                                   one_hot_encoders):
+    """
+    Restructure a match_state_df generated by a simulator instance into a feature dataframe that will be understood
+    by a random forest model that uses one_hot_encoders to transform features.
+    :param match_state_df: DataFrame representing match state before a ball is bowled
+    :param one_hot_encoders: Dict mapping features to one hot encoders
+    :return:
+        feature_array: Array with all features for RF inference
+        feature_data: Dict mapping feature names to feature vectors for RF inference
+    """
     dim_transform = {
         'wickets_fallen': 'previous_number_of_wickets'
     }
@@ -389,6 +454,15 @@ def prepare_match_state_df_for_rf(match_state_df,
 
 def predictions_from_idata(idata,
                            var_name):
+    """
+    Calculate the percentage of scenarios of var_name for each category. Return this in xarray and
+    dataframe formats
+    :param idata: Inference data object containing scenarios for categorical variable var_name
+    :param var_name: Categorical variable whose frequency we want to count across scenarios
+    :return:
+        predictions_df: DataFrame containing predictions for the var name along with the probability
+        prediction: Inference data version of the same
+    """
     preds_helper = lambda ds: ds.to_dataframe()[var_name].value_counts(normalize=True).to_xarray()
     predictions = (
         idata.predictions[var_name]
@@ -592,6 +666,12 @@ class BatterRunsModel:
 
     def get_batter_runs_given_match_state(self,
                                           match_state_df):
+        """
+        Returns the models opinion of batter runs outcomes for the provided match_state_df
+        :param match_state_df: DataFrame representing match state before a ball is bowled
+        :return:
+            predictions_df: DataFrame with the model's predictions.
+        """
         if self.model_type == 'bayesian_inference':
             predictions_df = self.run_bayesian_inference_prediction(match_state_df)
         if self.model_type == 'random_forest':

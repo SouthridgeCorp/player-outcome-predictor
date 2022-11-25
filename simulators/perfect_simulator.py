@@ -109,6 +109,7 @@ class PerfectSimulator:
         #need for faster execution.
 
         match_state_df, player_universe_df, index_columns = initialise_match_state(self.data_selection, is_testing)
+
         logger.debug("Setting up data labels")
         setup_data_labels(match_state_df)
 
@@ -572,6 +573,15 @@ class PerfectSimulator:
         test_season_venues = test_season_matches.venue.unique().tolist()
         test_season_batters = test_season_innings.batter.unique().tolist()
         test_season_bowlers = test_season_innings.bowler.unique().tolist()
+
+        logger.debug("Getting selected innings")
+        test_season_innings = self.data_selection.get_innings_for_selected_matches(True)
+
+        logger.debug("Applying masks")
+
+        test_season_venues = test_season_matches.venue.unique().tolist()
+        test_season_batters = test_season_innings.batter.unique().tolist()
+        test_season_bowlers = test_season_innings.bowler.unique().tolist()
         is_test_season_venue = unqualified_train_match_state_df.venue.isin(test_season_venues)
         is_test_season_batter = unqualified_train_match_state_df.batter.isin(test_season_batters)
         is_test_season_bowler = unqualified_train_match_state_df.bowler.isin(test_season_bowlers)
@@ -601,6 +611,7 @@ class PerfectSimulator:
                     query('batter in @test_season_bowlers').shape[0],
                  "Number of balls with venues in test season venues": train_match_state_df. \
                     query('venue in @test_season_venues').shape[0]}
+        logger.debug("Done with get_match_state_by_balls_for_training")
 
         logger.debug("Done with get_match_state_by_balls_for_training")
         return train_match_state_df, train_bowling_outcomes_df, stats
