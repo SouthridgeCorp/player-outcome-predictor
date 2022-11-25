@@ -92,7 +92,7 @@ class PredictiveSimulator:
         match_state_dict[(scenario, match_key)] = match_state
 
 
-    def generate_innings(self):
+    def generate_innings(self,use_inferential_model):
         logging.debug("Getting playing xi")
         playing_xi_df = self.data_selection.get_playing_xi_for_selected_matches(True)
         simulated_innings_df = pd.DataFrame()
@@ -125,7 +125,9 @@ class PredictiveSimulator:
                     else:
                         match_state.bowl_one_ball()
 
-                simulated_innings_df = self.play_one_ball(match_state_dict, simulated_innings_df)
+                simulated_innings_df = self.play_one_ball(match_state_dict,
+                                                          simulated_innings_df,
+                                                          use_inferential_model)
 
                 extras_list_to_consider = match_state_dict
                 while True:
@@ -141,11 +143,16 @@ class PredictiveSimulator:
                     else:
                         extras_list_to_consider = extras_list
 
-                    simulated_innings_df = self.play_one_ball(extras_list, simulated_innings_df)
+                    simulated_innings_df = self.play_one_ball(extras_list,
+                                                              simulated_innings_df,
+                                                              use_inferential_model)
         logging.debug("Done playing all matches")
         return simulated_innings_df
 
-    def play_one_ball(self, match_state_dict, simulated_innings_df):
+    def play_one_ball(self,
+                      match_state_dict,
+                      simulated_innings_df,
+                      use_inferential_model):
         """
         This function doest the following:
         - builds out the dataframe representing the current match state for all matches & scenarios
@@ -169,7 +176,8 @@ class PredictiveSimulator:
             match_state_df = match_state_df.sample(frac=1)
 
             # Predict ball by ball outcome
-            self.predictive_utils.predict_ball_by_ball_outcome(match_state_df)
+            self.predictive_utils.predict_ball_by_ball_outcome(match_state_df,
+                                                               use_inferential_model)
             match_state_df['total_runs'] = match_state_df['batter_runs'] + match_state_df['extras']
 
             # Apply the current state outcomes to the match state objects
@@ -181,7 +189,8 @@ class PredictiveSimulator:
 
         return simulated_innings_df
 
-    def generate_scenario(self):
+    def generate_scenario(self,
+                          use_inferential_model = True):
         """
         Generate all the required scenarios
         """
@@ -194,7 +203,7 @@ class PredictiveSimulator:
         self.simulated_matches_df = self.generate_matches()
 
         logging.debug("Generating simulated Innings data")
-        self.simulated_innings_df = self.generate_innings()
+        self.simulated_innings_df = self.generate_innings(use_inferential_model)
 
         self.calculate_match_winner()
 
