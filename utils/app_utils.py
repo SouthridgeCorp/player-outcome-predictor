@@ -93,7 +93,6 @@ def prep_simulator_pages(data_selection: DataSelection, page_name: str):
         # Show a summary of selected training & testing windows
         show_data_selection_summary(data_selection)
 
-<<<<<<< HEAD
 def prep_simulator_pages(data_selection: DataSelection, page_name: str):
     """
     Utility function to setup the simulator pages to display data selection summary. To be only used with streamlit.
@@ -104,8 +103,6 @@ def prep_simulator_pages(data_selection: DataSelection, page_name: str):
         # Show a summary of selected training & testing windows
         show_data_selection_summary(data_selection)
 
-=======
->>>>>>> 1cbd713eea50160f0751835e7861daf8f52521f8
     test_tournament_key, test_tournament_name, test_season = tournaments.get_testing_details()
     if test_tournament_key == "":
         st.error("Please select your data selection metrics before proceeding")

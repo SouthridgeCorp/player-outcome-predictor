@@ -12,10 +12,7 @@ pymc
 graphviz
 jupyterlab
 seaborn
-<<<<<<< HEAD
 sklearn
 xarray
 arviz
-=======
 sklearn
->>>>>>> 1cbd713eea50160f0751835e7861daf8f52521f8
