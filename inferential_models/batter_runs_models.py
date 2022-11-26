@@ -9,7 +9,7 @@ from simulators.perfect_simulator import PerfectSimulator
 import pickle
 import logging
 from sklearn.metrics import classification_report, confusion_matrix
-
+import os
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -495,8 +495,11 @@ class BatterRunsModel:
             test_season = self.perfect_simulator.data_selection.historical_data_helper.tournaments.testing_selected_season
             (train_start_date, train_end_date) = self.perfect_simulator.data_selection.historical_data_helper.tournaments.get_training_start_end_dates()
             data_selection_type = self.perfect_simulator.data_selection.get_selection_type()
-            model_path = f"{self.model_directory_path}/" \
-                         f"{self.model_type}/" \
+            model_dir =  f"{self.model_directory_path}/" \
+                         f"{self.model_type}/"
+            if not os.path.isdir(model_dir):
+                os.makedirs(model_dir)
+            model_path = f"{model_dir}/" \
                          f"{test_tournament}~" \
                          f"{test_season}~" \
                          f"{train_start_date}~" \

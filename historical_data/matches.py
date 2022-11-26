@@ -13,6 +13,7 @@ class Matches:
         match_file_name = f"{base_path}/{tournament}/matches.csv"
         self.df = pd.read_csv(match_file_name)
         self.df['date'] = pd.to_datetime(self.df['date']).dt.date
+        self.df['stage'] = self.df['stage'].fillna("")
 
     def get_number_of_matches(self):
         """

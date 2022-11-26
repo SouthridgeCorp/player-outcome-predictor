@@ -21,6 +21,9 @@ def calculate_error_metrics(number_of_scenarios,
                                                     number_of_scenarios,
                                                     use_inferential_model)
 
+    if predictive_simulator is None:
+        return pd.DataFrame()
+
     total_errors_df = pd.DataFrame()
     perfect_df = perfect_simulator.get_simulation_evaluation_metrics_by_granularity(True, granularity)
     for scenario in range(0, number_of_scenarios):
@@ -68,6 +71,10 @@ def app():
                                                   rewards,
                                                   perfect_simulator,
                                                   use_inferential_model)
+
+        if total_errors_df.empty:
+            st.error("Please initialise and review the inferential model before proceeding")
+            return
 
         total_errors_index = total_errors_df.index.names
         reference_df = total_errors_df.reset_index().query('scenario_number == 0')

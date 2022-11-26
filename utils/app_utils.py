@@ -186,6 +186,8 @@ def get_predictive_simulator(rewards,
     Helper instance to cache & acquire the predictive simulator.
     """
     if 'PredictiveSimulator' not in st.session_state:
+        if 'BatterRunsModel' not in st.session_state:
+            return None
         batter_runs_model = st.session_state['BatterRunsModel']
         predictive_simulator = PredictiveSimulator(data_selection_instance(),
                                                    rewards,

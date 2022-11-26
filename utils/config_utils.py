@@ -385,8 +385,11 @@ class ConfigUtils:
 
     def get_batter_runs_model_info(self) -> dict:
         batter_runs_config = self.config['player_outcome_predictor']['inferential_models']['batter_runs_model']
+        if not os.path.isdir(batter_runs_config['model_directory_path']):
+            os.makedirs(batter_runs_config['model_directory_path'])
         model_types = os.listdir(batter_runs_config['model_directory_path'])
         model_type_dict = dict()
+
         for model_type in model_types:
             model_type_path = f"{batter_runs_config['model_directory_path']}/{model_type}"
             model_type_dict[model_type] = os.listdir(model_type_path)
@@ -394,5 +397,7 @@ class ConfigUtils:
             'model_directory_path': batter_runs_config['model_directory_path'],
             'model_type_dict': model_type_dict
         }
+
+
         return ret
 

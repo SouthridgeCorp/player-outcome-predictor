@@ -15,4 +15,3 @@ seaborn
 sklearn
 xarray
 arviz
-sklearn
