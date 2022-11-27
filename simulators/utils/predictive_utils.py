@@ -4,6 +4,8 @@ import numpy as np
 from data_selection.data_selection import DataSelection
 import logging
 
+from inferential_models.batter_runs_models import BatterRunsModel
+
 
 def calculate_bowling_probabilities(all_innings_df) -> pd.DataFrame:
     """
@@ -78,12 +80,17 @@ class Probabilities:
 
 
 class PredictiveUtils:
-    def __init__(self, data_selection: DataSelection):
+    def __init__(self,
+                 data_selection: DataSelection,
+                 batter_runs_model: BatterRunsModel):
         self.data_selection = data_selection
         self.all_innings_df = pd.DataFrame()
         self.all_matches_df = pd.DataFrame()
         self.bowling_probabilities = Probabilities()
         self.featured_player_df = pd.DataFrame()
+        self.batter_runs_model = batter_runs_model
+
+        self.batter_runs_model.initiate_model(session_type='testing')
 
         logging.debug("setting up distributions")
         # TODO: These distributions will no longer be required once the inferential model comes into play.
@@ -185,7 +192,9 @@ class PredictiveUtils:
 
         self.predict_runout_details(matches_df, wicket_mask)
 
-    def predict_legal_outcomes(self, matches_df):
+    def predict_legal_outcomes(self,
+                               matches_df,
+                               use_inferential_model):
         """
         Predicts outcomes on a legal delivery, including batter_runs, extras and wickets
         Updates matches_df directly with the details.
@@ -200,8 +209,17 @@ class PredictiveUtils:
         number_of_balls = len(mask[mask])
 
         # Set up legal delivery batting runs
-        batting_runs = self.batter_runs_distribution.rvs(number_of_balls)
-        matches_df.loc[mask, 'batter_runs'] = np.where(batting_runs == 1)[1]
+
+        if not use_inferential_model:
+            batting_runs = self.batter_runs_distribution.rvs(number_of_balls)
+            matches_df.loc[mask, 'batter_runs'] = np.where(batting_runs == 1)[1]
+        else:
+            match_state_df = matches_df.loc[mask]
+            if not(match_state_df.empty):
+                inferred_batting_runs = self.batter_runs_model.get_batter_runs_given_match_state(match_state_df)
+                matches_df.loc[mask, 'batter_runs'] = inferred_batting_runs['batter_runs'].values
+            else:
+                logging.debug("Got empty match state df, bypassing inferential model")
 
         # set up extras for legal deliveries
         extras_mask = mask & (matches_df['batter_runs'] == 0)
@@ -263,7 +281,9 @@ class PredictiveUtils:
         batter_runs = self.non_legal_batter_runs_distribution.rvs(number_of_balls)
         matches_df.loc[mask, 'batter_runs'] = np.where(batter_runs == 1)[1]
 
-    def predict_ball_by_ball_outcome(self, matches_df):
+    def predict_ball_by_ball_outcome(self,
+                                     matches_df,
+                                     use_inferential_model):
         """
         This function assumes that the matches_df represents the current state of the match up until the specified
         ball is bowled, and then predicts the outcome of the current delivery.
@@ -286,7 +306,8 @@ class PredictiveUtils:
         matches_df['noballs'] = 0
         matches_df['wides'] = 0
 
-        self.predict_legal_outcomes(matches_df)
+        self.predict_legal_outcomes(matches_df,
+                                    use_inferential_model)
         self.predict_non_legal_outcomes(matches_df)
 
     def setup(self):

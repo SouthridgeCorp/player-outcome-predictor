@@ -1,10 +1,12 @@
 from data_selection.data_selection import DataSelection
+from inferential_models.batter_runs_models import BatterRunsModel
 from rewards_configuration.rewards_configuration import RewardsConfiguration
 from simulators.utils.predictive_utils import PredictiveUtils, update_match_state
 from simulators.perfect_simulator import PerfectSimulator
 from simulators.utils.predictive_match_state import MatchState
 import pandas as pd
 import logging
+import datetime
 
 
 class PredictiveSimulator:
@@ -12,15 +14,20 @@ class PredictiveSimulator:
     Predicts the outcomes of the testing set of matches across the specified number of scenarios.
     """
 
-    def __init__(self, data_selection: DataSelection,
+    def __init__(self,
+                 data_selection: DataSelection,
                  rewards_configuration: RewardsConfiguration,
-                 number_of_scenarios, match_columns_to_persist=[], utils=None):
+                 batter_runs_model: BatterRunsModel,
+                 number_of_scenarios,
+                 match_columns_to_persist=[],
+                 utils=None):
         self.data_selection = data_selection
         self.number_of_scenarios = number_of_scenarios
         self.rewards_configuration = rewards_configuration
 
         if utils is None:
-            self.predictive_utils = PredictiveUtils(data_selection)
+            self.predictive_utils = PredictiveUtils(data_selection,
+                                                    batter_runs_model)
         else:
             self.predictive_utils = utils
 
@@ -35,6 +42,8 @@ class PredictiveSimulator:
         for i in range(0, number_of_scenarios):
             perfect_simulator_ds = DataSelection(data_selection.historical_data_helper)
             self.perfect_simulators.append(PerfectSimulator(perfect_simulator_ds, rewards_configuration))
+
+        self.scenario_date_time = None
 
     def generate_matches(self):
         """
@@ -85,8 +94,7 @@ class PredictiveSimulator:
                                  batting_team, batting_playing_xi, bowling_playing_xi, venue)
         match_state_dict[(scenario, match_key)] = match_state
 
-
-    def generate_innings(self):
+    def generate_innings(self, use_inferential_model):
         logging.debug("Getting playing xi")
         playing_xi_df = self.data_selection.get_playing_xi_for_selected_matches(True)
         simulated_innings_df = pd.DataFrame()
@@ -110,7 +118,7 @@ class PredictiveSimulator:
                     over_changed = False
                 if over == 20:
                     break
-
+                logging.info(f"Playing inning {inning}, over {over}, ball {ball}")
                 for key in match_state_dict.keys():
                     match_state = match_state_dict[key]
                     match_state.set_innings(inning)
@@ -119,7 +127,9 @@ class PredictiveSimulator:
                     else:
                         match_state.bowl_one_ball()
 
-                simulated_innings_df = self.play_one_ball(match_state_dict, simulated_innings_df)
+                simulated_innings_df = self.play_one_ball(match_state_dict,
+                                                          simulated_innings_df,
+                                                          use_inferential_model)
 
                 extras_list_to_consider = match_state_dict
                 while True:
@@ -135,11 +145,16 @@ class PredictiveSimulator:
                     else:
                         extras_list_to_consider = extras_list
 
-                    simulated_innings_df = self.play_one_ball(extras_list, simulated_innings_df)
+                    simulated_innings_df = self.play_one_ball(extras_list,
+                                                              simulated_innings_df,
+                                                              use_inferential_model)
         logging.debug("Done playing all matches")
         return simulated_innings_df
 
-    def play_one_ball(self, match_state_dict, simulated_innings_df):
+    def play_one_ball(self,
+                      match_state_dict,
+                      simulated_innings_df,
+                      use_inferential_model):
         """
         This function doest the following:
         - builds out the dataframe representing the current match state for all matches & scenarios
@@ -163,7 +178,8 @@ class PredictiveSimulator:
             match_state_df = match_state_df.sample(frac=1)
 
             # Predict ball by ball outcome
-            self.predictive_utils.predict_ball_by_ball_outcome(match_state_df)
+            self.predictive_utils.predict_ball_by_ball_outcome(match_state_df,
+                                                               use_inferential_model)
             match_state_df['total_runs'] = match_state_df['batter_runs'] + match_state_df['extras']
 
             # Apply the current state outcomes to the match state objects
@@ -175,7 +191,8 @@ class PredictiveSimulator:
 
         return simulated_innings_df
 
-    def generate_scenario(self):
+    def generate_scenario(self,
+                          use_inferential_model=False):
         """
         Generate all the required scenarios
         """
@@ -188,7 +205,7 @@ class PredictiveSimulator:
         self.simulated_matches_df = self.generate_matches()
 
         logging.debug("Generating simulated Innings data")
-        self.simulated_innings_df = self.generate_innings()
+        self.simulated_innings_df = self.generate_innings(use_inferential_model)
 
         self.calculate_match_winner()
 
@@ -204,6 +221,9 @@ class PredictiveSimulator:
         self.simulated_matches_df.set_index(['scenario_number', 'match_key'], inplace=True, verify_integrity=True)
         self.simulated_innings_df.set_index(['scenario_number', 'match_key', 'inning', 'over', 'ball'], inplace=True,
                                             verify_integrity=True)
+
+        self.scenario_date_time = datetime.datetime.now()
+
         logging.debug("Done Generating Match & Innings data")
 
         return self.simulated_matches_df, self.simulated_innings_df
@@ -237,3 +257,9 @@ class PredictiveSimulator:
         """
         return self.perfect_simulators[scenario].get_simulation_evaluation_metrics_by_granularity(
             True, granularity, columns_to_persist=columns_to_persist)
+
+    def __str__(self):
+        """String representation of this class, can be used with print, st.write etc"""
+        return f"Predictive Simulator:  " \
+               f"Scenario last generated at {self.scenario_date_time}  " \
+               f"{self.predictive_utils.batter_runs_model}  "

@@ -1,15 +1,15 @@
 import logging
-
+import datetime
 import arviz as az
 import pandas as pd
 import streamlit as st
 from data_selection.data_selection import DataSelection
 from historical_data.singleton import Helper
-from historical_data.tournaments import Tournaments
+from inferential_models.batter_runs_models import BatterRunsModel
 from rewards_configuration.rewards_configuration import RewardsConfiguration
 from utils.config_utils import create_utils_object, ConfigUtils
 from simulators.predictive_simulator import PredictiveSimulator
-from simulators.perfect_simulator import Granularity
+from simulators.perfect_simulator import Granularity, PerfectSimulator
 from simulators.tournament_simulator import TournamentSimulator
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
@@ -31,6 +31,32 @@ def data_selection_instance():
         st.session_state['DataSelection'] = DataSelection(helper)
 
     return st.session_state['DataSelection']
+
+def batter_runs_model_instance():
+    """
+    Helper function to create a new instance of the batter runs inferential model. Once the instance is created, it also
+    resets it in the streamlit cache for future usage
+    :return An instance of batter_run_model
+    """
+     # get the helper from the singleton instance
+    data_selection = data_selection_instance()
+    rewards = rewards_instance()
+    perfect_simulator = PerfectSimulator(data_selection, rewards)
+    config_utils = create_utils_object()
+    batter_runs_model_info = config_utils.get_batter_runs_model_info()
+    batter_runs_model = BatterRunsModel(perfect_simulator,
+                                        model_directory_path = batter_runs_model_info['model_directory_path'],
+                                        model_type = st.session_state['model_type'])
+    session_type = st.session_state['session_type']
+    batter_runs_model.initiate_model(st.session_state['session_type'])
+    if session_type == 'training':
+        batter_runs_model.run_training()
+    if session_type == 'testing':
+        batter_runs_model.run_testing()
+    # get a data selection instance from the singleton
+    st.session_state['BatterRunsModel'] = batter_runs_model
+
+    return st.session_state['BatterRunsModel']
 
 
 def rewards_instance() -> RewardsConfiguration:
@@ -62,10 +88,13 @@ def prep_simulator_pages(data_selection: DataSelection, page_name: str):
     Utility function to setup the simulator pages to display data selection summary. To be only used with streamlit.
     """
     tournaments = data_selection.get_helper().tournaments
-    st.subheader("Data Selection Summary")
+    st.subheader("Data Selection & Cache Summary")
     with st.expander("Click to see a summary of data selection"):
         # Show a summary of selected training & testing windows
         show_data_selection_summary(data_selection)
+
+    with st.expander("Click to see the state of the cache"):
+        summarise_cache()
 
     test_tournament_key, test_tournament_name, test_season = tournaments.get_testing_details()
     if test_tournament_key == "":
@@ -81,6 +110,7 @@ def show_data_selection_summary(data_selection):
     Builds out the summary of data selection fields for displaying in streamlit. Can be used to summarise the current
     state of data selection on any streamlit page.
     """
+
     tournaments = data_selection.get_helper().tournaments
     test_tournament_key, test_tournament_name, test_season = tournaments.get_testing_details()
 
@@ -143,13 +173,37 @@ def reset_session_states(reset_tournament_simulator=True):
     reset_rewards_cache()
 
 
-def get_predictive_simulator(rewards, number_of_scenarios) -> PredictiveSimulator:
+def summarise_cache():
+    """
+    Print a summary of the cache state to be shown in streamlit
+    """
+    if 'PredictiveSimulator' in st.session_state:
+        st.info(st.session_state['PredictiveSimulator'])
+
+    if 'TournamentSimulator' in st.session_state:
+        st.info(st.session_state['TournamentSimulator'])
+
+    for granularity in get_granularity_list():
+        if f'TournamentRewards_{granularity}' in st.session_state:
+            update_key = f'TournamentRewards_{granularity}_update_date'
+            st.info(f"TournamentRewards for '{granularity}' last updated at ="
+                     f" {st.session_state[update_key]}")
+
+def get_predictive_simulator(rewards,
+                             number_of_scenarios,
+                             use_inferential_model) -> PredictiveSimulator:
     """
     Helper instance to cache & acquire the predictive simulator.
     """
     if 'PredictiveSimulator' not in st.session_state:
-        predictive_simulator = PredictiveSimulator(data_selection_instance(), rewards, number_of_scenarios)
-        predictive_simulator.generate_scenario()
+        if 'BatterRunsModel' not in st.session_state:
+            return None
+        batter_runs_model = st.session_state['BatterRunsModel']
+        predictive_simulator = PredictiveSimulator(data_selection_instance(),
+                                                   rewards,
+                                                   batter_runs_model,
+                                                   number_of_scenarios)
+        predictive_simulator.generate_scenario(use_inferential_model=use_inferential_model)
         st.session_state['PredictiveSimulator'] = predictive_simulator
     else:
         predictive_simulator = st.session_state['PredictiveSimulator']
@@ -157,16 +211,21 @@ def get_predictive_simulator(rewards, number_of_scenarios) -> PredictiveSimulato
     return predictive_simulator
 
 
-def get_tournament_simulator(force_initialise: bool) -> TournamentSimulator:
+def get_tournament_simulator(force_initialise: bool,
+                             use_inferential_model: bool) -> TournamentSimulator:
     """
     Helper instance to cache & acquire the tournament simulator.
     @param force_initialise: If true, forces a new instance to be initialised and replaced in the cache.
     @return An instance of TournamentSimulator which has already generated its scenarios
     """
     if ('TournamentSimulator' not in st.session_state) or force_initialise:
-        tournament_simulator = TournamentSimulator(data_selection_instance(), rewards_instance(), create_utils_object())
+        batter_runs_model = st.session_state['BatterRunsModel']
+        tournament_simulator = TournamentSimulator(data_selection_instance(),
+                                                   rewards_instance(),
+                                                   batter_runs_model,
+                                                   create_utils_object())
         with st.spinner("Generating Scenarios"):
-            tournament_simulator.generate_scenarios()
+            tournament_simulator.generate_scenarios(use_inferential_model)
         if 'TournamentSimulator' in st.session_state:
             del st.session_state['TournamentSimulator']
         st.session_state['TournamentSimulator'] = tournament_simulator
@@ -304,8 +363,9 @@ def get_rewards(tournament_simulator, granularity, regenerate):
     if not regenerate and (f'TournamentRewards_{granularity}' in st.session_state):
         return st.session_state[f'TournamentRewards_{granularity}']
 
-    logging.debug("Running the function call")
+    logging.debug("Caching the rewards")
     rewards_list = tournament_simulator.get_rewards(granularity)
     st.session_state[f'TournamentRewards_{granularity}'] = rewards_list
+    st.session_state[f'TournamentRewards_{granularity}_update_date'] = datetime.datetime.now()
 
     return rewards_list

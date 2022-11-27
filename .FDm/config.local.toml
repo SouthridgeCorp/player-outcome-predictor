@@ -13,6 +13,9 @@ repo_path="resources/prod/app_config/rewards_configuration"
 generated_path="data/generated/prod/rewards"
 file_name = "rewards.csv"
 
+[player_outcome_predictor.inferential_models.batter_runs_model]
+model_directory_path="data/inferential_models/batter_runs_model"
+
 [player_outcome_predictor.predictive_simulator]
 number_of_scenarios=4
 

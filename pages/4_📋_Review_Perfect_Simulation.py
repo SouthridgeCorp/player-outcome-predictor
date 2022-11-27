@@ -36,6 +36,7 @@ def show_perfect_simulator_stats(perfect_simulator):
                 st.markdown(f"**{key}:** {stats[key]}")
 
 
+
 def app():
     data_selection = data_selection_instance()
     tournaments = data_selection.get_helper().tournaments
@@ -55,7 +56,6 @@ def app():
     if granularity == 'None':
         st.write("Please select a valid Granularity")
     else:
-
         with st.spinner("Calculating Simulation Metrics.."):
             perfect_simulator_df = get_perfect_simulator_data(perfect_simulator, granularity, rewards)
 

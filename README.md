@@ -1,6 +1,9 @@
 # player-outcome-predictor
 Predictive modeling to forecast player outcomes over a T20 tournament
 
+# Video Walkthrough of v1.0
+https://www.loom.com/share/a7f9efe85c1d47a1a7b42c504a0af366
+
 ## Getting the data ready
 Before running the app, input data must be prepared: 
 - Run `scripts/helpers/parse_cricsheet_inputs.py`
@@ -65,7 +68,7 @@ Contact Gireesh to configure Snowflake access
  - Open a terminal, move to the project root directory and run `docker pull python` to download a python image from the dockerhub.
 
 ## Run the streamlit application locally with docker
-   - Run `docker compose up` to build a docker image and start the container locally.
+   - Run `docker-compose up` to build a docker image and start the container locally.
      - This command assumes port 8501 is not in use.
    - Open [localhost:8501](localhost:8501) in your browser.
    

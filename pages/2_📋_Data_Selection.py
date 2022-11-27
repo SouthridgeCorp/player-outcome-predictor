@@ -98,7 +98,6 @@ def select_testing_window(tournaments, data_selection):
 
     tournaments.set_testing_details(tournament_name, season)
 
-
 def set_selection_type(data_selection):
     """
     Show the UI for selecting the data type selection

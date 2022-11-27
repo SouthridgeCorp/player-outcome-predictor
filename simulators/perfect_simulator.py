@@ -14,7 +14,6 @@ from data_selection.data_selection import DataSelectionType
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-
 class Granularity:
     """
     Structure to represent acceptable levels of granularity
@@ -105,6 +104,10 @@ class PerfectSimulator:
         selected tournaments
         """
         logger.debug("Setting up match state")
+
+        #TODO: this function needs a fair bit of performance optimisations - to be scheduled separately if there is a
+        #need for faster execution.
+
         match_state_df, player_universe_df, index_columns = initialise_match_state(self.data_selection, is_testing)
 
         logger.debug("Setting up data labels")
@@ -600,9 +603,9 @@ class PerfectSimulator:
                     query('batter in @test_season_bowlers').shape[0],
                  "Number of balls with venues in test season venues": train_match_state_df. \
                     query('venue in @test_season_venues').shape[0]}
-
         logger.debug("Done with get_match_state_by_balls_for_training")
 
+        logger.debug("Done with get_match_state_by_balls_for_training")
         return train_match_state_df, train_bowling_outcomes_df, stats
 
 

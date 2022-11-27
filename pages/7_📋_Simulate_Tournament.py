@@ -74,6 +74,8 @@ def app():
 
     data_selection = data_selection_instance()
     tournaments = data_selection.get_helper().tournaments
+    use_inferential_model = st.checkbox(
+        "Click to activate usage of inferential model [else default to statistical simulator]")
 
     if not prep_simulator_pages(data_selection, "Tournament Simulator"):
         return
@@ -90,7 +92,8 @@ def app():
         reset_rewards_cache()
 
     if display or generate_scenario:
-        tournament_simulator = get_tournament_simulator(generate_scenario)
+        tournament_simulator = get_tournament_simulator(generate_scenario,
+                                                        use_inferential_model=use_inferential_model)
         st.write(f'Tournament Scenarios were last generated on '
                  f'{tournament_simulator.scenario_date_time.strftime("%m/%d/%Y, %H:%M:%S")}')
         display_data(tournament_simulator, data_selection, generate_scenario)

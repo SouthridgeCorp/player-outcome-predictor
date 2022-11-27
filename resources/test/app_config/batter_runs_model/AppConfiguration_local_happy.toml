@@ -1,0 +1,48 @@
+[app]
+environment = "production"
+user_personas = ["cluster_1_persona_1", "cluster_1_persona_2","cluster_2_persona_1", "cluster_2_persona_2"]
+
+
+[player_outcome_predictor.historical_data]
+input_directory = "data/generated/prod/match_data/cricsheet/"
+tournament_file_name = "tournaments.csv"
+player_file_name = "players.csv"
+
+[player_outcome_predictor.rewards_configuration]
+repo_path="resources/prod/app_config/rewards_configuration"
+generated_path="data/generated/prod/rewards"
+file_name = "rewards.csv"
+
+[player_outcome_predictor.inferential_models.batter_runs_model]
+model_directory_path="data/inferential_models/batter_runs_model"
+
+[player_outcome_predictor.predictive_simulator]
+number_of_scenarios=4
+
+[player_outcome_predictor.tournament_simulator]
+number_of_scenarios=4
+data_path="resources/prod/app_config/tournament_simulator"
+matches_file_name='example_tournament.csv'
+playing_xi_file_name='example_playing_xi.csv'
+
+[feedback_form]
+storage_dir = "data"
+storage_path = "feedback"
+storage_file = "feedback.csv"
+storage_method = "local"
+
+[feedback_form.schema]
+DATE = "str"
+USER_NAME = "str"
+USER_EMAIL = "str"
+USER_PERSONA = "str"
+ALTERNATE_USER_PERSONA = "str"
+QUESTIONS = "str"
+PAGE_NAME = "str"
+
+[feedback_form.questions]
+USER_NAME = "What is your name?"
+USER_EMAIL = "What is your email address?"
+USER_PERSONA = "Which of the target user personas best matches you or your team's requirements?"
+ALTERNATE_USER_PERSONA = "If none of the target user personas matches your needs, please describe your user persona."
+QUESTIONS = "Do you have any further questions or suggestions for improvement for this application?"

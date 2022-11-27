@@ -397,6 +397,7 @@ class TestPerfectSimulator:
                 assert row['bowling_rewards'] == row['bowling_base_rewards'] + row['bowling_bonus_wickets'] \
                        + row['bowling_bonus'] - row['bowling_penalty']
 
+
     @pytest.mark.parametrize('is_testing', [True, False])
     @pytest.mark.parametrize('granularity, expected_columns',
                              [('tournament', ['name', 'number_of_matches', 'player_key', 'tournament_key',

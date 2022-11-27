@@ -1,58 +1,48 @@
 import streamlit as st
 import utils.page_utils as page_utils
-import utils.config_utils as config_utils
+from inferential_models.batter_runs_models import BatterRunsModel
+from utils.config_utils import create_utils_object
+from utils.app_utils import (
+    data_selection_instance,
+    prep_simulator_pages,
+    batter_runs_model_instance)
+
+def choose_model_type(config_utils):
+    model_type_dict = config_utils.get_batter_runs_model_info()['model_type_dict']
+    model_type = st.selectbox("Choose model type",
+                              key="model_type",
+                              options=['random_forest','bayesian_inference'])
+    session_type = st.selectbox("Choose session type",
+                              key="session_type",
+                              options=['testing','training'])
+
+def execute_session(batter_runs_model:BatterRunsModel):
+    session_type = st.session_state['session_type']
+    batter_runs_model.initiate_model(st.session_state['session_type'])
+    if session_type == 'training':
+        batter_runs_model.run_training()
+        st.write("Training completed")
+    if session_type == 'testing':
+        testing_stats = batter_runs_model.run_testing()
+        st.title("Classification Report")
+        st.markdown(testing_stats['classification_report'])
+
+        st.title("Confusion Matrix")
+        st.dataframe(testing_stats['confusion_matrix'])
+
 
 def app():
-
     page_utils.setup_page(" Review Inferential Models ")
-    st.markdown('''
-## Review Inferential Models Tab [v0.3]:
+    config_utils = create_utils_object()
+    prep_simulator_pages(data_selection_instance(), "Inferential Models")
+    choose_model_type(config_utils)
+    if st.button("Execute Session"):
+        with st.spinner("Instantiating model"):
+            batter_runs_model = batter_runs_model_instance()
+        with st.spinner("Running test inference"):
+            execute_session(batter_runs_model)
 
-### Objective:
 
-- Lets users evaluate the ability of inferential models to faithfully classify `bowling_outcomes_by_ball_and_innings` when `match_state_by_ball_and_innings` is known. 
 
-- Lets users select one of the following inferential models and review `error_measures` on `inference_evaluation_metrics` specific to it:
-    - `first_innings_bowling_outcomes_model`
-    - `second_innings_bowling_outcomes_model`
-
-- Lets users review these metrics for each model at the following granularities:
-    - `by_player_and_innings_and_scenario`
-    - `by_player_and_innnings`
-    - `by_player_and_match`
-    - `by_player_and_tournament_stage`
-    - `by_player_and_tournament`
-
-### Definitions:
-
-#### `inferential_model`
-
-- A model that uses data for all matches in the `training_window` to learn the
-parameters for classifying `bowling_outcomes_by_ball_and_innings` when `match_state_by_ball_and_innings` is known.
-- It is meant to produces desirable values of `inference_evaluation_metrics`. 
-- v1.0 will include two `inferential_models`, one for the first inning and one for the second innings.
-  
-#### `inference_evaluation_metrics` 
-
-A data structure used to evaluate the efficacy of an `inferential_model`. It is composed of:
-- `precision_bowling_outcomes_by_ball_and_innings`
-- `recall_bowling_outcomes_by_ball_and_innings`
-- `f1_score_bowling_outcomes_by_ball_and_innings`
-    
-#### `match_state_by_ball_and_innings` 
-A datastructure contains the following metadata about the state of the match before a specific ball was 
-bowled:
-- `batsman_id` (one-hot encoded)
-- `bowler_id` (one-hot encoded)
-- `batting_team_id` (one-hot encoded)
-- `bowling_team_id` (one-hot encoded)
-- `over_number` (one-hot encoded)
-- `ball_number_in_over` (one-hot encoded)
-- `venue_id` (one-hot encoded)
-- `wickets_fallen`
-- `current_total`
-- `runs_to_target` [if second innings]
-
-    ''')
 
 app()

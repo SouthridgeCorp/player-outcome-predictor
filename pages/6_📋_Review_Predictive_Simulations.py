@@ -9,11 +9,20 @@ import logging
 
 
 @st.cache
-def calculate_error_metrics(number_of_scenarios, granularity, rewards, perfect_simulator) -> pd.DataFrame:
+def calculate_error_metrics(number_of_scenarios,
+                            granularity,
+                            rewards,
+                            perfect_simulator,
+                            use_inferential_model) -> pd.DataFrame:
     """
     Cached function to get scenarios and build out error metrics which will then be summarised
     """
-    predictive_simulator = get_predictive_simulator(rewards, number_of_scenarios)
+    predictive_simulator = get_predictive_simulator(rewards,
+                                                    number_of_scenarios,
+                                                    use_inferential_model)
+
+    if predictive_simulator is None:
+        return pd.DataFrame()
 
     total_errors_df = pd.DataFrame()
     perfect_df = perfect_simulator.get_simulation_evaluation_metrics_by_granularity(True, granularity)
@@ -36,6 +45,8 @@ def app():
         logging.basicConfig()
         logging.getLogger().setLevel(logging.DEBUG)
 
+    use_inferential_model = st.checkbox("Click to activate usage of inferential model [else default to statistical simulator]")
+
     data_selection = data_selection_instance()
     tournaments = data_selection.get_helper().tournaments
     rewards = rewards_instance()
@@ -55,7 +66,15 @@ def app():
     else:
         perfect_simulator = PerfectSimulator(data_selection, rewards)
 
-        total_errors_df = calculate_error_metrics(number_of_scenarios, granularity, rewards, perfect_simulator)
+        total_errors_df = calculate_error_metrics(number_of_scenarios,
+                                                  granularity,
+                                                  rewards,
+                                                  perfect_simulator,
+                                                  use_inferential_model)
+
+        if total_errors_df.empty:
+            st.error("Please initialise and review the inferential model before proceeding")
+            return
 
         total_errors_index = total_errors_df.index.names
         reference_df = total_errors_df.reset_index().query('scenario_number == 0')

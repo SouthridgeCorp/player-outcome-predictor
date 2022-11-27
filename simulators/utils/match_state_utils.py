@@ -1,4 +1,5 @@
 import pandas as pd
+
 import logging
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -18,6 +19,7 @@ def initialise_match_state(data_selection, is_testing: bool) -> (pd.DataFrame, p
     player_universe_df = data_selection.get_frequent_players_universe()
 
     logger.debug("Setting up filters & merges")
+
     index_columns = ['match_key', 'inning', 'over', 'ball']
     other_columns = ['batter', 'bowler', 'batting_team', 'total_runs', 'is_wicket', 'target_runs', 'target_overs']
     match_state_df = innings_df.filter(index_columns + other_columns, axis=1)
@@ -114,6 +116,9 @@ def calculate_ball_by_ball_stats(match_state_df, index_columns):
     match_state_df['total_balls_bowled'] = grouping['venue'].cumcount()
     match_state_df['current_total'] = grouping['total_runs'].cumsum()
     match_state_df['wickets_fallen'] = grouping['is_wicket'].cumsum()
+
+    match_state_df['previous_total'] = match_state_df['current_total'] - match_state_df['total_runs']
+    match_state_df['previous_wickets_fallen'] = match_state_df['wickets_fallen'] - match_state_df['is_wicket']
 
     match_state_df['runs_to_target'] = -1
     mask = match_state_df['target_runs'] != -1
