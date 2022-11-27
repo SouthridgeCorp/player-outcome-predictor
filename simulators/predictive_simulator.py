@@ -6,6 +6,7 @@ from simulators.perfect_simulator import PerfectSimulator
 from simulators.utils.predictive_match_state import MatchState
 import pandas as pd
 import logging
+import datetime
 
 
 class PredictiveSimulator:
@@ -41,6 +42,8 @@ class PredictiveSimulator:
         for i in range(0, number_of_scenarios):
             perfect_simulator_ds = DataSelection(data_selection.historical_data_helper)
             self.perfect_simulators.append(PerfectSimulator(perfect_simulator_ds, rewards_configuration))
+
+        self.scenario_date_time = None
 
     def generate_matches(self):
         """
@@ -91,8 +94,7 @@ class PredictiveSimulator:
                                  batting_team, batting_playing_xi, bowling_playing_xi, venue)
         match_state_dict[(scenario, match_key)] = match_state
 
-
-    def generate_innings(self,use_inferential_model):
+    def generate_innings(self, use_inferential_model):
         logging.debug("Getting playing xi")
         playing_xi_df = self.data_selection.get_playing_xi_for_selected_matches(True)
         simulated_innings_df = pd.DataFrame()
@@ -190,7 +192,7 @@ class PredictiveSimulator:
         return simulated_innings_df
 
     def generate_scenario(self,
-                          use_inferential_model = False):
+                          use_inferential_model=False):
         """
         Generate all the required scenarios
         """
@@ -219,6 +221,9 @@ class PredictiveSimulator:
         self.simulated_matches_df.set_index(['scenario_number', 'match_key'], inplace=True, verify_integrity=True)
         self.simulated_innings_df.set_index(['scenario_number', 'match_key', 'inning', 'over', 'ball'], inplace=True,
                                             verify_integrity=True)
+
+        self.scenario_date_time = datetime.datetime.now()
+
         logging.debug("Done Generating Match & Innings data")
 
         return self.simulated_matches_df, self.simulated_innings_df
@@ -252,3 +257,8 @@ class PredictiveSimulator:
         """
         return self.perfect_simulators[scenario].get_simulation_evaluation_metrics_by_granularity(
             True, granularity, columns_to_persist=columns_to_persist)
+
+    def __str__(self):
+        return f"Predictive Simulator:  " \
+               f"Scenario last generated at {self.scenario_date_time}  " \
+               f"{self.predictive_utils.batter_runs_model}  "

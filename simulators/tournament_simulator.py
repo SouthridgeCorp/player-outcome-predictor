@@ -312,14 +312,14 @@ class TournamentSimulator:
                       f"{first_non_group_input_matches_df.shape[0]} matches")
         self.first_non_group_matches_predictive_simulator, first_non_group_winner_df, first_non_group_matches_df, \
         first_non_group_innings_df = self.get_match_results(first_non_group_input_matches_df,
-                                                            first_non_group_input_playing_xi_df)
+                                                            first_non_group_input_playing_xi_df, use_inferential_model)
         # Play the Q2 matches
         second_non_group_input_matches_df, second_non_group_input_playing_xi_df = \
             self.prepare_q2_matches_and_players(first_non_group_matches_df)
         logging.debug(f"Playing Qualifier 2: {second_non_group_input_matches_df.shape[0]} matches")
         self.second_non_group_matches_predictive_simulator, second_non_group_winner_df, second_non_group_matches_df, \
         second_non_group_innings_df = self.get_match_results(second_non_group_input_matches_df,
-                                                             second_non_group_input_playing_xi_df)
+                                                             second_non_group_input_playing_xi_df, use_inferential_model)
 
         # Play all the Final matches
         final_input_matches_df, final_input_playing_xi_df = \
@@ -377,3 +377,8 @@ class TournamentSimulator:
         rewards_df.set_index(indices, inplace=True, verify_integrity=True)
 
         return rewards_df
+
+    def __str__(self):
+        return f"Tournament Simulator:  " \
+               f"Scenario last generated at {self.scenario_date_time}  " \
+               f"{self.batter_runs_model}  "

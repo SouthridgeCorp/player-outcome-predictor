@@ -1,11 +1,10 @@
 import logging
-
+import datetime
 import arviz as az
 import pandas as pd
 import streamlit as st
 from data_selection.data_selection import DataSelection
 from historical_data.singleton import Helper
-from historical_data.tournaments import Tournaments
 from inferential_models.batter_runs_models import BatterRunsModel
 from rewards_configuration.rewards_configuration import RewardsConfiguration
 from utils.config_utils import create_utils_object, ConfigUtils
@@ -88,20 +87,13 @@ def prep_simulator_pages(data_selection: DataSelection, page_name: str):
     Utility function to setup the simulator pages to display data selection summary. To be only used with streamlit.
     """
     tournaments = data_selection.get_helper().tournaments
-    st.subheader("Data Selection Summary")
+    st.subheader("Data Selection & Cache Summary")
     with st.expander("Click to see a summary of data selection"):
         # Show a summary of selected training & testing windows
         show_data_selection_summary(data_selection)
 
-def prep_simulator_pages(data_selection: DataSelection, page_name: str):
-    """
-    Utility function to setup the simulator pages to display data selection summary. To be only used with streamlit.
-    """
-    tournaments = data_selection.get_helper().tournaments
-    st.subheader("Data Selection Summary")
-    with st.expander("Click to see a summary of data selection"):
-        # Show a summary of selected training & testing windows
-        show_data_selection_summary(data_selection)
+    with st.expander("Click to see the state of the cache"):
+        summarise_cache()
 
     test_tournament_key, test_tournament_name, test_season = tournaments.get_testing_details()
     if test_tournament_key == "":
@@ -117,6 +109,7 @@ def show_data_selection_summary(data_selection):
     Builds out the summary of data selection fields for displaying in streamlit. Can be used to summarise the current
     state of data selection on any streamlit page.
     """
+
     tournaments = data_selection.get_helper().tournaments
     test_tournament_key, test_tournament_name, test_season = tournaments.get_testing_details()
 
@@ -178,6 +171,20 @@ def reset_session_states(reset_tournament_simulator=True):
 
     reset_rewards_cache()
 
+
+def summarise_cache():
+
+    if 'PredictiveSimulator' in st.session_state:
+        st.info(st.session_state['PredictiveSimulator'])
+
+    if 'TournamentSimulator' in st.session_state:
+        st.info(st.session_state['TournamentSimulator'])
+
+    for granularity in get_granularity_list():
+        if f'TournamentRewards_{granularity}' in st.session_state:
+            update_key = f'TournamentRewards_{granularity}_update_date'
+            st.info(f"TournamentRewards for '{granularity}' last updated at ="
+                     f" {st.session_state[update_key]}")
 
 def get_predictive_simulator(rewards,
                              number_of_scenarios,
@@ -353,8 +360,9 @@ def get_rewards(tournament_simulator, granularity, regenerate):
     if not regenerate and (f'TournamentRewards_{granularity}' in st.session_state):
         return st.session_state[f'TournamentRewards_{granularity}']
 
-    logging.debug("Running the function call")
+    logging.debug("Caching the rewards")
     rewards_list = tournament_simulator.get_rewards(granularity)
     st.session_state[f'TournamentRewards_{granularity}'] = rewards_list
+    st.session_state[f'TournamentRewards_{granularity}_update_date'] = datetime.datetime.now()
 
     return rewards_list

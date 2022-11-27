@@ -70,9 +70,7 @@ def build_xarray(feature_dict,
     """Stack feature_dict and outcome_dict to produce a combined feature + outcome array.
     Returns this in dataframe and xarray formats"""
     feature_df = pd.DataFrame(feature_dict)
-    #feature_df.index = index_df.index
     outcome_df = pd.DataFrame(outcome_dict)
-    #outcome_df.index = index_df.index
     combined_df = pd.merge(outcome_df,
                            feature_df,
                            left_index = True,
@@ -123,9 +121,7 @@ def prepare_training_data_for_bayesian_inference(match_state_df,
         train_outcome_data[dim] = get_categorical_column_index_for_df(bowling_outcomes_df,
                                                                       categories,
                                                                       dim)
-    train_combined_df, train_combined_xarray = build_xarray(train_feature_data,
-                                                            train_outcome_data,
-                                                            match_state_df)
+    train_combined_df, train_combined_xarray = build_xarray(train_feature_data, train_outcome_data)
     return COORDS,train_combined_df,train_combined_xarray
 
 def get_batter_runs_bi_model_from_perfect_simulator(perfect_simulator):
@@ -488,6 +484,11 @@ class BatterRunsModel:
         self.model_directory_path = model_directory_path
         self.model_type = model_type
         self.model_path = self.construct_model_path()
+
+
+    def __str__(self):
+        return f"Inferential Model:  " \
+               f"Model Type: {self.model_type}  "
 
     def construct_model_path(self):
         try:
