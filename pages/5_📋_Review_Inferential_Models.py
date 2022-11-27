@@ -4,7 +4,7 @@ from inferential_models.batter_runs_models import BatterRunsModel
 from utils.config_utils import create_utils_object
 from utils.app_utils import (
     data_selection_instance,
-    rewards_instance,
+    prep_simulator_pages,
     batter_runs_model_instance)
 
 def choose_model_type(config_utils):
@@ -34,6 +34,7 @@ def execute_session(batter_runs_model:BatterRunsModel):
 def app():
     page_utils.setup_page(" Review Inferential Models ")
     config_utils = create_utils_object()
+    prep_simulator_pages(data_selection_instance(), "Inferential Models")
     choose_model_type(config_utils)
     if st.button("Execute Session"):
         with st.spinner("Instantiating model"):
