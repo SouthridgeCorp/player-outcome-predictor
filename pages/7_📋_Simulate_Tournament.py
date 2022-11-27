@@ -1,7 +1,8 @@
 import streamlit as st
 import utils.page_utils as page_utils
 from utils.app_utils import data_selection_instance, prep_simulator_pages, show_granularity_metrics, \
-    show_stats, write_top_X_to_st, get_tournament_simulator, has_tournament_simulator, reset_rewards_cache, get_rewards
+    show_stats, write_top_X_to_st, get_tournament_simulator, has_tournament_simulator, reset_rewards_cache, \
+    get_rewards, reset_session_states
 import logging
 import pandas as pd
 
@@ -75,7 +76,8 @@ def app():
     data_selection = data_selection_instance()
     tournaments = data_selection.get_helper().tournaments
     use_inferential_model = st.checkbox(
-        "Click to activate usage of inferential model [else default to statistical simulator]")
+        "Click to activate usage of inferential model [else default to statistical simulator]",
+        on_change=reset_session_states)
 
     if not prep_simulator_pages(data_selection, "Tournament Simulator"):
         return

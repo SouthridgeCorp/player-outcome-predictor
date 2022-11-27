@@ -2,7 +2,7 @@ import streamlit as st
 import utils.page_utils as page_utils
 from utils.config_utils import create_utils_object
 from utils.app_utils import data_selection_instance, rewards_instance, prep_simulator_pages, \
-    get_predictive_simulator, show_granularity_metrics, show_stats, write_top_X_to_st
+    get_predictive_simulator, show_granularity_metrics, show_stats, write_top_X_to_st, reset_session_states
 from simulators.perfect_simulator import PerfectSimulator
 import pandas as pd
 import logging
@@ -45,7 +45,8 @@ def app():
         logging.basicConfig()
         logging.getLogger().setLevel(logging.DEBUG)
 
-    use_inferential_model = st.checkbox("Click to activate usage of inferential model [else default to statistical simulator]")
+    use_inferential_model = st.checkbox("Click to activate usage of inferential model "
+                                        "[else default to statistical simulator]", on_change=reset_session_states)
 
     data_selection = data_selection_instance()
     tournaments = data_selection.get_helper().tournaments

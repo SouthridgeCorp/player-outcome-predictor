@@ -178,16 +178,16 @@ def summarise_cache():
     Print a summary of the cache state to be shown in streamlit
     """
     if 'PredictiveSimulator' in st.session_state:
-        st.info(st.session_state['PredictiveSimulator'])
+        st.write(st.session_state['PredictiveSimulator'])
 
     if 'TournamentSimulator' in st.session_state:
-        st.info(st.session_state['TournamentSimulator'])
+        st.write(st.session_state['TournamentSimulator'])
 
     for granularity in get_granularity_list():
         if f'TournamentRewards_{granularity}' in st.session_state:
             update_key = f'TournamentRewards_{granularity}_update_date'
-            st.info(f"TournamentRewards for '{granularity}' last updated at ="
-                     f" {st.session_state[update_key]}")
+            st.write(f"*TournamentRewards for '{granularity}':  "
+                     f"last updated at = {st.session_state[update_key]}*")
 
 def get_predictive_simulator(rewards,
                              number_of_scenarios,

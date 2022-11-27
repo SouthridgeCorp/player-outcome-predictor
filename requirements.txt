@@ -8,7 +8,7 @@ snowflake-connector-python[pandas]
 streamlit
 snowflake-sqlalchemy
 streamlit-aggrid
-pymc
+pymc==4.2.2
 graphviz
 jupyterlab
 seaborn
