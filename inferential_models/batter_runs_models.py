@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 RANDOM_SEED = 8265
 
+
 def load_idata_trained(model_path):
     """
     Loads a trained Bayesian Inference model from model_path and returns the trace
@@ -27,6 +28,7 @@ def load_idata_trained(model_path):
     idata = data['trace']
     return idata
 
+
 def load_random_forest_classifier(model_path):
     """
     Loads a trained Random Forest classifier model from model_path and returns the trace
@@ -37,11 +39,13 @@ def load_random_forest_classifier(model_path):
         payload = pickle.load(buff)
     return payload['classifier'], payload['one_hot_encoders']
 
+
 def save_idata_trained(idata_trained,
                        model_path):
     """Saves a trained bayesian inf model (idata_trained, an InferenceData instance) to model_path"""
     with open(model_path, 'wb') as buff:
         pickle.dump({'trace': idata_trained}, buff)
+
 
 def save_random_forest_classifier(clf,
                                   one_hot_encoders,
@@ -54,16 +58,19 @@ def save_random_forest_classifier(clf,
         }
         pickle.dump(payload, buff)
 
-def get_cr_and_cm(true,pred):
-    """Returns the classification report and confusion matrix comparing true with pred"""
-    cr = classification_report(true,pred)
-    cm = confusion_matrix(true,pred)
-    return cr,pd.DataFrame(cm)
 
-def build_categoricals_for_column(df,column):
+def get_cr_and_cm(true, pred):
+    """Returns the classification report and confusion matrix comparing true with pred"""
+    cr = classification_report(true, pred)
+    cm = confusion_matrix(true, pred)
+    return cr, pd.DataFrame(cm)
+
+
+def build_categoricals_for_column(df, column):
     """Returns the categories found in d[column] for converting pd.Categorical variables in other dataframes"""
     categorical = pd.Categorical(df[column])
     return categorical.categories
+
 
 def build_xarray(feature_dict,
                  outcome_dict):
@@ -73,9 +80,10 @@ def build_xarray(feature_dict,
     outcome_df = pd.DataFrame(outcome_dict)
     combined_df = pd.merge(outcome_df,
                            feature_df,
-                           left_index = True,
-                           right_index = True)
+                           left_index=True,
+                           right_index=True)
     return combined_df, combined_df.to_xarray()
+
 
 def prepare_training_data_for_bayesian_inference(match_state_df,
                                                  bowling_outcomes_df):
@@ -122,7 +130,8 @@ def prepare_training_data_for_bayesian_inference(match_state_df,
                                                                       categories,
                                                                       dim)
     train_combined_df, train_combined_xarray = build_xarray(train_feature_data, train_outcome_data)
-    return COORDS,train_combined_df,train_combined_xarray
+    return COORDS, train_combined_df, train_combined_xarray
+
 
 def get_batter_runs_bi_model_from_perfect_simulator(perfect_simulator):
     """
@@ -131,9 +140,10 @@ def get_batter_runs_bi_model_from_perfect_simulator(perfect_simulator):
     :return:
         batter_runs_model: Untrained PyMC model (network only) for inferring batter_runs from match state
     """
-    train_match_state_df,train_bowling_outcomes_df,_ = perfect_simulator.get_match_state_by_balls_for_training()
-    COORDS, train_combined_df,train_combined_xarray = prepare_training_data_for_bayesian_inference(train_match_state_df,
-                                                                                                   train_bowling_outcomes_df)
+    train_match_state_df, train_bowling_outcomes_df, _ = perfect_simulator.get_match_state_by_balls_for_training()
+    COORDS, train_combined_df, train_combined_xarray = prepare_training_data_for_bayesian_inference(
+        train_match_state_df,
+        train_bowling_outcomes_df)
     with pm.Model(coords=COORDS) as batter_runs_model:
         batter_runs_model.add_coord('ball_ids',
                                     values=np.arange(train_combined_df.shape[0]),
@@ -218,6 +228,7 @@ def get_batter_runs_bi_model_from_perfect_simulator(perfect_simulator):
                                                                 dims='ball_ids')
     return batter_runs_model
 
+
 def get_batter_runs_rf_model_from_perfect_simulator(perfect_simulator):
     """
     Instantiate inputs for a random forest model from a perfect simulator instance
@@ -228,7 +239,7 @@ def get_batter_runs_rf_model_from_perfect_simulator(perfect_simulator):
         one_hot_encoders: dict mapping feature names to OHEs that can be used to encode other feature vectors
         targets: batter runs outcomes from perfect simulator
     """
-    train_match_state_df,train_bowling_outcomes_df,_ = perfect_simulator.get_match_state_by_balls_for_training()
+    train_match_state_df, train_bowling_outcomes_df, _ = perfect_simulator.get_match_state_by_balls_for_training()
     train_match_state_df = train_match_state_df.reset_index()
     one_hot_encoders = {}
     train_ohe_features = {}
@@ -252,6 +263,7 @@ def get_batter_runs_rf_model_from_perfect_simulator(perfect_simulator):
 
     targets = train_bowling_outcomes_df['batter_runs']
     return train_ohe_features, train_ohe_feature_array, one_hot_encoders, targets
+
 
 def get_batter_runs_model_from_idata(idata_trained):
     """
@@ -292,7 +304,8 @@ def get_batter_runs_model_from_idata(idata_trained):
                                                      idata_trained.constant_data['wickets_fallen_feature_data'],
                                                      dims='ball_ids')
         innings_strike_rate_feature_data = pm.MutableData("innings_strike_rate_feature_data",
-                                                          idata_trained.constant_data['innings_strike_rate_feature_data'])
+                                                          idata_trained.constant_data[
+                                                              'innings_strike_rate_feature_data'])
         batter_runs_outcome_alpha = pm.Normal('batter_runs_outcome_alpha',
                                               mu=0,
                                               sigma=3,
@@ -348,6 +361,7 @@ def get_batter_runs_model_from_idata(idata_trained):
                                                                 dims='ball_ids')
     return model
 
+
 def get_categorical_column_index_for_df(df,
                                         categories,
                                         column):
@@ -359,12 +373,13 @@ def get_categorical_column_index_for_df(df,
                          categories).codes
     return idx
 
+
 def innings_strike_rate(df):
     """Add the innings_strike_rate feature to the input df"""
     if 'previous_total' in df.columns and 'total_balls_bowled' in df.columns:
         df['innings_strike_rate'] = df['previous_total'] / df['total_balls_bowled']
     else:
-        df['innings_strike_rate'] = df['previous_total'] / (df['over']*6 + df['ball'])
+        df['innings_strike_rate'] = df['previous_total'] / (df['over'] * 6 + df['ball'])
     df['innings_strike_rate'].fillna(0, inplace=True)
     df['innings_strike_rate'].replace([np.inf, -np.inf], 0, inplace=True)
 
@@ -374,6 +389,7 @@ def add_column_to_df(df,
     """Pass df to the column_name function and have it operate on the whole df. Usually to add a column
     to it"""
     column_name(df)
+
 
 def prepare_match_state_df_for_bi(match_state_df,
                                   idata_trained):
@@ -448,6 +464,7 @@ def prepare_match_state_df_for_rf(match_state_df,
     )
     return feature_array, feature_data
 
+
 def predictions_from_idata(idata,
                            var_name):
     """
@@ -462,7 +479,7 @@ def predictions_from_idata(idata,
     preds_helper = lambda ds: ds.to_dataframe()[var_name].value_counts(normalize=True).to_xarray()
     predictions = (
         idata.predictions[var_name]
-            .stack(dims=['chain','draw'])
+            .stack(dims=['chain', 'draw'])
             .groupby('ball_ids')
             .apply(preds_helper)
     )
@@ -485,7 +502,6 @@ class BatterRunsModel:
         self.model_type = model_type
         self.model_path = self.construct_model_path()
 
-
     def __str__(self):
         return f"Inferential Model:  " \
                f"Model Type: {self.model_type}  "
@@ -494,10 +510,11 @@ class BatterRunsModel:
         try:
             test_tournament = self.perfect_simulator.data_selection.historical_data_helper.tournaments.testing_selected_tournament
             test_season = self.perfect_simulator.data_selection.historical_data_helper.tournaments.testing_selected_season
-            (train_start_date, train_end_date) = self.perfect_simulator.data_selection.historical_data_helper.tournaments.get_training_start_end_dates()
+            (train_start_date,
+             train_end_date) = self.perfect_simulator.data_selection.historical_data_helper.tournaments.get_training_start_end_dates()
             data_selection_type = self.perfect_simulator.data_selection.get_selection_type()
-            model_dir =  f"{self.model_directory_path}/" \
-                         f"{self.model_type}/"
+            model_dir = f"{self.model_directory_path}/" \
+                        f"{self.model_type}/"
             if not os.path.isdir(model_dir):
                 os.makedirs(model_dir)
             model_path = f"{model_dir}/" \
@@ -513,14 +530,14 @@ class BatterRunsModel:
         logger.info(f"Instantiated with model_path = {model_path}")
         return model_path
 
-    def initiate_model(self,session_type='training'):
+    def initiate_model(self, session_type='training'):
         logger.info(f"Initating {self.model_type} for {session_type}")
         if self.model_type == 'bayesian_inference':
             self.initiate_bayesian_inference_model(session_type)
         if self.model_type == 'random_forest':
             self.initiate_random_forest_model(session_type)
 
-    def initiate_bayesian_inference_model(self,session_type='training'):
+    def initiate_bayesian_inference_model(self, session_type='training'):
         if session_type == 'training':
             self.training_status = False
             self.pymc_model = get_batter_runs_bi_model_from_perfect_simulator(self.perfect_simulator)
@@ -532,16 +549,16 @@ class BatterRunsModel:
             self.pymc_model = get_batter_runs_model_from_idata(self.idata_trained)
             self.training_status = True
 
-    def initiate_random_forest_model(self,session_type='training'):
+    def initiate_random_forest_model(self, session_type='training'):
         if session_type == 'training':
             self.training_status = False
             (self.train_ohe_features,
              self.train_ohe_feature_array,
              self.one_hot_encoders,
-             self.targets)  = get_batter_runs_rf_model_from_perfect_simulator(self.perfect_simulator)
+             self.targets) = get_batter_runs_rf_model_from_perfect_simulator(self.perfect_simulator)
             logger.info(f"Initated random forest model with training shape = {self.train_ohe_feature_array.shape}")
         if session_type == 'testing':
-            self.random_forest_classifier,self.one_hot_encoders = load_random_forest_classifier(
+            self.random_forest_classifier, self.one_hot_encoders = load_random_forest_classifier(
                 self.model_path
             )
             self.training_status = True
@@ -582,20 +599,21 @@ class BatterRunsModel:
         test_match_state_df = self.perfect_simulator.get_match_state_by_ball_and_innings(True)
         test_bowling_outcomes_df = self.perfect_simulator.get_bowling_outcomes_by_ball_and_innings(True)
         predictions_df = self.run_bayesian_inference_prediction(test_match_state_df)
-        cr,cm = get_cr_and_cm(test_bowling_outcomes_df['batter_runs'],
-                              predictions_df['batter_runs'])
-        ret =  {
+        cr, cm = get_cr_and_cm(test_bowling_outcomes_df['batter_runs'],
+                               predictions_df['batter_runs'])
+        ret = {
             "classification_report": cr,
             "confusion_matrix": cm
         }
         return ret
+
     def test_random_forest(self):
         test_match_state_df = self.perfect_simulator.get_match_state_by_ball_and_innings(True)
         test_bowling_outcomes_df = self.perfect_simulator.get_bowling_outcomes_by_ball_and_innings(True)
         predictions_df = self.run_random_forest_prediction(test_match_state_df)
-        cr,cm = get_cr_and_cm(test_bowling_outcomes_df['batter_runs'],
-                              predictions_df['batter_runs'])
-        ret =  {
+        cr, cm = get_cr_and_cm(test_bowling_outcomes_df['batter_runs'],
+                               predictions_df['batter_runs'])
+        ret = {
             "classification_report": cr,
             "confusion_matrix": cm
         }
@@ -605,8 +623,9 @@ class BatterRunsModel:
                                test_combined_df):
         self.pymc_model.set_dim('ball_ids',
                                 test_combined_df.shape[0],
-                                coord_values = np.arange(self.idata_trained.posterior.ball_ids[-1],
-                                                         self.idata_trained.posterior.ball_ids[-1]+test_combined_df.shape[0]))
+                                coord_values=np.arange(self.idata_trained.posterior.ball_ids[-1],
+                                                       self.idata_trained.posterior.ball_ids[-1] +
+                                                       test_combined_df.shape[0]))
         with self.pymc_model:
             pm.set_data({
                 "batter_featured_id_feature_data": test_combined_df['batter'],
@@ -615,12 +634,12 @@ class BatterRunsModel:
                 "over_feature_data": test_combined_df['over'],
                 "wickets_fallen_feature_data": test_combined_df['wickets_fallen'],
                 "innings_strike_rate_feature_data": test_combined_df[['innings_strike_rate']].values,
-                "batter_runs_outcomes_data": -1*np.ones_like(test_combined_df.venue.values)
+                "batter_runs_outcomes_data": -1 * np.ones_like(test_combined_df.venue.values)
             })
 
     def run_bayesian_inference_prediction(self,
                                           match_state_df,
-                                          sample_once = True):
+                                          sample_once=True):
         test_combined_df = prepare_match_state_df_for_bi(match_state_df.reset_index(),
                                                          self.idata_trained)
         logger.info(f'Received match state with {test_combined_df.shape[0]} balls for inference')
@@ -647,11 +666,12 @@ class BatterRunsModel:
                 )
         logger.info(f'Formatting inference for {test_combined_df.shape[0]} balls')
         if sample_once:
-            predictions_df = pd.DataFrame({'batter_runs':idata_predicted['batter_runs_outcome_by_ball_and_innings_rv'][0]})
+            predictions_df = pd.DataFrame(
+                {'batter_runs': idata_predicted['batter_runs_outcome_by_ball_and_innings_rv'][0]})
         else:
             try:
-                predictions_xarray,predictions_df = predictions_from_idata(idata_predicted,
-                                                                           'batter_runs_outcome_by_ball_and_innings_rv')
+                predictions_xarray, predictions_df = predictions_from_idata(idata_predicted,
+                                                                            'batter_runs_outcome_by_ball_and_innings_rv')
             except Exception as e:
                 logger.error(f"Error while formatting inference for {test_combined_df.shape[0]} balls: {e}")
                 predictions_df = pd.DataFrame()
@@ -676,10 +696,11 @@ class BatterRunsModel:
         :return:
             predictions_df: DataFrame with the model's predictions.
         """
+
+        predictions_df = pd.DataFrame()
         if self.model_type == 'bayesian_inference':
             predictions_df = self.run_bayesian_inference_prediction(match_state_df)
         if self.model_type == 'random_forest':
             predictions_df = self.run_random_forest_prediction(match_state_df)
 
         return predictions_df
-
