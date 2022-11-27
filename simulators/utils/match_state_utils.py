@@ -4,10 +4,6 @@ import logging
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-import logging
-logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-
 # This class contains a bunch of functions which are used to calculate the dataframe in
 # get_match_state_by_ball_and_innings()
 
@@ -65,19 +61,6 @@ def identify_featured_player_for_type(match_state_df, label_name, is_batter):
     match_state_df.loc[mask, label_name] = header + "_" + match_state_df[header]
 
 
-def identify_featured_player_for_type(match_state_df, label_name, is_batter):
-    if is_batter:
-        header = 'batter'
-        featured_player_label = "batting_featured_player"
-    else:
-        header = 'bowler'
-        featured_player_label = "bowling_featured_player"
-
-    mask = match_state_df[featured_player_label] == True
-    match_state_df[label_name] = f"{header}_non_frequent_player"
-    match_state_df.loc[mask, label_name] = header + "_" + match_state_df[header]
-
-
 def setup_data_labels(match_state_df):
     identify_featured_player_for_type(match_state_df, "batting_labels", True)
     identify_featured_player_for_type(match_state_df, "bowling_labels", False)
@@ -108,12 +91,6 @@ def setup_data_labels_with_references(match_state_df, column_name, reference_lis
     mask = match_state_df[column_name].isin(reference_list)
     match_state_df.loc[mask, f'{column_name}_labels'] = column_name + "_" + match_state_df[column_name]
 
-
-def setup_data_labels_with_references(match_state_df, column_name, reference_list):
-    match_state_df[f'{column_name}_labels'] = f"{column_name}_not_in_training"
-
-    mask = match_state_df[column_name].isin(reference_list)
-    match_state_df.loc[mask, f'{column_name}_labels'] = column_name + "_" + match_state_df[column_name]
 
 def setup_data_labels_with_training(data_selection, match_state_df):
     training_teams = data_selection.get_selected_teams(is_testing=False)

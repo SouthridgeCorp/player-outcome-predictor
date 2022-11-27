@@ -34,8 +34,9 @@ def data_selection_instance():
 
 def batter_runs_model_instance():
     """
-    Helper function to get a singleton instance of the data_selection config. To only be used within streamlit
-    :return: An instance of DataSelection
+    Helper function to create a new instance of the batter runs inferential model. Once the instance is created, it also
+    resets it in the streamlit cache for future usage
+    :return An instance of batter_run_model
     """
      # get the helper from the singleton instance
     data_selection = data_selection_instance()
@@ -173,7 +174,9 @@ def reset_session_states(reset_tournament_simulator=True):
 
 
 def summarise_cache():
-
+    """
+    Print a summary of the cache state to be shown in streamlit
+    """
     if 'PredictiveSimulator' in st.session_state:
         st.info(st.session_state['PredictiveSimulator'])
 

@@ -379,6 +379,7 @@ class TournamentSimulator:
         return rewards_df
 
     def __str__(self):
+        """String representation of this class, can be used with print, st.write etc"""
         return f"Tournament Simulator:  " \
                f"Scenario last generated at {self.scenario_date_time}  " \
                f"{self.batter_runs_model}  "

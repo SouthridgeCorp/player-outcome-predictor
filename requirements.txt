@@ -12,6 +12,6 @@ pymc
 graphviz
 jupyterlab
 seaborn
-sklearn
 xarray
 arviz
+scikit-learn

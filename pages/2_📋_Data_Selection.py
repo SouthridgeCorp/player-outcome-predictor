@@ -38,16 +38,6 @@ def on_testing_season_change(tournaments):
     # A change to this object is a big deal - make sure subsequent pages also reset their caches
     reset_session_states()
 
-def on_testing_season_change(tournaments):
-    """
-    Callback function to persist the value of changing the testing season dropdown
-    """
-    value = st.session_state.testing_seasons
-    test_tournament_key, test_tournament_name, test_season = tournaments.get_testing_details()
-    tournaments.set_testing_details(test_tournament_name, value)
-    # A change to this object is a big deal - make sure subsequent pages also reset their caches
-    reset_session_states()
-
 
 def set_training_start_end_date(tournaments):
     """

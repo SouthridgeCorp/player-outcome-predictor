@@ -68,7 +68,7 @@ Contact Gireesh to configure Snowflake access
  - Open a terminal, move to the project root directory and run `docker pull python` to download a python image from the dockerhub.
 
 ## Run the streamlit application locally with docker
-   - Run `docker compose up` to build a docker image and start the container locally.
+   - Run `docker-compose up` to build a docker image and start the container locally.
      - This command assumes port 8501 is not in use.
    - Open [localhost:8501](localhost:8501) in your browser.
    

@@ -259,6 +259,7 @@ class PredictiveSimulator:
             True, granularity, columns_to_persist=columns_to_persist)
 
     def __str__(self):
+        """String representation of this class, can be used with print, st.write etc"""
         return f"Predictive Simulator:  " \
                f"Scenario last generated at {self.scenario_date_time}  " \
                f"{self.predictive_utils.batter_runs_model}  "
