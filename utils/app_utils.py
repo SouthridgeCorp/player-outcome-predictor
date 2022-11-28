@@ -198,13 +198,15 @@ def get_predictive_simulator(rewards,
     if 'PredictiveSimulator' not in st.session_state:
         if 'BatterRunsModel' not in st.session_state:
             return None
-        batter_runs_model = st.session_state['BatterRunsModel']
-        predictive_simulator = PredictiveSimulator(data_selection_instance(),
-                                                   rewards,
-                                                   batter_runs_model,
-                                                   number_of_scenarios)
-        predictive_simulator.generate_scenario(use_inferential_model=use_inferential_model)
-        st.session_state['PredictiveSimulator'] = predictive_simulator
+
+        with st.spinner("Calculating Scenarios"):
+            batter_runs_model = st.session_state['BatterRunsModel']
+            predictive_simulator = PredictiveSimulator(data_selection_instance(),
+                                                       rewards,
+                                                       batter_runs_model,
+                                                       number_of_scenarios)
+            predictive_simulator.generate_scenario(use_inferential_model=use_inferential_model)
+            st.session_state['PredictiveSimulator'] = predictive_simulator
     else:
         predictive_simulator = st.session_state['PredictiveSimulator']
 

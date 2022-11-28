@@ -66,6 +66,10 @@ def display_data(tournament_simulator, data_selection, regenerate):
         else:
             st.write("Could not find any rewards metrics to report")
 
+def on_inferential_model_change():
+    value = st.session_state.tournament_inferential_model_checkbox
+    st.session_state['tournament_use_inferential_model'] = value
+    reset_session_states()
 
 def app():
     page_utils.setup_page(" Simulate Tournament ")
@@ -75,9 +79,17 @@ def app():
 
     data_selection = data_selection_instance()
     tournaments = data_selection.get_helper().tournaments
+
+    if 'tournament_use_inferential_model' in st.session_state:
+        default_use_inferential_model = st.session_state['tournament_use_inferential_model']
+    else:
+        default_use_inferential_model = False
+
     use_inferential_model = st.checkbox(
         "Click to activate usage of inferential model [else default to statistical simulator]",
-        on_change=reset_session_states)
+        value=default_use_inferential_model,
+        key="tournament_inferential_model_checkbox",
+        on_change=on_inferential_model_change)
 
     if not prep_simulator_pages(data_selection, "Tournament Simulator"):
         return
