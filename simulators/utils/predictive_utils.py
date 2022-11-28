@@ -90,8 +90,6 @@ class PredictiveUtils:
         self.featured_player_df = pd.DataFrame()
         self.batter_runs_model = batter_runs_model
 
-        self.batter_runs_model.initiate_model(session_type='testing')
-
         logging.debug("setting up distributions")
         # TODO: These distributions will no longer be required once the inferential model comes into play.
 
@@ -310,7 +308,7 @@ class PredictiveUtils:
                                     use_inferential_model)
         self.predict_non_legal_outcomes(matches_df)
 
-    def setup(self):
+    def setup(self, use_inferential_model):
         """
         Initial setup required for generating scenarios
         """
@@ -329,6 +327,9 @@ class PredictiveUtils:
         self.featured_player_df = self.data_selection.get_frequent_players_universe()
 
         logging.debug("PredictiveUtils setup complete")
+
+        if use_inferential_model:
+            self.batter_runs_model.initiate_model(session_type='testing')
 
         self.is_setup = True
 
@@ -417,6 +418,7 @@ class PredictiveUtils:
         mask = scenario_and_match_df['toss_decision'] == 'bat'
         scenario_and_match_df.loc[mask, 'bowling_team'] = scenario_and_match_df['toss_loser']
         scenario_and_match_df.loc[mask, 'batting_team'] = scenario_and_match_df['toss_winner']
+
 
 
 def update_match_state(row, matches_dict):

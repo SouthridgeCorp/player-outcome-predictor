@@ -198,7 +198,7 @@ class PredictiveSimulator:
         """
         logging.debug("Setting up scenario state")
 
-        self.predictive_utils.setup()
+        self.predictive_utils.setup(use_inferential_model)
 
         logging.debug("Generating simulated Match data")
 

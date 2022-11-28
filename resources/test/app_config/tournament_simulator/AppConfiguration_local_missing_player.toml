@@ -18,6 +18,9 @@ data_path="resources/test/app_config/tournament_simulator/missing_player"
 matches_file_name='example_tournament.csv'
 playing_xi_file_name='example_playing_xi.csv'
 
+[player_outcome_predictor.inferential_models.batter_runs_model]
+model_directory_path="data/inferential_models/batter_runs_model"
+
 [feedback_form]
 storage_method = "local"
 storage_dir = "data"
