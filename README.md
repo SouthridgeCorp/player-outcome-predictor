@@ -2,7 +2,10 @@
 Predictive modeling to forecast player outcomes over a T20 tournament
 
 # Video Walkthrough of v1.0
-https://www.loom.com/share/a7f9efe85c1d47a1a7b42c504a0af366
+- https://www.loom.com/share/c4e6488e34ab4e1b9c9c3990e3c304cb
+
+- Note - pre-trained models for 2022 Int'l T20s can be found [here](https://drive.google.com/drive/folders/1TH2U8_VzX888XBz3N_EqNxsdrYg9MYJG)
+- Also refer to README_Performance_Report_v1.0.md
 
 ## Getting the data ready
 Before running the app, input data must be prepared: 

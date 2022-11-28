@@ -14,12 +14,19 @@ The Predictive Simulator is used to report error metrics for the following model
 3. Match State Simulation: Statistical Simulator, Batter Runs Prediction: Bayesian Inference Classifier
 
 ### Error Commentary - Match State Simulation: Statistical Simulator, Batter Runs Prediction: Statistical Simulator
+- Bowlers outperform batters significantly, but we do have bowlers with mape in the 15-20% area which is a decent start
+- Probably dismisses batsmen much faster than they actually get out.
 
 ### Error Commentary - Match State Simulation: Statistical Simulator, Batter Runs Prediction: Random Forest Classifier
+- Big overestimation for bowlers and hardly any probability of boundaries being conceded. Do not recommend usage.
 
 ### Error Commentary - Match State Simulation: Statistical Simulator, Batter Runs Prediction: Bayesian Inference Classifier
+- Big overestimation for bowlers, but boundary probabilities are reasonable. Probably limited by over dependence on
+on the playing-xi sequence for determining who gets to face more balls. 
+- Also likely to share the same issue faced by just the statistic simulator 
 
 ### Conclusion
+- Statistical Simulator is the best bet at the moment, probably somewhat safe to use it for bowlers.
 
 ## Tournament Simulator - ILT20 2023 Season
 
@@ -32,12 +39,8 @@ The following assumptions are made in this input file:
 2. 2 of the 66 players do not have any historical data available from Cricsheet. These players can be identified in the example inputs.
 3. 50 scenarios are generated for the evolution of the tournament. This can be modified by changing the config setting.
 
-### Simulation Commentary - Match State Simulation: Statistical Simulator, Batter Runs Prediction: Statistical Simulator
-
-### Simulation Commentary - Match State Simulation: Statistical Simulator, Batter Runs Prediction: Random Forest Classifier
-
-### Simulation Commentary - Match State Simulation: Statistical Simulator, Batter Runs Prediction: Bayesian Inference Classifier
-
-### Conclusion
+### Conclusion/Recommendations
+- At this stage, we would suggest that the statistical simulator be used for running trail auctions which are 
+focussed primarily on bowlers.
 
 
