@@ -7,16 +7,18 @@ from utils.app_utils import (
     prep_simulator_pages,
     batter_runs_model_instance)
 
+
 def choose_model_type(config_utils):
     model_type_dict = config_utils.get_batter_runs_model_info()['model_type_dict']
     model_type = st.selectbox("Choose model type",
                               key="model_type",
-                              options=['random_forest','bayesian_inference'])
+                              options=['random_forest', 'bayesian_inference'])
     session_type = st.selectbox("Choose session type",
-                              key="session_type",
-                              options=['testing','training'])
+                                key="session_type",
+                                options=['testing', 'training'])
 
-def execute_session(batter_runs_model:BatterRunsModel):
+
+def execute_session(batter_runs_model: BatterRunsModel):
     session_type = st.session_state['session_type']
     batter_runs_model.initiate_model(st.session_state['session_type'])
     if session_type == 'training':
@@ -41,8 +43,6 @@ def app():
             batter_runs_model = batter_runs_model_instance()
         with st.spinner("Running test inference"):
             execute_session(batter_runs_model)
-
-
 
 
 app()

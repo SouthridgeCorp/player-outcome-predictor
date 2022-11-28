@@ -178,16 +178,17 @@ def summarise_cache():
     Print a summary of the cache state to be shown in streamlit
     """
     if 'PredictiveSimulator' in st.session_state:
-        st.info(st.session_state['PredictiveSimulator'])
+        st.write(st.session_state['PredictiveSimulator'])
 
     if 'TournamentSimulator' in st.session_state:
-        st.info(st.session_state['TournamentSimulator'])
+        st.write(st.session_state['TournamentSimulator'])
 
     for granularity in get_granularity_list():
         if f'TournamentRewards_{granularity}' in st.session_state:
             update_key = f'TournamentRewards_{granularity}_update_date'
-            st.info(f"TournamentRewards for '{granularity}' last updated at ="
-                     f" {st.session_state[update_key]}")
+            st.write(f"*TournamentRewards for '{granularity}':  "
+                     f"last updated at = {st.session_state[update_key]}*")
+
 
 def get_predictive_simulator(rewards,
                              number_of_scenarios,
@@ -198,13 +199,15 @@ def get_predictive_simulator(rewards,
     if 'PredictiveSimulator' not in st.session_state:
         if 'BatterRunsModel' not in st.session_state:
             return None
-        batter_runs_model = st.session_state['BatterRunsModel']
-        predictive_simulator = PredictiveSimulator(data_selection_instance(),
-                                                   rewards,
-                                                   batter_runs_model,
-                                                   number_of_scenarios)
-        predictive_simulator.generate_scenario(use_inferential_model=use_inferential_model)
-        st.session_state['PredictiveSimulator'] = predictive_simulator
+
+        with st.spinner("Calculating Scenarios"):
+            batter_runs_model = st.session_state['BatterRunsModel']
+            predictive_simulator = PredictiveSimulator(data_selection_instance(),
+                                                       rewards,
+                                                       batter_runs_model,
+                                                       number_of_scenarios)
+            predictive_simulator.generate_scenario(use_inferential_model=use_inferential_model)
+            st.session_state['PredictiveSimulator'] = predictive_simulator
     else:
         predictive_simulator = st.session_state['PredictiveSimulator']
 
@@ -353,9 +356,14 @@ def reset_rewards_cache():
     for granularity in get_granularity_list():
         if f'TournamentRewards_{granularity}' in st.session_state:
             del st.session_state[f'TournamentRewards_{granularity}']
+        if f"PredictiveRewards_{granularity}_True" in st.session_state:
+            del st.session_state[f"PredictiveRewards_{granularity}_True"]
+        if f"PredictiveRewards_{granularity}_False" in st.session_state:
+            del st.session_state[f"PredictiveRewards_{granularity}_False"]
 
 
-def get_rewards(tournament_simulator, granularity, regenerate):
+
+def get_tournament_rewards(tournament_simulator, granularity, regenerate):
     """
     Gets the rewards from the current tournament simulator. This function uses a cache to improve the usability of the
     page, but the cache can be invalidated via the 'regenerate' parameter.
@@ -369,3 +377,32 @@ def get_rewards(tournament_simulator, granularity, regenerate):
     st.session_state[f'TournamentRewards_{granularity}_update_date'] = datetime.datetime.now()
 
     return rewards_list
+
+
+def calculate_error_metrics(number_of_scenarios,
+                            granularity,
+                            perfect_simulator,
+                            predictive_simulator,
+                            use_inferential_model) -> pd.DataFrame:
+    """
+    Cached function to get scenarios and build out error metrics which will then be summarised
+    """
+    logging.debug("****************************Calculating rewards differences**************************")
+    if predictive_simulator is None:
+        return pd.DataFrame()
+
+    cache_key = f"PredictiveRewards_{granularity}_{use_inferential_model}"
+    if cache_key not in st.session_state:
+        total_errors_df = pd.DataFrame()
+        perfect_df = perfect_simulator.get_simulation_evaluation_metrics_by_granularity(True, granularity)
+        for scenario in range(0, number_of_scenarios):
+            comparison_df = predictive_simulator.get_rewards(scenario, granularity)
+            errors_df = perfect_simulator.get_error_measures(True, comparison_df, granularity, perfect_df)
+
+            # Add scenario numbers and collate all the error metrics into one big error df for stats calculations
+            errors_df['scenario_number'] = scenario
+            total_errors_df = pd.concat([total_errors_df, errors_df])
+
+        st.session_state[cache_key] = total_errors_df
+
+    return st.session_state[cache_key]
