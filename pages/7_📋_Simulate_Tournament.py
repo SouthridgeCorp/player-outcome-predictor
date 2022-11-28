@@ -2,7 +2,7 @@ import streamlit as st
 import utils.page_utils as page_utils
 from utils.app_utils import data_selection_instance, prep_simulator_pages, show_granularity_metrics, \
     show_stats, write_top_X_to_st, get_tournament_simulator, has_tournament_simulator, reset_rewards_cache, \
-    get_rewards, reset_session_states
+    get_tournament_rewards, reset_session_states
 import logging
 import pandas as pd
 
@@ -26,7 +26,7 @@ def display_data(tournament_simulator, data_selection, regenerate):
     else:
         with st.spinner("Generating Rewards"):
             # Get the rewards details
-            all_rewards_df = get_rewards(tournament_simulator, granularity, regenerate).copy()
+            all_rewards_df = get_tournament_rewards(tournament_simulator, granularity, regenerate).copy()
             indices = list(all_rewards_df.index.names)
             indices.remove('tournament_scenario')
             all_rewards_df = all_rewards_df.reset_index()

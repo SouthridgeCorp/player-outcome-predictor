@@ -2,38 +2,11 @@ import streamlit as st
 import utils.page_utils as page_utils
 from utils.config_utils import create_utils_object
 from utils.app_utils import data_selection_instance, rewards_instance, prep_simulator_pages, \
-    get_predictive_simulator, show_granularity_metrics, show_stats, write_top_X_to_st, reset_session_states
+    get_predictive_simulator, show_granularity_metrics, show_stats, write_top_X_to_st, reset_session_states, \
+    calculate_error_metrics
 from simulators.perfect_simulator import PerfectSimulator
 import pandas as pd
 import logging
-
-
-@st.cache
-def calculate_error_metrics(number_of_scenarios,
-                            granularity,
-                            rewards,
-                            perfect_simulator,
-                            predictive_simulator,
-                            use_inferential_model) -> pd.DataFrame:
-    """
-    Cached function to get scenarios and build out error metrics which will then be summarised
-    """
-
-    logging.debug("****************************Calculating rewards differences**************************")
-    if predictive_simulator is None:
-        return pd.DataFrame()
-
-    total_errors_df = pd.DataFrame()
-    perfect_df = perfect_simulator.get_simulation_evaluation_metrics_by_granularity(True, granularity)
-    for scenario in range(0, number_of_scenarios):
-        comparison_df = predictive_simulator.get_rewards(scenario, granularity)
-        errors_df = perfect_simulator.get_error_measures(True, comparison_df, granularity, perfect_df)
-
-        # Add scenario numbers and collate all the error metrics into one big error df for stats calculations
-        errors_df['scenario_number'] = scenario
-        total_errors_df = pd.concat([total_errors_df, errors_df])
-
-    return total_errors_df
 
 
 def on_inferential_model_change():
@@ -85,7 +58,6 @@ def app():
 
         total_errors_df = calculate_error_metrics(number_of_scenarios,
                                                   granularity,
-                                                  rewards,
                                                   perfect_simulator,
                                                   predictive_simulator,
                                                   use_inferential_model)
