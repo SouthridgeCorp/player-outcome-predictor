@@ -42,14 +42,20 @@ selection_type = "and_selection"
 [[test_case]]
 test_class = "TestTournamentSimulatorMissingDetails"
 config_file_path = "resources/test/app_config/tournament_simulator/AppConfiguration_local_missing_venue.toml"
+model_type = "random_forest"
+selection_type = "or_selection"
 
 [[test_case]]
 test_class = "TestTournamentSimulatorMissingDetails"
 config_file_path = "resources/test/app_config/tournament_simulator/AppConfiguration_local_missing_player.toml"
+model_type = "random_forest"
+selection_type = "or_selection"
 
 [[test_case]]
 test_class = "TestTournamentSimulatorMissingDetails"
 config_file_path = "resources/test/app_config/tournament_simulator/AppConfiguration_local_missing_player.toml"
+model_type = "random_forest"
+selection_type = "or_selection"
 
 [[test_case]]
 test_class = "TestBatterRunsModel"

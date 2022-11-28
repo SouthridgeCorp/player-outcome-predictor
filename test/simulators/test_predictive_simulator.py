@@ -14,9 +14,8 @@ import pandas as pd
 class TestPredictiveSimulator:
 
     def test_bowling_probability_distribution(self, predictive_simulator):
-        utils = PredictiveUtils(predictive_simulator.data_selection,
-                                predictive_simulator.batter_runs_model)
-        utils.setup()
+        utils = predictive_simulator.predictive_utils
+        utils.setup(False)
 
         for key in utils.bowling_probabilities.probability_map.keys():
             a = utils.bowling_probabilities.probability_map[key]
@@ -160,7 +159,7 @@ class TestPredictiveSimulator:
             rewards_df = predictive_simulator.perfect_simulators[scenario]\
                 .get_simulation_evaluation_metrics_by_granularity(True, granularity)
 
-            error_df =  perfect_simulator_for_testing.get_error_measures(True, rewards_df, granularity, perfect_df)
+            error_df = perfect_simulator_for_testing.get_error_measures(True, rewards_df, granularity, perfect_df)
 
             columns_to_compare = ['batting_rewards', 'bowling_rewards', 'fielding_rewards', 'total_rewards']
 

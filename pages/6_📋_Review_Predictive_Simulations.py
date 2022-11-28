@@ -2,40 +2,17 @@ import streamlit as st
 import utils.page_utils as page_utils
 from utils.config_utils import create_utils_object
 from utils.app_utils import data_selection_instance, rewards_instance, prep_simulator_pages, \
-    get_predictive_simulator, show_granularity_metrics, show_stats, write_top_X_to_st
+    get_predictive_simulator, show_granularity_metrics, show_stats, write_top_X_to_st, reset_session_states, \
+    calculate_error_metrics
 from simulators.perfect_simulator import PerfectSimulator
 import pandas as pd
 import logging
 
 
-@st.cache
-def calculate_error_metrics(number_of_scenarios,
-                            granularity,
-                            rewards,
-                            perfect_simulator,
-                            use_inferential_model) -> pd.DataFrame:
-    """
-    Cached function to get scenarios and build out error metrics which will then be summarised
-    """
-    predictive_simulator = get_predictive_simulator(rewards,
-                                                    number_of_scenarios,
-                                                    use_inferential_model)
-
-    if predictive_simulator is None:
-        return pd.DataFrame()
-
-    total_errors_df = pd.DataFrame()
-    perfect_df = perfect_simulator.get_simulation_evaluation_metrics_by_granularity(True, granularity)
-    for scenario in range(0, number_of_scenarios):
-        comparison_df = predictive_simulator.perfect_simulators[scenario]. \
-            get_simulation_evaluation_metrics_by_granularity(True, granularity)
-        errors_df = perfect_simulator.get_error_measures(True, comparison_df, granularity, perfect_df)
-
-        # Add scenario numbers and collate all the error metrics into one big error df for stats calculations
-        errors_df['scenario_number'] = scenario
-        total_errors_df = pd.concat([total_errors_df, errors_df])
-
-    return total_errors_df
+def on_inferential_model_change():
+    value = st.session_state.predictive_inferential_model_checkbox
+    st.session_state['predictive_use_inferential_model'] = value
+    reset_session_states()
 
 
 def app():
@@ -45,7 +22,16 @@ def app():
         logging.basicConfig()
         logging.getLogger().setLevel(logging.DEBUG)
 
-    use_inferential_model = st.checkbox("Click to activate usage of inferential model [else default to statistical simulator]")
+    if 'predictive_use_inferential_model' in st.session_state:
+        default_use_inferential_model = st.session_state['predictive_use_inferential_model']
+    else:
+        default_use_inferential_model = False
+
+    use_inferential_model = st.checkbox("Click to activate usage of inferential model "
+                                        "[else default to statistical simulator]",
+                                        value=default_use_inferential_model,
+                                        key="predictive_inferential_model_checkbox",
+                                        on_change=on_inferential_model_change)
 
     data_selection = data_selection_instance()
     tournaments = data_selection.get_helper().tournaments
@@ -66,10 +52,14 @@ def app():
     else:
         perfect_simulator = PerfectSimulator(data_selection, rewards)
 
+        predictive_simulator = get_predictive_simulator(rewards,
+                                                        number_of_scenarios,
+                                                        use_inferential_model)
+
         total_errors_df = calculate_error_metrics(number_of_scenarios,
                                                   granularity,
-                                                  rewards,
                                                   perfect_simulator,
+                                                  predictive_simulator,
                                                   use_inferential_model)
 
         if total_errors_df.empty:
@@ -111,5 +101,6 @@ def app():
         number_of_players = len(metric_stats_df.index)
         write_top_X_to_st(number_of_players, total_errors_df, total_errors_index, reference_df=reference_df,
                           column_suffix="_received")
+
 
 app()
