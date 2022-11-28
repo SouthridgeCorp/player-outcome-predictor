@@ -59,9 +59,12 @@ class TournamentSimulator:
         expected_players = set(players_df['key'].unique().tolist())
 
         if not received_players.issubset(expected_players):
-            raise ValueError(f"Couldn't find some players in the historical data.\n"
+            logging.debug(f"Couldn't find some players in the historical data.\n"
+                          f"Received: {received_players}\n"
+                          f"Expected: {expected_players}")
+            '''raise ValueError(f"Couldn't find some players in the historical data.\n"
                              f"Received: {received_players}\n"
-                             f"Expected: {expected_players}")
+                             f"Expected: {expected_players}")'''
 
     def build_playing_xi(self, source_matches_df):
         """
