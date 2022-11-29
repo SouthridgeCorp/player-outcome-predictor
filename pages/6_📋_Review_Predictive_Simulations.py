@@ -56,6 +56,7 @@ def app():
                                                         number_of_scenarios,
                                                         use_inferential_model)
 
+
         total_errors_df = calculate_error_metrics(number_of_scenarios,
                                                   granularity,
                                                   perfect_simulator,
@@ -66,7 +67,8 @@ def app():
             st.error("Please initialise and review the inferential model before proceeding")
             return
 
-        total_errors_index = total_errors_df.index.names
+        total_errors_index = list(total_errors_df.index.names)
+        total_errors_index.remove('scenario_number')
         reference_df = total_errors_df.reset_index().query('scenario_number == 0')
         reference_df.set_index(total_errors_index, inplace=True, verify_integrity=True)
 
@@ -76,6 +78,7 @@ def app():
         total_errors_df = total_errors_df.drop('name', axis=1)
 
         # Set up the dataframe for statistical calculations
+        total_errors_df = total_errors_df.reset_index()
         total_errors_df['chain'] = 0
         total_errors_df.rename(columns={"scenario_number": "draw"}, inplace=True)
         total_errors_df.set_index(['chain', 'draw'] + total_errors_index, inplace=True, verify_integrity=True)

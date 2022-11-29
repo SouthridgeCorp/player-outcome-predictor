@@ -155,6 +155,7 @@ class TestPredictiveSimulator:
         perfect_simulator_for_testing = PerfectSimulator(predictive_simulator.data_selection,
                                                          predictive_simulator.rewards_configuration)
         perfect_df = perfect_simulator_for_testing.get_simulation_evaluation_metrics_by_granularity(True, granularity)
+        total_errors_df = pd.DataFrame()
         for scenario in range(0, predictive_simulator.number_of_scenarios):
             rewards_df = predictive_simulator.perfect_simulators[scenario]\
                 .get_simulation_evaluation_metrics_by_granularity(True, granularity)
@@ -166,3 +167,10 @@ class TestPredictiveSimulator:
             for column in columns_to_compare:
                 assert error_df.query(f'{column}_absolute_error < 0.0').empty
                 assert error_df.query(f'{column}_absolute_percentage_error < 0.0').empty
+
+            error_df['scenario_number'] = scenario
+            total_errors_df = pd.concat([total_errors_df, error_df])
+
+        new_error_df = predictive_simulator.get_error_stats(granularity)
+        differences = pd.concat([new_error_df.reset_index(), total_errors_df.reset_index()]).drop_duplicates(keep=False)
+        assert differences.empty
