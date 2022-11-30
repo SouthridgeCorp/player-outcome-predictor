@@ -44,6 +44,7 @@ class PredictiveSimulator:
             self.perfect_simulators.append(PerfectSimulator(perfect_simulator_ds, rewards_configuration))
 
         self.scenario_date_time = None
+        self.max_number_of_scenarios = 100
 
     def generate_matches(self):
         """
@@ -266,61 +267,64 @@ class PredictiveSimulator:
 
     def get_error_stats(self, granularity):
         """
-        Generate the error differential between the predicted matches & the perfect simulator, across all possible
+        Generate the error metrics between the predicted matches & the perfect simulator, across all possible
+        scenarios of the predictive simulator. This function is designed to be more performant than the others.
         """
         data_selection_combined = DataSelection(self.data_selection.historical_data_helper)
         perfect_simulator_combined = PerfectSimulator(data_selection_combined, self.rewards_configuration)
 
         matches_df = self.simulated_matches_df.copy()
         innings_df = self.simulated_innings_df.copy()
-        max_number_of_scenarios = 100
 
         matches_df = matches_df.reset_index()
         innings_df = innings_df.reset_index()
 
-        matches_df["key"] = (matches_df["key"] * max_number_of_scenarios) + matches_df['scenario_number']
-        matches_df["match_key"] = (matches_df["match_key"] * max_number_of_scenarios) + matches_df['scenario_number']
+        # Setup the key to a unique number across scenarios
+        matches_df["key"] = (matches_df["key"] * self.max_number_of_scenarios) + matches_df['scenario_number']
+        matches_df["match_key"] = (matches_df["match_key"] * self.max_number_of_scenarios) + matches_df['scenario_number']
+        innings_df["match_key"] = (innings_df["match_key"] * self.max_number_of_scenarios) + innings_df['scenario_number']
 
-        innings_df["match_key"] = (innings_df["match_key"] * max_number_of_scenarios) + innings_df['scenario_number']
-
+        # Get metrics for the simulated matches
         perfect_simulator_combined.data_selection.set_simulated_data(matches_df, innings_df)
-
         columns_to_persist = ['scenario_number']
-
         metrics_df = perfect_simulator_combined.get_simulation_evaluation_metrics_by_granularity(
             True, granularity, columns_to_persist=columns_to_persist)
 
+        # Get metrics for historical data
         perfect_simulator = PerfectSimulator(self.data_selection, self.rewards_configuration)
         perfect_metrics_df = perfect_simulator.get_simulation_evaluation_metrics_by_granularity(
             True, granularity)
 
+        # Duplicate metrics for historical data so that they can be used to compare across scenarios
         perfect_metrics_index = list(perfect_metrics_df.index.names)
-
         perfect_metrics_df = perfect_metrics_df.reset_index()
-
+        # This duplicates perfect metrics and also sets up a rolling scenario count
         perfect_metrics_df = (perfect_metrics_df.loc[perfect_metrics_df.index.repeat(self.number_of_scenarios)]
                               .assign(scenario_number=lambda d: d.groupby(level=0).cumcount())
                               .reset_index(drop=True)
                               )
+
+        # Make match key unique across scenarios
         if 'match_key' in perfect_metrics_index:
-            perfect_metrics_df['match_key'] = (perfect_metrics_df['match_key'] * max_number_of_scenarios) \
+            perfect_metrics_df['match_key'] = (perfect_metrics_df['match_key'] * self.max_number_of_scenarios) \
                                               + perfect_metrics_df['scenario_number']
 
         perfect_metrics_df.set_index(perfect_metrics_index + ['scenario_number'], inplace=True, verify_integrity=True)
 
-
+        # Calculate the error metrics
         error_df = perfect_simulator.get_error_measures(True, metrics_df, granularity,
                                                         perfect_simulator_rewards_ref=perfect_metrics_df,
                                                         columns_to_persist=columns_to_persist)
 
+        # Bring back the match key to its original number if required
         indices = list(error_df.index.names)
         error_df = error_df.reset_index()
         if 'match_key' in indices:
             error_df['match_key'] = \
-                (error_df['match_key'] - (error_df['match_key'] % max_number_of_scenarios)) / max_number_of_scenarios
+                (error_df['match_key'] - (error_df['match_key'] % self.max_number_of_scenarios)) / self.max_number_of_scenarios
             error_df['match_key'] = error_df['match_key'].astype(int)
-
         error_df.set_index(indices, inplace=True, verify_integrity=True)
+
         return error_df
 
 

@@ -20,8 +20,13 @@ def aggregate_base_rewards(outcomes_df, team_label, player_label, base_rewards_l
 
         player_dict[base_rewards_label_target] = total_rewards
 
+
 def aggregate_base_rewards_df(outcomes_df, team_label, player_label, base_rewards_label_source,
                               base_rewards_label_target):
+    """
+    Utility function which maps the specified team & player details into a consistent dataframe indexed by 'team',
+    'match_key' and 'player_key' by aggregating across the source rewards.
+    """
     grouping = outcomes_df.groupby(['match_key', 'inning', team_label, player_label])
     aggregate_df = pd.DataFrame()
     aggregate_df[base_rewards_label_target] = grouping[base_rewards_label_source].sum()

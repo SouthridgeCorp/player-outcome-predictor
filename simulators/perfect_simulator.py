@@ -106,9 +106,6 @@ class PerfectSimulator:
         """
         logger.debug("Setting up match state")
 
-        # TODO: this function needs a fair bit of performance optimisations - to be scheduled separately if there is a
-        # need for faster execution.
-
         match_state_df, player_universe_df, index_columns = initialise_match_state(self.data_selection, is_testing)
 
         logger.debug("Setting up data labels")
@@ -263,32 +260,32 @@ class PerfectSimulator:
         innings_df = pd.merge(innings_df, matches_df[['key', 'tournament_key', 'stage']],
                               left_on='match_key', right_on='key')
 
-        # Calculate the bowling econ rate & number of wickets
+        # Setup counter for runouts
         mask = innings_df['dismissal_kind'] == 'run out'
         innings_df['is_runout'] = 0
         innings_df.loc[mask, 'is_runout'] = 1
         index_columns = ['match_key', 'inning', 'team', 'player_key']
 
+        # Calculate batting outcomes
         batting_df = pd.DataFrame()
         batting_grouping = innings_df.groupby(['match_key', 'inning', 'batting_team', 'batter'])
         batting_df['total_balls'] = batting_grouping['batter'].count()
         batting_df['batting_total_runs'] = batting_grouping['batter_runs'].sum()
         batting_df['strike_rate'] = 100 * batting_df['batting_total_runs'] / batting_df['total_balls']
-
         batting_df = batting_df.reset_index()
         batting_df.rename(columns={'batter': 'player_key', 'batting_team': 'team'}, inplace=True)
 
+        # Calculate bowling outcomes
         bowling_df = pd.DataFrame()
         bowling_grouping = innings_df.groupby(['match_key', 'inning', 'bowling_team', 'bowler'])
-
         bowling_df['number_of_overs'] = bowling_grouping['over'].nunique()
         bowling_df['total_runs'] = bowling_grouping['total_runs'].sum()
         bowling_df['wickets_taken'] = bowling_grouping['is_wicket'].sum() - bowling_grouping['is_runout'].sum()
         bowling_df['economy_rate'] = bowling_df['total_runs'] / bowling_df['number_of_overs']
-
         bowling_df = bowling_df.reset_index()
         bowling_df.rename(columns={'bowler': 'player_key', 'bowling_team': 'team'}, inplace=True)
 
+        # Merge all the outcomes together
         outcomes_df = pd.merge(batting_df, bowling_df, left_on=index_columns, right_on=index_columns, how='outer')
 
         outcomes_df = pd.merge(outcomes_df, matches_df[['key', 'tournament_key', 'stage'] + columns_to_persist],
@@ -322,9 +319,9 @@ class PerfectSimulator:
 
         index_columns = ['match_key', 'inning', 'team']
 
+        # Calculate innings level outcomes
         new_innings_outcomes_df = pd.DataFrame()
         innings_grouping = player_outcomes.groupby(index_columns)
-
         new_innings_outcomes_df['inning_batting_total_runs'] = innings_grouping['batting_total_runs'].sum()
         new_innings_outcomes_df['inning_total_balls'] = innings_grouping['total_balls'].sum()
         new_innings_outcomes_df['inning_total_runs'] = innings_grouping['total_runs'].sum()
@@ -404,6 +401,7 @@ class PerfectSimulator:
         bowler_aggregate_df = aggregate_base_rewards_df(outcomes_df, 'bowling_team', 'bowler', 'bowling_base_rewards',
                                                         'bowling_base_rewards')
 
+        # Calculate cumulative batting rewards (also pulling in non-striker rewards
         aggregated_df = pd.merge(batting_aggregate_df, non_striker_aggregate_df, left_index=True, right_index=True,
                                  how="outer")
         aggregated_df = aggregated_df.fillna(0.0)
