@@ -387,7 +387,7 @@ def calculate_error_metrics(number_of_scenarios,
     """
     Cached function to get scenarios and build out error metrics which will then be summarised
     """
-    logging.debug("****************************Calculating rewards differences**************************")
+    logging.debug("Calculating rewards differences")
     if predictive_simulator is None:
         return pd.DataFrame()
 
@@ -396,6 +396,6 @@ def calculate_error_metrics(number_of_scenarios,
         with st.spinner("Calculating Rewards"):
             error_df = predictive_simulator.get_error_stats(granularity)
 
-    logging.debug("~~~~~~~~~~~~~~~~~~DONE predictive rewards~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    logging.debug("DONE predictive rewards")
 
     return error_df

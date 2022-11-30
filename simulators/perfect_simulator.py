@@ -14,6 +14,7 @@ from data_selection.data_selection import DataSelectionType
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+
 class Granularity:
     """
     Structure to represent acceptable levels of granularity
@@ -105,8 +106,8 @@ class PerfectSimulator:
         """
         logger.debug("Setting up match state")
 
-        #TODO: this function needs a fair bit of performance optimisations - to be scheduled separately if there is a
-        #need for faster execution.
+        # TODO: this function needs a fair bit of performance optimisations - to be scheduled separately if there is a
+        # need for faster execution.
 
         match_state_df, player_universe_df, index_columns = initialise_match_state(self.data_selection, is_testing)
 
@@ -337,7 +338,7 @@ class PerfectSimulator:
         new_innings_outcomes_df['inning_economy_rate'] = 0.0
         mask = new_innings_outcomes_df['inning_number_of_overs'] != 0
         new_innings_outcomes_df.loc[mask, 'inning_economy_rate'] = new_innings_outcomes_df['inning_total_runs'] \
-                                                                  / new_innings_outcomes_df['inning_number_of_overs']
+                                                                   / new_innings_outcomes_df['inning_number_of_overs']
 
         new_innings_outcomes_df = new_innings_outcomes_df.sort_values(index_columns)
 
@@ -394,28 +395,6 @@ class PerfectSimulator:
         logger.debug("Aggregating base rewards")
 
         # Calculate cumulative base rewards per player
-        base_rewards_per_player_dict = {}
-
-        aggregate_base_rewards(outcomes_df, 'batting_team', 'batter', 'batter_base_rewards', 'batter_base_rewards',
-                               base_rewards_per_player_dict)
-        aggregate_base_rewards(outcomes_df, 'batting_team', 'non_striker', 'non_striker_base_rewards',
-                               'batter_base_rewards', base_rewards_per_player_dict)
-        aggregate_base_rewards(outcomes_df, 'bowling_team', 'fielder', 'fielding_base_rewards',
-                               'fielding_base_rewards', base_rewards_per_player_dict)
-        aggregate_base_rewards(outcomes_df, 'bowling_team', 'bowler', 'bowling_base_rewards',
-                               'bowling_base_rewards', base_rewards_per_player_dict)
-
-        base_rewards_per_player_list = []
-
-        for key in base_rewards_per_player_dict.keys():
-            base_rewards_per_player_list.append(base_rewards_per_player_dict[key])
-
-        base_rewards_per_player_df = pd.DataFrame(data=base_rewards_per_player_list)
-        index_columns = ['match_key', 'inning', 'team', 'player_key']
-        base_rewards_per_player_df.set_index(index_columns, inplace=True, verify_integrity=True)
-        base_rewards_per_player_df = base_rewards_per_player_df.sort_values(index_columns)
-
-
         batting_aggregate_df = aggregate_base_rewards_df(outcomes_df, 'batting_team', 'batter',
                                                          'batter_base_rewards', 'batter_base_rewards')
         non_striker_aggregate_df = aggregate_base_rewards_df(outcomes_df, 'batting_team', 'non_striker',
@@ -429,18 +408,17 @@ class PerfectSimulator:
                                  how="outer")
         aggregated_df = aggregated_df.fillna(0.0)
 
-        aggregated_df['batter_base_rewards'] = aggregated_df['batter_base_rewards_x'] + \
-                                               aggregated_df['batter_base_rewards_y']
+        aggregated_df['batter_base_rewards'] = \
+            aggregated_df['batter_base_rewards_x'] + aggregated_df['batter_base_rewards_y']
 
         aggregated_df.drop('batter_base_rewards_x', axis=1, inplace=True)
         aggregated_df.drop('batter_base_rewards_y', axis=1, inplace=True)
 
         aggregated_df = pd.merge(pd.merge(aggregated_df, fielder_aggregate_df, left_index=True, right_index=True,
-                                 how="outer"), bowler_aggregate_df, left_index=True, right_index=True,
+                                          how="outer"), bowler_aggregate_df, left_index=True, right_index=True,
                                  how="outer")
 
-        aggregated_df = aggregated_df.sort_index()
-        pd.testing.assert_frame_equal(aggregated_df, base_rewards_per_player_df)
+        base_rewards_per_player_df = aggregated_df.sort_index()
         logger.debug("Calculating bonus / penalty")
 
         bonus_penalty_df = pd.merge(bonus_penalty_df,
@@ -622,11 +600,11 @@ class PerfectSimulator:
 
         stats = {"Number of balls selected for training": train_match_state_df.shape[0],
                  "Number of balls with bowler in test season bowlers": train_match_state_df. \
-                    query('bowler in @test_season_bowlers').shape[0],
+                     query('bowler in @test_season_bowlers').shape[0],
                  "Number of balls with batters in test season batters": train_match_state_df. \
-                    query('batter in @test_season_bowlers').shape[0],
+                     query('batter in @test_season_bowlers').shape[0],
                  "Number of balls with venues in test season venues": train_match_state_df. \
-                    query('venue in @test_season_venues').shape[0]}
+                     query('venue in @test_season_venues').shape[0]}
         logger.debug("Done with get_match_state_by_balls_for_training")
 
         logger.debug("Done with get_match_state_by_balls_for_training")

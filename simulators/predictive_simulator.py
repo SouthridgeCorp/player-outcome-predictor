@@ -1,5 +1,3 @@
-import numpy as np
-
 from data_selection.data_selection import DataSelection
 from inferential_models.batter_runs_models import BatterRunsModel
 from rewards_configuration.rewards_configuration import RewardsConfiguration
@@ -267,15 +265,15 @@ class PredictiveSimulator:
                f"{self.predictive_utils.batter_runs_model}  "
 
     def get_error_stats(self, granularity):
+        """
+        Generate the error differential between the predicted matches & the perfect simulator, across all possible
+        """
         data_selection_combined = DataSelection(self.data_selection.historical_data_helper)
         perfect_simulator_combined = PerfectSimulator(data_selection_combined, self.rewards_configuration)
 
         matches_df = self.simulated_matches_df.copy()
         innings_df = self.simulated_innings_df.copy()
         max_number_of_scenarios = 100
-
-        matches_index = matches_df.index.names
-        innings_index = innings_df.index.names
 
         matches_df = matches_df.reset_index()
         innings_df = innings_df.reset_index()
@@ -285,37 +283,12 @@ class PredictiveSimulator:
 
         innings_df["match_key"] = (innings_df["match_key"] * max_number_of_scenarios) + innings_df['scenario_number']
 
-        #matches_df.set_index(matches_index, inplace=True, verify_integrity=True)
-        #innings_df.set_index(innings_index, inplace=True, verify_integrity=True)
-
         perfect_simulator_combined.data_selection.set_simulated_data(matches_df, innings_df)
 
         columns_to_persist = ['scenario_number']
 
         metrics_df = perfect_simulator_combined.get_simulation_evaluation_metrics_by_granularity(
             True, granularity, columns_to_persist=columns_to_persist)
-
-
-        '''data_selection_ds = DataSelection(self.data_selection.historical_data_helper)
-        perfect_matches_df = data_selection_ds.get_selected_matches(True).copy()
-        perfect_innings_df = data_selection_ds.get_innings_for_selected_matches(True)
-
-        perfect_matches_df = (perfect_matches_df.loc[perfect_matches_df.index.repeat(self.number_of_scenarios)]
-                              .assign(scenario_number=lambda d: d.groupby(level=0).cumcount())
-                              .reset_index(drop=True)
-                              )
-        perfect_matches_df['key'] = (perfect_matches_df['key'] * max_number_of_scenarios) \
-                                    + perfect_matches_df['scenario_number']
-
-        perfect_innings_df = (perfect_innings_df.loc[perfect_innings_df.index.repeat(self.number_of_scenarios)]
-                              .assign(scenario_number=lambda d: d.groupby(level=0).cumcount())
-                              .reset_index(drop=True)
-                              )
-
-        perfect_innings_df['match_key'] = (perfect_innings_df['match_key'] * max_number_of_scenarios) \
-                                    + perfect_innings_df['scenario_number']
-
-        data_selection_ds.set_simulated_data(perfect_matches_df, perfect_innings_df)'''
 
         perfect_simulator = PerfectSimulator(self.data_selection, self.rewards_configuration)
         perfect_metrics_df = perfect_simulator.get_simulation_evaluation_metrics_by_granularity(
