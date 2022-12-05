@@ -395,6 +395,9 @@ def calculate_error_metrics(number_of_scenarios,
     if cache_key not in st.session_state:
         with st.spinner("Calculating Rewards"):
             error_df = predictive_simulator.get_error_stats(granularity)
+            st.session_state[cache_key] = error_df
+    else:
+        error_df = st.session_state[cache_key]
 
     logging.debug("DONE predictive rewards")
 

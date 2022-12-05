@@ -4,6 +4,7 @@ from simulators.perfect_simulator import PerfectSimulator
 from test.data_selection.conftest import prepare_tests, setup_training_and_testing_windows
 from simulators.utils.predictive_utils import PredictiveUtils
 import pandas as pd
+from utils.app_utils import show_stats
 
 
 @pytest.mark.parametrize(
@@ -165,6 +166,16 @@ class TestPredictiveSimulator:
             columns_to_compare = ['batting_rewards', 'bowling_rewards', 'fielding_rewards', 'total_rewards']
 
             for column in columns_to_compare:
+                mask = error_df[f'{column}_absolute_error'] != abs(error_df[f'{column}_expected']
+                                                                   - error_df[f'{column}_received'])
+                assert error_df[mask].empty
+
+                mask = (error_df[f'{column}_expected'] != 0) & (error_df[f'{column}_absolute_percentage_error'] != \
+                                                                abs(100 * (error_df[f'{column}_expected'] - error_df[
+                                                                    f'{column}_received']) \
+                                                                    / error_df[f'{column}_expected']))
+                assert error_df[mask].empty
+
                 assert error_df.query(f'{column}_absolute_error < 0.0').empty
                 assert error_df.query(f'{column}_absolute_percentage_error < 0.0').empty
 
@@ -174,3 +185,41 @@ class TestPredictiveSimulator:
         new_error_df = predictive_simulator.get_error_stats(granularity)
         differences = pd.concat([new_error_df.reset_index(), total_errors_df.reset_index()]).drop_duplicates(keep=False)
         assert differences.empty
+
+    def test_arviz_summary(self, predictive_simulator):
+
+        prepare_tests(predictive_simulator.data_selection, True)
+        predictive_simulator.generate_scenario()
+
+        total_errors_df = predictive_simulator.get_error_stats('tournament')
+
+        total_errors_index = list(total_errors_df.index.names)
+        total_errors_index.remove('scenario_number')
+        reference_df = total_errors_df.reset_index().query('scenario_number == 0')
+        reference_df.set_index(total_errors_index, inplace=True, verify_integrity=True)
+
+        total_errors_df = total_errors_df.reset_index()
+
+        # Remove non-numeric values
+        total_errors_df = total_errors_df.drop('name', axis=1)
+
+        # Set up the dataframe for statistical calculations
+        total_errors_df = total_errors_df.reset_index()
+        total_errors_df['chain'] = 0
+        total_errors_df.rename(columns={"scenario_number": "draw"}, inplace=True)
+        total_errors_df.set_index(['chain', 'draw'] + total_errors_index, inplace=True, verify_integrity=True)
+
+        mean_absolute_error = show_stats('total_rewards_absolute_error', total_errors_df, total_errors_index)
+        mean_rewards = show_stats('total_rewards_received', total_errors_df, total_errors_index)
+
+        comparison_df = pd.merge(total_errors_df['total_rewards_expected'],
+                                 pd.merge(mean_rewards['total_rewards_received'],
+                                          mean_absolute_error['total_rewards_absolute_error'],
+                                          left_index=True, right_index=True),
+                                 left_index=True, right_index=True)
+
+        mask = comparison_df['total_rewards_absolute_error'] == abs(comparison_df['total_rewards_expected'] -
+                                                                    comparison_df['total_rewards_received'])
+
+        assert not comparison_df[mask].empty
+        print('hello')
