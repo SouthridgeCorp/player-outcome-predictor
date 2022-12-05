@@ -94,6 +94,7 @@ def app():
                                           f'{metric}_expected', f'{metric}_received', 'sd', 'hdi_3%', 'hdi_97%']],
                          use_container_width=True)
         else:
+            # Calculate the error of the mean
             split_string = metric.split("_")
             base_metric = f"{split_string[0]}_{split_string[1]}"
             is_percentage_error = split_string[-2] == "percentage"
@@ -110,13 +111,19 @@ def app():
                     = abs(calculated_metric_stats_df[f'{base_metric}_expected']
                           - calculated_metric_stats_df[f'{base_metric}_received'])
 
+            # Calculate the mean of the errors
             metric_stats_df = show_stats(metric, total_errors_df, total_errors_index)
+
+            # Add in number of matches & player name
             metric_stats_df = pd.merge(reference_df[['name', 'number_of_matches']],
                                        metric_stats_df, left_index=True, right_index=True)
             metric_stats_df = pd.merge(calculated_metric_stats_df[[f'{metric}_of_means']],
                                        metric_stats_df, left_index=True, right_index=True)
             metric_stats_df = metric_stats_df.sort_values(metric, ascending=False)
-            st.dataframe(metric_stats_df[['name', 'number_of_matches', f'{metric}_of_means', metric, 'sd', 'hdi_3%', 'hdi_97%']],
+
+            # Display both error of means and mean of errors
+            st.dataframe(metric_stats_df[['name', 'number_of_matches', f'{metric}_of_means', metric,
+                                          'sd', 'hdi_3%', 'hdi_97%']],
                          use_container_width=True)
 
         number_of_players = len(metric_stats_df.index)
