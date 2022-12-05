@@ -164,5 +164,13 @@ class TestPredictiveSimulator:
             columns_to_compare = ['batting_rewards', 'bowling_rewards', 'fielding_rewards', 'total_rewards']
 
             for column in columns_to_compare:
+                mask = error_df[f'{column}_absolute_error'] != abs(error_df[f'{column}_expected']
+                                                                   - error_df[f'{column}_received'])
+                assert error_df[mask].empty
+
+                mask = (error_df[f'{column}_expected'] != 0) & (error_df[f'{column}_absolute_percentage_error'] != \
+                       abs(100 * (error_df[f'{column}_expected'] - error_df[f'{column}_received'])\
+                       / error_df[f'{column}_expected']))
+                assert error_df[mask].empty
                 assert error_df.query(f'{column}_absolute_error < 0.0').empty
                 assert error_df.query(f'{column}_absolute_percentage_error < 0.0').empty
