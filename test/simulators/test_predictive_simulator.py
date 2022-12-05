@@ -175,7 +175,6 @@ class TestPredictiveSimulator:
                                                                     f'{column}_received']) \
                                                                     / error_df[f'{column}_expected']))
                 assert error_df[mask].empty
-
                 assert error_df.query(f'{column}_absolute_error < 0.0').empty
                 assert error_df.query(f'{column}_absolute_percentage_error < 0.0').empty
 
