@@ -387,22 +387,18 @@ def calculate_error_metrics(number_of_scenarios,
     """
     Cached function to get scenarios and build out error metrics which will then be summarised
     """
-    logging.debug("****************************Calculating rewards differences**************************")
+    logging.debug("Calculating rewards differences")
     if predictive_simulator is None:
         return pd.DataFrame()
 
     cache_key = f"PredictiveRewards_{granularity}_{use_inferential_model}"
     if cache_key not in st.session_state:
-        total_errors_df = pd.DataFrame()
-        perfect_df = perfect_simulator.get_simulation_evaluation_metrics_by_granularity(True, granularity)
-        for scenario in range(0, number_of_scenarios):
-            comparison_df = predictive_simulator.get_rewards(scenario, granularity)
-            errors_df = perfect_simulator.get_error_measures(True, comparison_df, granularity, perfect_df)
+        with st.spinner("Calculating Rewards"):
+            error_df = predictive_simulator.get_error_stats(granularity)
+            st.session_state[cache_key] = error_df
+    else:
+        error_df = st.session_state[cache_key]
 
-            # Add scenario numbers and collate all the error metrics into one big error df for stats calculations
-            errors_df['scenario_number'] = scenario
-            total_errors_df = pd.concat([total_errors_df, errors_df])
+    logging.debug("DONE predictive rewards")
 
-        st.session_state[cache_key] = total_errors_df
-
-    return st.session_state[cache_key]
+    return error_df

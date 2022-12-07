@@ -4,6 +4,7 @@ from simulators.perfect_simulator import PerfectSimulator
 from test.data_selection.conftest import prepare_tests, setup_training_and_testing_windows
 from simulators.utils.predictive_utils import PredictiveUtils
 import pandas as pd
+from utils.app_utils import show_stats
 
 
 @pytest.mark.parametrize(
@@ -155,6 +156,7 @@ class TestPredictiveSimulator:
         perfect_simulator_for_testing = PerfectSimulator(predictive_simulator.data_selection,
                                                          predictive_simulator.rewards_configuration)
         perfect_df = perfect_simulator_for_testing.get_simulation_evaluation_metrics_by_granularity(True, granularity)
+        total_errors_df = pd.DataFrame()
         for scenario in range(0, predictive_simulator.number_of_scenarios):
             rewards_df = predictive_simulator.perfect_simulators[scenario]\
                 .get_simulation_evaluation_metrics_by_granularity(True, granularity)
@@ -164,5 +166,22 @@ class TestPredictiveSimulator:
             columns_to_compare = ['batting_rewards', 'bowling_rewards', 'fielding_rewards', 'total_rewards']
 
             for column in columns_to_compare:
+                mask = error_df[f'{column}_absolute_error'] != abs(error_df[f'{column}_expected']
+                                                                   - error_df[f'{column}_received'])
+                assert error_df[mask].empty
+
+                mask = (error_df[f'{column}_expected'] != 0) & (error_df[f'{column}_absolute_percentage_error'] != \
+                                                                abs(100 * (error_df[f'{column}_expected'] - error_df[
+                                                                    f'{column}_received']) \
+                                                                    / error_df[f'{column}_expected']))
+                assert error_df[mask].empty
+
                 assert error_df.query(f'{column}_absolute_error < 0.0').empty
                 assert error_df.query(f'{column}_absolute_percentage_error < 0.0').empty
+
+            error_df['scenario_number'] = scenario
+            total_errors_df = pd.concat([total_errors_df, error_df])
+
+        new_error_df = predictive_simulator.get_error_stats(granularity)
+        differences = pd.concat([new_error_df.reset_index(), total_errors_df.reset_index()]).drop_duplicates(keep=False)
+        assert differences.empty

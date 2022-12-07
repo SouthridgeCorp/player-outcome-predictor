@@ -8,11 +8,12 @@ from simulators.utils.outcomes_calculator import get_base_rewards, get_bonus_pen
     get_all_outcomes_by_ball_and_innnings
 from simulators.utils.match_state_utils import setup_data_labels, initialise_match_state, \
     setup_data_labels_with_training, add_missing_columns, calculate_ball_by_ball_stats
-from simulators.utils.utils import aggregate_base_rewards
+from simulators.utils.utils import aggregate_base_rewards, aggregate_base_rewards_df
 from data_selection.data_selection import DataSelectionType
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
 
 class Granularity:
     """
@@ -104,9 +105,6 @@ class PerfectSimulator:
         selected tournaments
         """
         logger.debug("Setting up match state")
-
-        #TODO: this function needs a fair bit of performance optimisations - to be scheduled separately if there is a
-        #need for faster execution.
 
         match_state_df, player_universe_df, index_columns = initialise_match_state(self.data_selection, is_testing)
 
@@ -256,39 +254,39 @@ class PerfectSimulator:
         :param columns_to_persist: The list of columns to persist in the output dataframes
         :return: pd.DataFrame as above"""
 
-        innings_df = self.data_selection.get_innings_for_selected_matches(is_testing)
+        innings_df = self.data_selection.get_innings_for_selected_matches(is_testing).copy()
         matches_df = self.data_selection.get_selected_matches(is_testing)
 
         innings_df = pd.merge(innings_df, matches_df[['key', 'tournament_key', 'stage']],
                               left_on='match_key', right_on='key')
 
-        outcomes_list = []
-        # Calculate the batting strike rate
-        for g, g_df in innings_df.groupby(['match_key', 'inning', 'batting_team', 'batter']):
-            total_balls_bowled = len(g_df)
-            total_runs_made = g_df['batter_runs'].sum()
-            batting_strike_rate = 100 * total_runs_made / total_balls_bowled
-            outcomes_list.append({'match_key': g[0], 'inning': g[1], 'team': g[2],
-                                  'player_key': g[3], 'strike_rate': batting_strike_rate,
-                                  'total_balls': total_balls_bowled, 'batting_total_runs': total_runs_made})
-
-        # Calculate the bowling econ rate & number of wickets
-        for g, g_df in innings_df.groupby(['match_key', 'inning', 'bowling_team', 'bowler']):
-            number_of_overs = len(g_df['over'].unique())
-            total_runs_made = g_df['total_runs'].sum()
-            number_of_wickets = g_df['is_wicket'].sum()
-
-            # Runouts are not credited to the bowler
-            number_of_runouts = len(g_df[g_df['dismissal_kind'] == 'run out'])
-            number_of_wickets -= number_of_runouts
-            economy_rate = total_runs_made / number_of_overs
-
-            outcomes_list.append({'match_key': g[0], 'inning': g[1], 'team': g[2],
-                                  'player_key': g[3], 'economy_rate': economy_rate, 'wickets_taken': number_of_wickets,
-                                  'number_of_overs': number_of_overs, 'total_runs': total_runs_made})
-
-        outcomes_df = pd.DataFrame(data=outcomes_list)
+        # Setup counter for runouts
+        mask = innings_df['dismissal_kind'] == 'run out'
+        innings_df['is_runout'] = 0
+        innings_df.loc[mask, 'is_runout'] = 1
         index_columns = ['match_key', 'inning', 'team', 'player_key']
+
+        # Calculate batting outcomes
+        batting_df = pd.DataFrame()
+        batting_grouping = innings_df.groupby(['match_key', 'inning', 'batting_team', 'batter'])
+        batting_df['total_balls'] = batting_grouping['batter'].count()
+        batting_df['batting_total_runs'] = batting_grouping['batter_runs'].sum()
+        batting_df['strike_rate'] = 100 * batting_df['batting_total_runs'] / batting_df['total_balls']
+        batting_df = batting_df.reset_index()
+        batting_df.rename(columns={'batter': 'player_key', 'batting_team': 'team'}, inplace=True)
+
+        # Calculate bowling outcomes
+        bowling_df = pd.DataFrame()
+        bowling_grouping = innings_df.groupby(['match_key', 'inning', 'bowling_team', 'bowler'])
+        bowling_df['number_of_overs'] = bowling_grouping['over'].nunique()
+        bowling_df['total_runs'] = bowling_grouping['total_runs'].sum()
+        bowling_df['wickets_taken'] = bowling_grouping['is_wicket'].sum() - bowling_grouping['is_runout'].sum()
+        bowling_df['economy_rate'] = bowling_df['total_runs'] / bowling_df['number_of_overs']
+        bowling_df = bowling_df.reset_index()
+        bowling_df.rename(columns={'bowler': 'player_key', 'bowling_team': 'team'}, inplace=True)
+
+        # Merge all the outcomes together
+        outcomes_df = pd.merge(batting_df, bowling_df, left_on=index_columns, right_on=index_columns, how='outer')
 
         outcomes_df = pd.merge(outcomes_df, matches_df[['key', 'tournament_key', 'stage'] + columns_to_persist],
                                left_on='match_key', right_on='key')
@@ -318,27 +316,30 @@ class PerfectSimulator:
             player_outcomes = input_player_outcomes.copy()
         else:
             player_outcomes = self.get_outcomes_by_player_and_innings(is_testing)
-        innings_outcomes_list = []
 
-        # Calculate all the fields for player get_outcome_labels
-        for g, g_df in player_outcomes.groupby(['match_key', 'inning', 'team']):
-            total_runs = g_df['total_runs'].sum()
-            total_balls = g_df['total_balls'].sum()
-            batting_total_runs = g_df['batting_total_runs'].sum()
-            number_of_overs = g_df['number_of_overs'].sum()
-            economy_rate = (total_runs / number_of_overs) if number_of_overs != 0 else 0
-            strike_rate = (100 * batting_total_runs / total_balls) if total_balls != 0 else 0
-            innings_outcomes_list.append({'match_key': g[0], 'inning': g[1], 'team': g[2],
-                                          'inning_economy_rate': economy_rate, 'inning_strike_rate': strike_rate,
-                                          'inning_number_of_overs': number_of_overs, 'inning_total_runs': total_runs,
-                                          'inning_total_balls': total_balls,
-                                          'inning_batting_total_runs': batting_total_runs})
-
-        innings_outcomes_df = pd.DataFrame(data=innings_outcomes_list)
         index_columns = ['match_key', 'inning', 'team']
-        innings_outcomes_df.set_index(index_columns, inplace=True, verify_integrity=True)
-        innings_outcomes_df = innings_outcomes_df.sort_values(index_columns)
-        return innings_outcomes_df
+
+        # Calculate innings level outcomes
+        new_innings_outcomes_df = pd.DataFrame()
+        innings_grouping = player_outcomes.groupby(index_columns)
+        new_innings_outcomes_df['inning_batting_total_runs'] = innings_grouping['batting_total_runs'].sum()
+        new_innings_outcomes_df['inning_total_balls'] = innings_grouping['total_balls'].sum()
+        new_innings_outcomes_df['inning_total_runs'] = innings_grouping['total_runs'].sum()
+        new_innings_outcomes_df['inning_number_of_overs'] = innings_grouping['number_of_overs'].sum()
+
+        new_innings_outcomes_df['inning_strike_rate'] = 0.0
+        mask = new_innings_outcomes_df['inning_total_balls'] != 0
+        new_innings_outcomes_df.loc[mask, 'inning_strike_rate'] = \
+            (100 * new_innings_outcomes_df['inning_batting_total_runs']) / new_innings_outcomes_df['inning_total_balls']
+
+        new_innings_outcomes_df['inning_economy_rate'] = 0.0
+        mask = new_innings_outcomes_df['inning_number_of_overs'] != 0
+        new_innings_outcomes_df.loc[mask, 'inning_economy_rate'] = new_innings_outcomes_df['inning_total_runs'] \
+                                                                   / new_innings_outcomes_df['inning_number_of_overs']
+
+        new_innings_outcomes_df = new_innings_outcomes_df.sort_values(index_columns)
+
+        return new_innings_outcomes_df
 
     def get_rewards_components(self,
                                is_testing: bool, generate_labels=False, columns_to_persist=[]) -> (
@@ -391,26 +392,31 @@ class PerfectSimulator:
         logger.debug("Aggregating base rewards")
 
         # Calculate cumulative base rewards per player
-        base_rewards_per_player_dict = {}
-        aggregate_base_rewards(outcomes_df, 'batting_team', 'batter', 'batter_base_rewards', 'batter_base_rewards',
-                               base_rewards_per_player_dict)
-        aggregate_base_rewards(outcomes_df, 'batting_team', 'non_striker', 'non_striker_base_rewards',
-                               'batter_base_rewards', base_rewards_per_player_dict)
-        aggregate_base_rewards(outcomes_df, 'bowling_team', 'fielder', 'fielding_base_rewards',
-                               'fielding_base_rewards', base_rewards_per_player_dict)
-        aggregate_base_rewards(outcomes_df, 'bowling_team', 'bowler', 'bowling_base_rewards',
-                               'bowling_base_rewards', base_rewards_per_player_dict)
+        batting_aggregate_df = aggregate_base_rewards_df(outcomes_df, 'batting_team', 'batter',
+                                                         'batter_base_rewards', 'batter_base_rewards')
+        non_striker_aggregate_df = aggregate_base_rewards_df(outcomes_df, 'batting_team', 'non_striker',
+                                                             'non_striker_base_rewards', 'batter_base_rewards')
+        fielder_aggregate_df = aggregate_base_rewards_df(outcomes_df, 'bowling_team', 'fielder',
+                                                         'fielding_base_rewards', 'fielding_base_rewards')
+        bowler_aggregate_df = aggregate_base_rewards_df(outcomes_df, 'bowling_team', 'bowler', 'bowling_base_rewards',
+                                                        'bowling_base_rewards')
 
-        base_rewards_per_player_list = []
+        # Calculate cumulative batting rewards (also pulling in non-striker rewards
+        aggregated_df = pd.merge(batting_aggregate_df, non_striker_aggregate_df, left_index=True, right_index=True,
+                                 how="outer")
+        aggregated_df = aggregated_df.fillna(0.0)
 
-        for key in base_rewards_per_player_dict.keys():
-            base_rewards_per_player_list.append(base_rewards_per_player_dict[key])
+        aggregated_df['batter_base_rewards'] = \
+            aggregated_df['batter_base_rewards_x'] + aggregated_df['batter_base_rewards_y']
 
-        base_rewards_per_player_df = pd.DataFrame(data=base_rewards_per_player_list)
-        index_columns = ['match_key', 'inning', 'team', 'player_key']
-        base_rewards_per_player_df.set_index(index_columns, inplace=True, verify_integrity=True)
-        base_rewards_per_player_df = base_rewards_per_player_df.sort_values(index_columns)
+        aggregated_df.drop('batter_base_rewards_x', axis=1, inplace=True)
+        aggregated_df.drop('batter_base_rewards_y', axis=1, inplace=True)
 
+        aggregated_df = pd.merge(pd.merge(aggregated_df, fielder_aggregate_df, left_index=True, right_index=True,
+                                          how="outer"), bowler_aggregate_df, left_index=True, right_index=True,
+                                 how="outer")
+
+        base_rewards_per_player_df = aggregated_df.sort_index()
         logger.debug("Calculating bonus / penalty")
 
         bonus_penalty_df = pd.merge(bonus_penalty_df,
@@ -462,30 +468,24 @@ class PerfectSimulator:
                                                                         columns_to_persist=columns_to_persist)
 
         group_by_columns = get_index_columns(granularity) + columns_to_persist
-        rewards_df = pd.DataFrame()
+
+        new_rewards_df = pd.DataFrame()
+        rewards_grouping = bonus_penalty_df.reset_index().groupby(group_by_columns)
+        new_rewards_df['number_of_matches'] = rewards_grouping['match_key'].nunique()
+        new_rewards_df['bowling_rewards'] = rewards_grouping['bowling_rewards'].sum()
+        new_rewards_df['batting_rewards'] = rewards_grouping['batting_rewards'].sum()
+        new_rewards_df['fielding_rewards'] = rewards_grouping['fielding_rewards'].sum()
+        new_rewards_df['total_rewards'] = new_rewards_df['batting_rewards'] + new_rewards_df['bowling_rewards'] \
+                                          + new_rewards_df['fielding_rewards']
 
         logger.debug(f"Calculating total rewards for {bonus_penalty_df.shape}")
+        new_rewards_df = new_rewards_df.reset_index()
+        new_rewards_df = self.data_selection.merge_with_players(new_rewards_df, 'player_key')
+        new_rewards_df.set_index(group_by_columns, inplace=True, verify_integrity=True)
 
-        for g, g_df in bonus_penalty_df.groupby(group_by_columns):
-            input_dict = {'number_of_matches': len(g_df.reset_index()['match_key'].unique()),
-                          'bowling_rewards': g_df['bowling_rewards'].sum(),
-                          'batting_rewards': g_df['batting_rewards'].sum(),
-                          'fielding_rewards': g_df['fielding_rewards'].sum()}
-
-            input_dict['total_rewards'] = input_dict['bowling_rewards'] + input_dict['batting_rewards'] \
-                                          + input_dict['fielding_rewards']
-            i = 0
-            for column in group_by_columns:
-                input_dict[column] = g[i]
-                i += 1
-            rewards_df = rewards_df.append(input_dict, ignore_index=True)
-
-        rewards_df = self.data_selection.merge_with_players(rewards_df, 'player_key')
-
-        rewards_df.set_index(group_by_columns, inplace=True, verify_integrity=True)
         logger.debug("Returning the total DF")
 
-        return rewards_df
+        return new_rewards_df
 
     def get_error_measures(self,
                            is_testing: bool,
@@ -598,11 +598,11 @@ class PerfectSimulator:
 
         stats = {"Number of balls selected for training": train_match_state_df.shape[0],
                  "Number of balls with bowler in test season bowlers": train_match_state_df. \
-                    query('bowler in @test_season_bowlers').shape[0],
+                     query('bowler in @test_season_bowlers').shape[0],
                  "Number of balls with batters in test season batters": train_match_state_df. \
-                    query('batter in @test_season_bowlers').shape[0],
+                     query('batter in @test_season_bowlers').shape[0],
                  "Number of balls with venues in test season venues": train_match_state_df. \
-                    query('venue in @test_season_venues').shape[0]}
+                     query('venue in @test_season_venues').shape[0]}
         logger.debug("Done with get_match_state_by_balls_for_training")
 
         logger.debug("Done with get_match_state_by_balls_for_training")

@@ -56,6 +56,7 @@ def app():
                                                         number_of_scenarios,
                                                         use_inferential_model)
 
+
         total_errors_df = calculate_error_metrics(number_of_scenarios,
                                                   granularity,
                                                   perfect_simulator,
@@ -66,7 +67,8 @@ def app():
             st.error("Please initialise and review the inferential model before proceeding")
             return
 
-        total_errors_index = total_errors_df.index.names
+        total_errors_index = list(total_errors_df.index.names)
+        total_errors_index.remove('scenario_number')
         reference_df = total_errors_df.reset_index().query('scenario_number == 0')
         reference_df.set_index(total_errors_index, inplace=True, verify_integrity=True)
 
@@ -76,6 +78,7 @@ def app():
         total_errors_df = total_errors_df.drop('name', axis=1)
 
         # Set up the dataframe for statistical calculations
+        total_errors_df = total_errors_df.reset_index()
         total_errors_df['chain'] = 0
         total_errors_df.rename(columns={"scenario_number": "draw"}, inplace=True)
         total_errors_df.set_index(['chain', 'draw'] + total_errors_index, inplace=True, verify_integrity=True)
@@ -91,11 +94,36 @@ def app():
                                           f'{metric}_expected', f'{metric}_received', 'sd', 'hdi_3%', 'hdi_97%']],
                          use_container_width=True)
         else:
+            # Calculate the error of the mean
+            split_string = metric.split("_")
+            base_metric = f"{split_string[0]}_{split_string[1]}"
+            is_percentage_error = split_string[-2] == "percentage"
+            calculated_metric_stats_df = show_stats(f'{base_metric}_received', total_errors_df, total_errors_index)
+            calculated_metric_stats_df = pd.merge(reference_df[['number_of_matches', f'{base_metric}_expected']],
+                                           calculated_metric_stats_df, left_index=True, right_index=True)
+            if is_percentage_error:
+                calculated_metric_stats_df[f'{metric}_of_means'] \
+                    = 100 * abs((calculated_metric_stats_df[f'{base_metric}_expected']
+                                 - calculated_metric_stats_df[f'{base_metric}_received']) /
+                                calculated_metric_stats_df[f'{base_metric}_expected'])
+            else:
+                calculated_metric_stats_df[f'{metric}_of_means'] \
+                    = abs(calculated_metric_stats_df[f'{base_metric}_expected']
+                          - calculated_metric_stats_df[f'{base_metric}_received'])
+
+            # Calculate the mean of the errors
             metric_stats_df = show_stats(metric, total_errors_df, total_errors_index)
-            metric_stats_df = pd.merge(reference_df[['name']],
+
+            # Add in number of matches & player name
+            metric_stats_df = pd.merge(reference_df[['name', 'number_of_matches']],
+                                       metric_stats_df, left_index=True, right_index=True)
+            metric_stats_df = pd.merge(calculated_metric_stats_df[[f'{metric}_of_means']],
                                        metric_stats_df, left_index=True, right_index=True)
             metric_stats_df = metric_stats_df.sort_values(metric, ascending=False)
-            st.dataframe(metric_stats_df[['name', metric, 'sd', 'hdi_3%', 'hdi_97%']],
+
+            # Display both error of means and mean of errors
+            st.dataframe(metric_stats_df[['name', 'number_of_matches', f'{metric}_of_means', metric,
+                                          'sd', 'hdi_3%', 'hdi_97%']],
                          use_container_width=True)
 
         number_of_players = len(metric_stats_df.index)
