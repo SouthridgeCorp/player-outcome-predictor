@@ -89,8 +89,14 @@ def get_bowling_base_rewards(row, rewards_configuration: RewardsConfiguration):
     total_runs = row["total_runs"]
     wides = row["wides"]
     no_ball = row["noballs"]
+    byes = 0
+    legbyes = 0
+    if 'byes' in list(row.axes[0]):
+        byes = row['byes']
+    if 'legbyes' in list(row.axes[0]):
+        legbyes = row['legbyes']
 
-    if row['byes'] > 0 or row['legbyes'] > 0 or wides > 0:
+    if byes > 0 or legbyes > 0:
         bowling_rewards = 0
     else:
         bowling_rewards = rewards_configuration.get_bowling_base_rewards_for_runs(total_runs)
@@ -261,13 +267,13 @@ def get_bonus_penalty(row, rewards_configuration: RewardsConfiguration):
         bowling_base_rewards += bowling_bonus_wickets
 
     player_economy_rate = row['economy_rate']
-    player_total_overs = row['number_of_overs']
+    player_deliveries = row['number_of_bowled_deliveries']
     player_total_runs = row['total_runs']
 
     if pd.notna(player_economy_rate):
-        innings_number_of_overs = row['inning_number_of_overs']
+        innings_deliveries = row['inning_number_of_bowled_deliveries']
         inning_total_runs = row['inning_total_runs']
-        denominator = (innings_number_of_overs - player_total_overs)
+        denominator = (innings_deliveries - player_deliveries)
         inning_economy_rate = (inning_total_runs - player_total_runs) / denominator if denominator != 0 else denominator
         bowler_bonus, bowler_penalty = rewards_configuration.get_bowling_bonus_penalty_for_economy_rate(
             player_economy_rate, inning_economy_rate, bowling_base_rewards)
