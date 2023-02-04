@@ -140,3 +140,5 @@ data/
 
 #secrets
 .streamlit/
+
+.DS_Store
