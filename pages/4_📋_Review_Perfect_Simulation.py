@@ -66,7 +66,6 @@ def app():
 
         number_of_players = st.slider("Select the number of top players to show:", min_value=0,
                                       max_value=len(perfect_simulator_df.index), value=30)
-        perfect_simulator_df.to_csv("data/player_rewards.csv")
         st.subheader('Evaluation & Error Metrics')
         if metric not in error_metrics:
             columns_to_show = ['name', 'number_of_matches',

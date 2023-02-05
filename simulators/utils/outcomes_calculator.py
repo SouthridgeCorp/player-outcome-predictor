@@ -89,6 +89,8 @@ def get_bowling_base_rewards(row, rewards_configuration: RewardsConfiguration):
     total_runs = row["total_runs"]
     wides = row["wides"]
     no_ball = row["noballs"]
+    # Calculate byes & legbyes
+    # TODO: Remove the checks below once the tournament simulator starts simulating byes & legbyes
     byes = 0
     legbyes = 0
     if 'byes' in list(row.axes[0]):
@@ -97,6 +99,7 @@ def get_bowling_base_rewards(row, rewards_configuration: RewardsConfiguration):
         legbyes = row['legbyes']
 
     if byes > 0 or legbyes > 0:
+        # Bowler gets no penalty or rewards for byes & legbyes
         bowling_rewards = 0
     else:
         bowling_rewards = rewards_configuration.get_bowling_base_rewards_for_runs(total_runs)
@@ -219,6 +222,7 @@ def get_batting_base_rewards(row, rewards_configuration: RewardsConfiguration):
 
     batter_rewards = rewards_configuration.get_batting_base_rewards_for_runs(batter_runs)
     if (extras > 0) and (batter_rewards < 0):
+        # Batters don't get any penalties or rewards for extras (even if there were batter runs in those extras)
         batter_rewards = 0
 
     non_striker_rewards = 0
@@ -264,6 +268,7 @@ def get_bonus_penalty(row, rewards_configuration: RewardsConfiguration):
     bowling_base_rewards = row['bowling_base_rewards']
     if pd.notna(wickets_taken) and wickets_taken > 0:
         bowling_bonus_wickets = rewards_configuration.get_bowling_rewards_for_wickets(int(wickets_taken))
+        # Make sure wicket rewards are included in ER bonus / penalty calcs
         bowling_base_rewards += bowling_bonus_wickets
 
     player_economy_rate = row['economy_rate']

@@ -296,15 +296,21 @@ class PerfectSimulator:
         bowling_df = pd.DataFrame()
         bowling_grouping = innings_df.groupby(['match_key', 'inning', 'bowling_team', 'bowler'])
 
+        # Bowled deliveries only includes legal deliveries (as per sportiqo)
         bowling_df['number_of_bowled_deliveries'] = \
             bowling_grouping['bowler'].count() - bowling_grouping['wides'].count() - bowling_grouping['noballs'].count()
 
         byes_sum = 0
+        # total runs for the bowler must not include byes & legbyes. Please note that the tournament_simulator may not
+        # simulate byes & legbyes, hence we need to add an extra check.
+        # TODO: Make the tournament simulator simulate byes & legbyes and get rid of the ugly code below.
         if 'byes' in innings_df.columns:
             byes_sum += bowling_grouping['byes'].sum()
         if 'legbyes' in innings_df.columns:
             byes_sum += bowling_grouping['legbyes'].sum()
         bowling_df['total_runs'] = bowling_grouping['total_runs'].sum() - byes_sum
+
+        # Keep track of the overall bowling total (with extras) since that is used to calc. innings ER
         bowling_df['bowling_total_runs_with_extras'] = bowling_grouping['total_runs'].sum()
         bowling_df['wickets_taken'] = bowling_grouping['is_wicket'].sum() - bowling_grouping['is_runout'].sum()
         bowling_df['economy_rate'] = bowling_df['total_runs'] / bowling_df['number_of_bowled_deliveries']
@@ -323,7 +329,6 @@ class PerfectSimulator:
         outcomes_df = pd.merge(batting_df, bowling_df, left_on=index_columns, right_on=index_columns, how='outer')
         outcomes_df = pd.merge(outcomes_df, fielding_df, left_on=index_columns, right_on=index_columns, how='outer')
         outcomes_df = pd.merge(outcomes_df, non_striker_df, left_on=index_columns, right_on=index_columns, how='outer')
-
 
         outcomes_df = pd.merge(outcomes_df, matches_df[['key', 'tournament_key', 'stage'] + columns_to_persist],
                                left_on='match_key', right_on='key')
@@ -453,7 +458,6 @@ class PerfectSimulator:
         aggregated_df = pd.merge(pd.merge(aggregated_df, fielder_aggregate_df, left_index=True, right_index=True,
                                           how="outer"), bowler_aggregate_df, left_index=True, right_index=True,
                                  how="outer")
-        test_aggregated_df = aggregated_df.copy()
         aggregated_df = pd.merge(aggregated_df, bonus_penalty_df[['tournament_key', 'stage']],
                                  left_index=True, right_index=True)
 
