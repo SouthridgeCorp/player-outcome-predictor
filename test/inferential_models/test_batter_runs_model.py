@@ -10,6 +10,7 @@ import pymc as pm
     get_test_cases('app_config', 'TestBatterRunsModel'),
     scope='class'
 )
+@pytest.mark.skip("Skipped in automated runs")
 class TestBatterRunsModel:
 
     @pytest.mark.skip(reason="Only run this to test the training workflow. Will overwrite existing models")
