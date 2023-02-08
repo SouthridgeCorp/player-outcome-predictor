@@ -40,15 +40,30 @@ def show_perfect_simulator_stats(perfect_simulator):
 
 
 def setup_selected_players(data_selection, rewards_config, tournament_key, season, lookback_count, player_count):
+    """
+    Helper function to select the top X players based on total rewards and lookback to previous tournaments,
+    and to save them to cache for use in later
+    pages.
+    :param data_selection: The data_selection instance for this app
+    :param rewards_config: the rewards config instance for this app
+    :param tournament_key: the tournament key for which to look back
+    :param tournament_key: the tournament key for which to look back
+
+    """
+
+    # Get previous season details
     previous_seasons_df, previous_matches_df, previous_innings_df = \
         data_selection.get_previous_tournament_matches(tournament_key, season, lookback_count)
 
     if not previous_seasons_df.empty:
+
+        # Calculate rewards for all the previous innings
         lookback_data_selection = DataSelection(data_selection.get_helper())
         lookback_data_selection.set_simulated_data(previous_matches_df, previous_innings_df)
         lookback_perfect_simulator = PerfectSimulator(lookback_data_selection, rewards_config)
-
         lookback_reward_df = get_perfect_simulator_data(lookback_perfect_simulator, "match", rewards_config)
+
+        # Average out the rewards for each player
         mean_reward_df = pd.DataFrame()
         reward_grouping = lookback_reward_df.groupby('player_key')
         mean_reward_df['name'] = reward_grouping['name'].first()
@@ -58,9 +73,11 @@ def setup_selected_players(data_selection, rewards_config, tournament_key, seaso
         mean_reward_df['fielding_rewards'] = reward_grouping['fielding_rewards'].mean()
         mean_reward_df['total_rewards'] = reward_grouping['total_rewards'].mean()
 
+        # Batter == Someone with no bowling_rewards at all
         mean_reward_df['is_batter'] = mean_reward_df['bowling_rewards'] == 0
         mean_reward_df.sort_values(by='total_rewards', ascending=False, inplace=True)
 
+        # Setup & save the group of selected players
         selected_players_for_comparison_df = mean_reward_df[['name', 'is_batter', 'number_of_matches',
                                                              'bowling_rewards',
                                                              'batting_rewards', 'fielding_rewards',
@@ -70,16 +87,19 @@ def setup_selected_players(data_selection, rewards_config, tournament_key, seaso
 
         bar_chart_column, stats_column, seasons_column = st.columns(3)
 
+        # Show the distribution of rewards across players
         with bar_chart_column:
             st.markdown("**Summary: Top Players by Average Total Rewards**")
 
+            # Bin players into groups of 20 points
             labels = ["{0} - {1}".format(i, i + 19) for i in range(0, 140, 20)]
             selected_players_for_comparison_df["group"] = pd.cut(selected_players_for_comparison_df['total_rewards'],
                                                                  range(0, 155, 20), right=False, labels=labels)
+
+            # Group together based on bins and show it via bar charts
             reward_label_df = pd.DataFrame()
             reward_label_grouping = selected_players_for_comparison_df.reset_index().groupby('group')
             reward_label_df['number_of_players'] = reward_label_grouping['player_key'].count()
-            # st.bar_chart(data=reward_label_df, y='number_of_players', use_container_width=True)
 
             st.write(alt.Chart(reward_label_df.reset_index()).mark_bar().encode(
                 x=alt.X('group', sort=None),
@@ -104,8 +124,13 @@ def setup_selected_players(data_selection, rewards_config, tournament_key, seaso
     else:
         st.warning(f"Could not find any historical seasons before '{season}' for tournament '{tournament_key}'")
 
+
 def select_key_players(rewards_config, data_selection):
+    """
+    Sets up the widget to select key players for use in later pages.
+    """
     st.subheader("Analysis of Previous Tournaments")
+
     lookback, number_of_players = st.columns(2)
     with lookback:
         lookback_count = st.selectbox("Please select the number of seasons to look back:", [0, 1, 2, 3, 4, 5])

@@ -125,44 +125,72 @@ def app():
                                           'sd', 'hdi_3%', 'hdi_97%']]
 
         compare_against_test_players = False
+        # Allow users to drill down if they are looking at tournament metrics
         if granularity == 'tournament':
             compare_against_test_players = st.checkbox("Check to compare against selected players")
 
         if compare_against_test_players:
-            selected_players_for_comparison_df = st.session_state['selected_players_for_comparison']
-            selected_players = list(selected_players_for_comparison_df.reset_index()['player_key'].unique())
-            metrics_to_show_df = metrics_to_show_df.query(f"player_key in {selected_players}")
+            if 'selected_players_for_comparison' in st.session_state:
+                selected_players_for_comparison_df = st.session_state['selected_players_for_comparison']
 
-            if metric == "total_rewards_absolute_percentage_error":
-                raw_metrics_to_show_df = metric_stats_df.query(f"player_key in {selected_players}")
-                labels = ["{0} - {1}".format(i, i + 10) for i in range(0, 100, 10)]
-                labels.append(">100")
-                raw_metrics_to_show_df["group"] = pd.cut(raw_metrics_to_show_df['total_rewards_absolute_percentage_error'],
-                                                         range(0, 120, 10), right=False, labels=labels)
-                raw_metrics_to_show_df["group"] = raw_metrics_to_show_df["group"].fillna(">100")
-                mape_label_df = pd.DataFrame()
-                mape_label_grouping = raw_metrics_to_show_df.reset_index().groupby('group')
-                mape_label_df['number_of_players'] = mape_label_grouping['player_key'].count()
+                # Only work with metrics for the selected player universe
+                selected_players = list(selected_players_for_comparison_df.reset_index()['player_key'].unique())
+                metrics_to_show_df = metrics_to_show_df.query(f"player_key in {selected_players}")
+                metrics_to_show_df = \
+                    pd.merge(metrics_to_show_df,
+                             selected_players_for_comparison_df[['is_batter']],
+                             left_on='player_key',
+                             right_on='player_key')
 
-                grouping, data = st.columns(2)
-                with grouping:
-                    st.subheader("Breakdown by mape")
-                    st.write(alt.Chart(mape_label_df.reset_index()).mark_bar().encode(
-                        x=alt.X('group', sort=None),
-                        y='number_of_players',
-                    ))
-                with data:
-                    st.subheader("Actual Grouping of players")
-                    mape_cutoff = int(st.text_input('mape Threshold %:', 15))
-                    acceptable_mape_df = \
-                        metrics_to_show_df[metrics_to_show_df['total_rewards_absolute_percentage_error'] <= mape_cutoff]
-                    st.info(f"Number of players with mape < 15%: {acceptable_mape_df.shape[0]} out of "
-                            f"{metrics_to_show_df.shape[0]}")
-                    st.dataframe(raw_metrics_to_show_df[['total_rewards_absolute_percentage_error', 'group']])
+                if metric == "total_rewards_absolute_percentage_error":
+                    # If viewing the mape metric - also show a histogram of the mape
+                    raw_metrics_to_show_df = metrics_to_show_df.copy()
 
-            with st.expander("Click to see the list of key players"):
-                st.write(f"Total Number of interesting players: {len(selected_players)}")
-                st.dataframe(selected_players_for_comparison_df[['name', 'is_batter']])
+                    # Create buckets for grouping the mape
+                    labels = ["{0} - {1}".format(i, i + 10) for i in range(0, 100, 10)]
+                    labels.append(">100")
+                    error_metrics_for_mape_calc = ['total_rewards_absolute_percentage_error',
+                                                   'total_rewards_absolute_percentage_error_of_means']
+
+                    error_metric_for_mape_calc = st.selectbox("Please select the error metric to investigate:",
+                                                              error_metrics_for_mape_calc)
+                    raw_metrics_to_show_df["group"] = pd.cut(raw_metrics_to_show_df[error_metric_for_mape_calc],
+                                                             range(0, 120, 10), right=False, labels=labels)
+                    raw_metrics_to_show_df["group"] = raw_metrics_to_show_df["group"].fillna(">100")
+
+                    mape_barchart_column, mape_data_column = st.columns(2)
+                    with mape_barchart_column:
+                        # show a histogram of mape buckets
+                        mape_label_df = pd.DataFrame()
+                        mape_label_grouping = raw_metrics_to_show_df.reset_index().groupby('group')
+                        mape_label_df['number_of_players'] = mape_label_grouping['player_key'].count()
+                        st.subheader("Breakdown by mape")
+                        st.write(alt.Chart(mape_label_df.reset_index()).mark_bar().encode(
+                            x=alt.X('group', sort=None),
+                            y='number_of_players',
+                        ))
+                    with mape_data_column:
+                        # Show the raw data & assert the performance against the acceptable threshold
+                        st.subheader("Actual Grouping of players")
+                        mape_cutoff = int(st.text_input('mape Threshold %:', 15))
+                        acceptable_mape_df = \
+                            metrics_to_show_df[metrics_to_show_df[error_metric_for_mape_calc] <= mape_cutoff]
+                        st.info(f"Number of players with mape < 15%: {acceptable_mape_df.shape[0]} out of "
+                                f"{metrics_to_show_df.shape[0]}")
+
+                        st.info(f"Number of batters with mape < 15%: "
+                                f"{acceptable_mape_df.query('is_batter == True').shape[0]} out of "
+                                f"{metrics_to_show_df.shape[0]}")
+                        st.dataframe(raw_metrics_to_show_df[['name', 'is_batter',
+                                                             error_metric_for_mape_calc, 'group']])
+
+                with st.expander("Click to see the list of key players"):
+                    # Show the raw data of how many players were selected
+                    st.write(f"Total Number of interesting players: {len(selected_players)}")
+                    st.dataframe(selected_players_for_comparison_df[['name', 'is_batter']])
+            else:
+                st.warning("Please select test players from the Perfect Simulator page")
+
         st.info(f"Total Number of players in the current tournament: {metrics_to_show_df.shape[0]}")
         st.dataframe(metrics_to_show_df, use_container_width=True)
 

@@ -344,30 +344,42 @@ class Tournaments:
         return seasons_df[['name', 'season', 'number_of_matches']]
 
     def get_previous_tournament_matches(self, key, season, lookback_count):
+        """
+        Get the previous 'lookback_count' number of seasons from the specified season
+        :param key: The tournament key for which to search for
+        :param season: the season from where to look back
+        :param lookback_count: the number of seasons to look back
+        :return Three dataframes representing:
+            - The seasons which match the requirements (sorted by the most recent one first)
+            - The matches for all the lookback instances
+            - The ball-by-ball innnings for all the lookback instances
+        """
 
         all_matches_df, all_innings_df = self.get_all_matches_and_innings_cached()
         seasons_df = pd.DataFrame()
+
+        # Get the start & end date per season per tournament
         seasons_grouping = all_matches_df.groupby(["tournament_key", "season"])
         seasons_df["start_date"] = seasons_grouping['date'].min()
         seasons_df["end_date"] = seasons_grouping['date'].max()
 
         seasons_df = seasons_df.reset_index()
 
+        # Find the start date of the tournament & season specified
         tournament_seasons_df = seasons_df.query(f'tournament_key == "{key}"')
         selected_season_df = tournament_seasons_df.query(f'season == "{season}"')
         season_start_date = selected_season_df.iloc[0]['start_date']
 
+        # Find the top 'lookback_count' seasons that occured before the specified season
         previous_seasons_df = tournament_seasons_df.loc[(tournament_seasons_df['start_date'] < season_start_date)]
         previous_seasons_df = previous_seasons_df.sort_values(by='start_date', ascending=False).head(lookback_count)
 
+        # Find the matches & innings corresponding to the previous_seasons
         previous_tournaments = list(previous_seasons_df['tournament_key'].unique())
         previous_seasons = list(previous_seasons_df['season'].unique())
-
         previous_matches_df = all_matches_df.query(f'tournament_key in {previous_tournaments} and '
                                                    f'season in {previous_seasons}')
-
         match_keys = list(previous_matches_df['key'].unique())
-
         previous_innings_df = all_innings_df.query(f"match_key in {match_keys}")
 
         return previous_seasons_df, previous_matches_df, previous_innings_df

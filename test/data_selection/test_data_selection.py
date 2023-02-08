@@ -226,7 +226,6 @@ class TestDataSelection:
             assert expected_list_of_seasons == received_list_of_seasons
 
     def test_get_previous_tournament_matches(self, data_selection_instance: DataSelection):
-        # '2016/17', '2017/18', '2018/19', '2019/20',
         key = 'bbl'
         season = '2019/20'
         previous_seasons_df, previous_matches_df, previous_innings_df = \
