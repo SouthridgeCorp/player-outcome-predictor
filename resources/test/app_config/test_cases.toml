@@ -15,7 +15,6 @@ config_file_path = "resources/test/app_config/historical_data/AppConfiguration_l
 test_class = "TestPerfectSimulator"
 config_file_path = "resources/test/app_config/AppConfiguration_local.toml"
 
-
 [[test_case]]
 test_class = "TestPredictiveSimulator"
 config_file_path = "resources/test/app_config/AppConfiguration_local.toml"
