@@ -72,6 +72,10 @@ def setup_selected_players(data_selection, rewards_config, tournament_key, seaso
         mean_reward_df['batting_rewards'] = reward_grouping['batting_rewards'].mean()
         mean_reward_df['fielding_rewards'] = reward_grouping['fielding_rewards'].mean()
         mean_reward_df['total_rewards'] = reward_grouping['total_rewards'].mean()
+        mean_reward_df['min_total_rewards'] = reward_grouping['total_rewards'].min()
+        mean_reward_df['max_total_rewards'] = reward_grouping['total_rewards'].max()
+        mean_reward_df['sd_total_rewards'] = reward_grouping['total_rewards'].std()
+
 
         # Batter == Someone with no bowling_rewards at all
         mean_reward_df['is_batter'] = mean_reward_df['bowling_rewards'] == 0
@@ -79,9 +83,10 @@ def setup_selected_players(data_selection, rewards_config, tournament_key, seaso
 
         # Setup & save the group of selected players
         selected_players_for_comparison_df = mean_reward_df[['name', 'is_batter', 'number_of_matches',
+                                                             'total_rewards', 'sd_total_rewards', 'min_total_rewards',
+                                                             'max_total_rewards',
                                                              'bowling_rewards',
-                                                             'batting_rewards', 'fielding_rewards',
-                                                             'total_rewards']].head(player_count)
+                                                             'batting_rewards', 'fielding_rewards']].head(player_count)
 
         st.session_state['selected_players_for_comparison'] = selected_players_for_comparison_df
 
