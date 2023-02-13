@@ -7,6 +7,8 @@ from utils.app_utils import data_selection_instance, rewards_instance, prep_simu
 from simulators.perfect_simulator import PerfectSimulator
 import pandas as pd
 import logging
+import altair as alt
+
 
 
 def on_inferential_model_change():
@@ -14,6 +16,14 @@ def on_inferential_model_change():
     st.session_state['predictive_use_inferential_model'] = value
     reset_session_states()
 
+def get_non_error_metrics(metric, total_errors_df, total_errors_index, reference_df):
+    metric_stats_df = show_stats(f'{metric}_received', total_errors_df, total_errors_index)
+    metric_stats_df = pd.merge(reference_df[['name', 'number_of_matches', f'{metric}_expected']],
+                               metric_stats_df, left_index=True, right_index=True)
+    metric_stats_df = metric_stats_df.sort_values(f'{metric}_received', ascending=False)
+    metrics_to_show_df = metric_stats_df[['name', 'number_of_matches',
+                                          f'{metric}_expected', f'{metric}_received', 'sd', 'hdi_3%', 'hdi_97%']]
+    return metrics_to_show_df
 
 def app():
     page_utils.setup_page(" Review Predictive Simulation ")
@@ -56,7 +66,6 @@ def app():
                                                         number_of_scenarios,
                                                         use_inferential_model)
 
-
         total_errors_df = calculate_error_metrics(number_of_scenarios,
                                                   granularity,
                                                   perfect_simulator,
@@ -86,13 +95,7 @@ def app():
         # Calculate stats on the metric we are interested in and also pull in some interesting columns from the
         # reference dataframe
         if metric not in error_metrics:
-            metric_stats_df = show_stats(f'{metric}_received', total_errors_df, total_errors_index)
-            metric_stats_df = pd.merge(reference_df[['name', 'number_of_matches', f'{metric}_expected']],
-                                       metric_stats_df, left_index=True, right_index=True)
-            metric_stats_df = metric_stats_df.sort_values(f'{metric}_received', ascending=False)
-            st.dataframe(metric_stats_df[['name', 'number_of_matches',
-                                          f'{metric}_expected', f'{metric}_received', 'sd', 'hdi_3%', 'hdi_97%']],
-                         use_container_width=True)
+            metrics_to_show_df = get_non_error_metrics(metric, total_errors_df, total_errors_index, reference_df)
         else:
             # Calculate the error of the mean
             split_string = metric.split("_")
@@ -119,14 +122,116 @@ def app():
                                        metric_stats_df, left_index=True, right_index=True)
             metric_stats_df = pd.merge(calculated_metric_stats_df[[f'{metric}_of_means']],
                                        metric_stats_df, left_index=True, right_index=True)
-            metric_stats_df = metric_stats_df.sort_values(metric, ascending=False)
+            metric_stats_df = metric_stats_df.sort_values(metric, ascending=True)
 
             # Display both error of means and mean of errors
-            st.dataframe(metric_stats_df[['name', 'number_of_matches', f'{metric}_of_means', metric,
-                                          'sd', 'hdi_3%', 'hdi_97%']],
-                         use_container_width=True)
+            metrics_to_show_df = metric_stats_df[['name', 'number_of_matches', f'{metric}_of_means', metric,
+                                          'sd', 'hdi_3%', 'hdi_97%']]
 
-        number_of_players = len(metric_stats_df.index)
+        compare_against_test_players = False
+        # Allow users to drill down if they are looking at tournament metrics
+        if granularity == 'tournament':
+            compare_against_test_players = st.checkbox("Check to compare against key players")
+
+        if compare_against_test_players:
+            if 'selected_players_for_comparison' in st.session_state:
+                selected_players_for_comparison_df = st.session_state['selected_players_for_comparison']
+
+                # Only work with metrics for the key player universe
+                selected_players = list(selected_players_for_comparison_df.reset_index()['player_key'].unique())
+                metrics_to_show_df = metrics_to_show_df.query(f"player_key in {selected_players}")
+                metrics_to_show_df = \
+                    pd.merge(metrics_to_show_df,
+                             selected_players_for_comparison_df[['is_batter']],
+                             left_on='player_key',
+                             right_on='player_key')
+
+                if metric == "total_rewards_absolute_percentage_error":
+                    # If viewing the mape metric - also show a histogram of the mape
+                    raw_metrics_to_show_df = metrics_to_show_df.copy()
+
+                    # Create buckets for grouping the mape
+                    labels = ["{0} - {1}".format(i, i + 10) for i in range(0, 100, 10)]
+                    labels.append(">100")
+                    error_metrics_for_mape_calc = ['total_rewards_absolute_percentage_error_of_means',
+                                                   'total_rewards_absolute_percentage_error']
+
+                    error_metric_for_mape_calc = st.selectbox("Please select the error metric to investigate:",
+                                                              error_metrics_for_mape_calc)
+                    raw_metrics_to_show_df["group"] = pd.cut(raw_metrics_to_show_df[error_metric_for_mape_calc],
+                                                             range(0, 120, 10), right=False, labels=labels)
+                    raw_metrics_to_show_df["group"] = raw_metrics_to_show_df["group"].fillna(">100")
+
+                    mape_barchart_column, mape_data_column = st.columns(2)
+                    with mape_barchart_column:
+                        # show a histogram of mape buckets
+                        mape_label_df = pd.DataFrame()
+                        mape_label_grouping = raw_metrics_to_show_df.reset_index().groupby('group')
+                        mape_label_df['number_of_players'] = mape_label_grouping['player_key'].count()
+                        st.subheader("Breakdown by mape")
+                        st.write(alt.Chart(mape_label_df.reset_index()).mark_bar().encode(
+                            x=alt.X('group', sort=None),
+                            y='number_of_players',
+                        ))
+
+
+
+                    # Show the raw data & assert the performance against the acceptable threshold
+                    st.subheader("Key Player Stats - mape drill-down")
+                    mape_cutoff = int(st.text_input('mape Threshold %:', 15))
+                    acceptable_mape_df = \
+                        metrics_to_show_df[metrics_to_show_df[error_metric_for_mape_calc] <= mape_cutoff]
+                    st.info(f"Number of players with mape < {mape_cutoff}%: "
+                            f"{100 * acceptable_mape_df.shape[0]/metrics_to_show_df.shape[0]:.2f}% "
+                            f"({acceptable_mape_df.shape[0]} out of "
+                            f"{metrics_to_show_df.shape[0]})")
+                    number_of_batters_within_mape = acceptable_mape_df.query('is_batter == True').shape[0]
+                    total_number_of_batters = metrics_to_show_df.query('is_batter == True').shape[0]
+
+                    st.info(f"Number of batters with mape < {mape_cutoff}%: "
+                            f"{100 * number_of_batters_within_mape/total_number_of_batters:.2f}% "
+                            f"({number_of_batters_within_mape} out of "
+                            f"{total_number_of_batters})")
+                    total_rewards_stats_df = \
+                        get_non_error_metrics('total_rewards', total_errors_df, total_errors_index, reference_df)
+                    raw_metrics_to_show_df = pd.merge(raw_metrics_to_show_df,
+                                                      total_rewards_stats_df.reset_index()
+                                                      [['player_key', 'number_of_matches',
+                                                        'total_rewards_expected',
+                                                        'total_rewards_received']],
+                                                      left_on='player_key', right_on='player_key')
+                    raw_metrics_to_show_df.rename(columns = {error_metric_for_mape_calc: "error_pct"}, inplace=True)
+
+                    with mape_data_column:
+                        st.subheader("Key player details")
+                        # Show the raw data of how many players were selected
+                        st.info(f"Total Number of key players: {len(selected_players)}")
+                        select_players_with_detail = pd.merge(selected_players_for_comparison_df,
+                                                                  raw_metrics_to_show_df[['name', 'error_pct']],
+                                                                  left_on='name', right_on='name',
+                                                                  how='left')
+                        st.info(f"Total Number of key players in the test tournament: "
+                                     f"{select_players_with_detail['error_pct'].count()}")
+                        with st.expander("Click to see the list of key players"):
+                            st.dataframe(select_players_with_detail[['name', 'is_batter', 'error_pct']],
+                                         use_container_width=True)
+
+                    st.dataframe(raw_metrics_to_show_df[['name',
+                                                         'is_batter',
+                                                         'total_rewards_expected',
+                                                         'total_rewards_received',
+                                                         'error_pct',
+                                                         'group']].sort_values(by='error_pct'),
+                                 use_container_width=True)
+
+
+            else:
+                st.warning("Please select test players from the Perfect Simulator page")
+
+        st.info(f"Total Number of players in the current tournament: {metrics_to_show_df.shape[0]}")
+        st.dataframe(metrics_to_show_df, use_container_width=True)
+
+        number_of_players = len(metrics_to_show_df.index)
         write_top_X_to_st(number_of_players, total_errors_df, total_errors_index, reference_df=reference_df,
                           column_suffix="_received")
 

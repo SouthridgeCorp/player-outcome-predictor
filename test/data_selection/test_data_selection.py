@@ -224,3 +224,21 @@ class TestDataSelection:
             expected_list_of_seasons.sort()
             received_list_of_seasons.sort()
             assert expected_list_of_seasons == received_list_of_seasons
+
+    def test_get_previous_tournament_matches(self, data_selection_instance: DataSelection):
+        key = 'bbl'
+        season = '2019/20'
+        previous_seasons_df, previous_matches_df, previous_innings_df = \
+            data_selection_instance.get_previous_tournament_matches(key, season, 3)
+
+        assert list(previous_seasons_df['season']) == ['2018/19', '2017/18', '2016/17']
+        assert previous_matches_df.shape[0] == 44 + 43 + 2
+        innings_matches = list(previous_innings_df['match_key'].unique())
+        innings_matches.sort()
+        expected_matches = list(previous_matches_df['key'].unique())
+        expected_matches.sort()
+        assert innings_matches == expected_matches
+
+        innings_columns = list(previous_innings_df.columns)
+        assert 'bowling_team' in innings_columns
+

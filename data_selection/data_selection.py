@@ -268,3 +268,28 @@ class DataSelection:
         Returns the data selection type for this object
         """
         return self.selection_type
+
+    def get_previous_tournament_matches(self, key, season, lookback_count):
+        """
+        Get the previous 'lookback_count' number of seasons from the specified season
+        :param key: The tournament key for which to search for
+        :param season: the season from where to look back
+        :param lookback_count: the number of seasons to look back
+        :return Three dataframes representing:
+            - The seasons which match the requirements (sorted by the most recent one first)
+            - The matches for all the lookback instances
+            - The ball-by-ball innnings for all the lookback instances
+        """
+        seasons_df, matches_df, innings_df = \
+            self.historical_data_helper.tournaments.get_previous_tournament_matches(key, season, lookback_count)
+
+        innings_df = pd.merge(innings_df, matches_df[["key", "team1", "team2"]], left_on="match_key", right_on="key")
+        innings_df.drop('key', axis=1, inplace=True)
+
+        innings_df['bowling_team'] = innings_df['team1']
+        mask = innings_df['team1'] == innings_df['batting_team']
+        innings_df.loc[mask, 'bowling_team'] = innings_df['team2']
+
+        innings_df.drop(['team1', 'team2'], axis=1, inplace=True)
+
+        return seasons_df, matches_df, innings_df
