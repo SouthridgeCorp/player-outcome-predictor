@@ -8,27 +8,6 @@ from st_aggrid import AgGrid
 import typing
 
 
-def update_bonus_penalty(grid_table: AgGrid,
-                         set_bonus_penalty_function: typing.Callable,
-                         play_type: str, bonus_or_penalty: str):
-    """
-    Function callback for the Update button for Bonus & Penalty value updates in the UI. This function assumes the
-    data update happened on an AgGrid grid
-    :param grid_table: The AgGrid table which contains the updated data
-    :param set_bonus_penalty_function: The function callback which will be used to persist the changes in AgGrid to the
-    rewards backend
-    :param play_type: The play_type corresponding to this update, must be one of RewardsConfiguration.BATTING_VALUE,
-    RewardsConfiguration.BOWLING_VALUE or RewardsConfiguration.FIELDING_VALUE
-    :param bonus_or_penalty: Indicate whether the update is for a bonus or a penalty, must be one of
-    RewardsConfiguration.PENALTY or RewardsConfiguration.BONUS
-    :return: None
-    """
-    df = pd.DataFrame(grid_table['data'])
-    set_bonus_penalty_function(df, play_type, bonus_or_penalty)
-    reset_session_states(False)
-    st.sidebar.success("Bonus / Penalty values updated successfully")
-
-
 def update_base_rewards(grid_table: AgGrid,
                         set_rewards_function: typing.Callable,
                         play_type: str):
@@ -53,11 +32,8 @@ def display_grid(base_rewards_function, rate_multiplier_function, set_rewards_fu
     Helper function to help display all the AgGrid tables for a specific play type. It also uses function callbacks
     to query data to show in the grid & to persist changes made in the grid
     :param base_rewards_function: The function callback which will be used to query base rewards data for the play type
-    :param bonus_function: The function callback which will be used to query bonus data for the play type
-    :param penalty_function: The function callback which will be used to query penalty data for the play type
+    :param rate_multiplier_function: The function callback which will be used to calculate & display the rate multiplier
     :param set_rewards_function: The function callback which will be used to persist changes to base rewards
-    :param set_bonus_penalty_function: The function callback which will be used to persist changes to bonus or penalty
-    caps, floors or thresholds
     :param st_column: The streamlit column where the grids will be shown
     :param play_type: The play_type corresponding to the data shown / updated, must be one of
     RewardsConfiguration.BATTING_VALUE, RewardsConfiguration.BOWLING_VALUE or RewardsConfiguration.FIELDING_VALUE
@@ -80,12 +56,22 @@ def display_grid(base_rewards_function, rate_multiplier_function, set_rewards_fu
                   args=[rewards_grid, set_rewards_function, play_type])
 
         if rate_multiplier_function is not None:
-            rate = st.text_input('Enter a sample rate to get its multiplier', 1, key=f"{play_type}_text_input")
+            # TODO: The rate multiplier grid is currently hardcoded in the RewardsConfiguration class. This should be
+            # TODO: exported to a config file & support editing directly longer-term (assuming we will still calculate
+            # TODO: the rewards in this app).
+            if play_type == RewardsConfiguration.BATTING_VALUE:
+                rate_type = "Strike"
+                rate_description = "Relative Strike Rate = Strike Rate of Batter/Strike Rate of rest of team"
+            else:
+                rate_type = "Economy"
+                rate_description = "Relative Economy Rate = Economy Rate of Bowler/Economy Rate of rest of the team"
+
+            st.subheader(f"{rate_type} Rate Multiplier")
+            rate = st.text_input(f'Enter a sample Relative {rate_type} Rate to get its multiplier', 1,
+                                 key=f"{play_type}_text_input")
             multiplier = rate_multiplier_function(float(rate))
             st.markdown(f"**Base Reward Multiplier:** _{multiplier}_.")
-
-
-
+            st.markdown(f"**Note:** _{rate_description}_")
 
 def app():
     page_utils.setup_page(" Configure Sportiqo Rewards ")
