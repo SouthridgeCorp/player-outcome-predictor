@@ -495,6 +495,9 @@ class TestPerfectSimulator:
 
         base_rewards_df, bonus_penalty_df = perfect_simulator.get_rewards_components(is_testing, generate_labels=True)
 
+        assert all(bonus_penalty_df['bowling_rewards'] == bonus_penalty_df['bowling_bonus'])
+        assert all(bonus_penalty_df['batting_rewards'] == bonus_penalty_df['batting_bonus'])
+
         for index, row in base_rewards_df.iterrows():
             expected_batting_reward = self.get_expected_batting_rewards(row['batter_outcome_index'], row)
             received_batting_base_reward = row['batter_base_rewards']
@@ -514,11 +517,9 @@ class TestPerfectSimulator:
 
         for index, row in bonus_penalty_df.iterrows():
             if pd.isna(row['bowling_rewards']):
-                assert pd.isna(row['bowling_base_rewards'] + row['bowling_bonus_wickets'] \
-                               + row['bowling_bonus'] - row['bowling_penalty'])
+                assert pd.isna(row['bowling_bonus'] - row['bowling_penalty'])
             else:
-                assert row['bowling_rewards'] == row['bowling_base_rewards'] + row['bowling_bonus_wickets'] \
-                       + row['bowling_bonus'] - row['bowling_penalty']
+                assert row['bowling_rewards'] == row['bowling_bonus'] - row['bowling_penalty']
 
         matches_df = perfect_simulator.data_selection.get_innings_for_selected_matches(is_testing)
         batters = list(matches_df['batter'].unique())
@@ -534,6 +535,8 @@ class TestPerfectSimulator:
         rewards_players.sort()
 
         assert unique_players == rewards_players
+
+
 
     @pytest.mark.parametrize('is_testing', [True, False])
     @pytest.mark.parametrize('granularity, expected_columns',

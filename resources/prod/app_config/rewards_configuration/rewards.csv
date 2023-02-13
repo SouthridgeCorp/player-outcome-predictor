@@ -9,8 +9,8 @@ batting,base_reward,Six,8,,
 batting,base_reward,Dismissal,-5,,
 batting,bonus,SR Bonus,,120%,50%
 batting,penalty,SR Penalty,,80%,50%
-bowling,base_reward,Dot ball,2,,
-bowling,base_reward,Single,1,,
+bowling,base_reward,Dot ball,1,,
+bowling,base_reward,Single,0.5,,
 bowling,base_reward,Two,0,,
 bowling,base_reward,Three,-1,,
 bowling,base_reward,Four,-3,,

@@ -359,11 +359,66 @@ class RewardsConfiguration:
         received_penalty_rate = self.cache[key].bonus_penalty_threshold
         return received_bonus_cap, received_bonus_rate, received_penalty_floor, received_penalty_rate
 
+
+    def get_batting_rate_multiplier(self, rate):
+        if rate < 0:
+            return 1
+        elif rate > 1.7:
+            return 1.5
+        elif rate > 1.6:
+            return 1.4
+        elif rate > 1.5:
+            return 1.3
+        elif rate > 1.4:
+            return 1.2
+        elif rate > 1.2:
+            return 1.1
+        elif rate > 0.8:
+            return 1
+        elif rate > 0.7:
+            return 0.9
+        elif rate > 0.6:
+            return 0.8
+        elif rate > 0.5:
+            return 0.7
+        elif rate > 0.4:
+            return 0.6
+        else:
+            return 0.5
+
+    def get_bowling_rate_multiplier(self, rate):
+        if rate < 0:
+            return 1
+        elif rate > 1.7:
+            return 0.5
+        elif rate > 1.6:
+            return 0.6
+        elif rate > 1.5:
+            return 0.7
+        elif rate > 1.4:
+            return 0.8
+        elif rate > 1.2:
+            return 0.9
+        elif rate > 0.8:
+            return 1
+        elif rate > 0.7:
+            return 1.1
+        elif rate > 0.6:
+            return 1.2
+        elif rate > 0.5:
+            return 1.3
+        elif rate > 0.4:
+            return 1.4
+        else:
+            return 1.5
+
     def get_bowling_bonus_penalty_for_economy_rate(self, bowler_economy_rate, inning_economy_rate, base_reward):
         """
         Calculate the bowler bonus or penalty when comparing their ER with the innings ER
         """
 
+
+        """
         bowler_base_reward = abs(base_reward)
         bowler_bonus = 0.0
         bowler_penalty = 0.0
@@ -377,6 +432,14 @@ class RewardsConfiguration:
             bowler_penalty = abs(min(0, (penalty_rate - ratio)) * bowler_base_reward)
             bowler_penalty = min(bowler_penalty, penalty_floor * bowler_base_reward)
         return bowler_bonus, bowler_penalty
+        """
+
+        if base_reward > 0:
+            rate = (bowler_economy_rate / inning_economy_rate) if inning_economy_rate != 0.0 else -1
+            multiplier = self.get_bowling_rate_multiplier(rate)
+            return base_reward * multiplier
+        else:
+            return base_reward
 
     @functools.lru_cache
     def get_batting_bonus_penalty_details(self):
@@ -398,7 +461,7 @@ class RewardsConfiguration:
         """
         Calculate the batter bonus or penalty when comparing their SR with the innings SR
         """
-        batting_base_reward = abs(base_reward)
+        """batting_base_reward = abs(base_reward)
         batting_bonus = 0.0
         batting_penalty = 0.0
 
@@ -412,3 +475,10 @@ class RewardsConfiguration:
             batting_penalty = abs(min(0, ratio - penalty_rate) * batting_base_reward)
             batting_penalty = min(batting_penalty, penalty_floor * batting_base_reward)
         return batting_bonus, batting_penalty
+        """
+        if base_reward > 0:
+            rate = (batting_strike_rate / innings_strike_rate) if innings_strike_rate != 0.0 else -1
+            multiplier = self.get_batting_rate_multiplier(rate)
+            return base_reward * multiplier
+        else:
+            return base_reward

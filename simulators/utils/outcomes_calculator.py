@@ -280,8 +280,10 @@ def get_bonus_penalty(row, rewards_configuration: RewardsConfiguration):
         inning_total_runs = row['inning_total_runs']
         denominator = (innings_deliveries - player_deliveries)
         inning_economy_rate = (inning_total_runs - player_total_runs) / denominator if denominator != 0 else denominator
-        bowler_bonus, bowler_penalty = rewards_configuration.get_bowling_bonus_penalty_for_economy_rate(
+        bowler_bonus = rewards_configuration.get_bowling_bonus_penalty_for_economy_rate(
             player_economy_rate, inning_economy_rate, bowling_base_rewards)
+
+
 
     player_strike_rate = row['strike_rate']
     player_batting_runs = row['batting_total_runs']
@@ -293,15 +295,15 @@ def get_bonus_penalty(row, rewards_configuration: RewardsConfiguration):
         inning_batting_runs = row['inning_batting_total_runs']
         denominator = (inning_total_balls - player_total_balls)
         inning_strike_rate = 100 * (inning_batting_runs - player_batting_runs) / denominator if denominator != 0 else 0
-        batting_bonus, batting_penalty = rewards_configuration.get_batting_bonus_penalty_for_strike_rate(
+        batting_bonus = rewards_configuration.get_batting_bonus_penalty_for_strike_rate(
             player_strike_rate, inning_strike_rate, batting_base_rewards)
 
-    bowling_rewards = bowling_base_rewards + bowler_bonus - bowler_penalty
-    batting_rewards = batting_base_rewards + batting_bonus - batting_penalty
+    bowling_rewards = bowler_bonus - bowler_penalty
+    batting_rewards = batting_bonus - batting_penalty
     fielding_rewards = row['fielding_base_rewards']
 
     return bowling_bonus_wickets, bowler_bonus, bowler_penalty, batting_bonus, batting_penalty, \
-           bowling_rewards, batting_rewards, fielding_rewards
+        bowling_rewards, batting_rewards, fielding_rewards
 
 
 def get_all_outcomes_by_ball_and_innnings(data_selection, is_testing, apply_labels=True):
