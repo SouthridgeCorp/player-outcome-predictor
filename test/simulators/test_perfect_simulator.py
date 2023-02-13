@@ -495,9 +495,6 @@ class TestPerfectSimulator:
 
         base_rewards_df, bonus_penalty_df = perfect_simulator.get_rewards_components(is_testing, generate_labels=True)
 
-        #assert all(bonus_penalty_df['bowling_rewards'] == bonus_penalty_df['bowling_bonus'])
-        #assert all(bonus_penalty_df['batting_rewards'] == bonus_penalty_df['batting_bonus'])
-
         for index, row in base_rewards_df.iterrows():
             expected_batting_reward = self.get_expected_batting_rewards(row['batter_outcome_index'], row)
             received_batting_base_reward = row['batter_base_rewards']
