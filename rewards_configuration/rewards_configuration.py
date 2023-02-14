@@ -69,7 +69,7 @@ class RewardsConfiguration:
                              BONUS_PENALTY_CAP_FLOOR_COLUMN]
 
     def __init__(self, static_data_config: ConfigUtils):
-        repo_path, generated_path, file_name = static_data_config.get_rewards_info()
+        repo_path, generated_path, file_name, focus_players_file_name = static_data_config.get_rewards_info()
         repo_file = f"{repo_path}/{file_name}"
         generated_file = f"{generated_path}/{file_name}"
 
@@ -78,9 +78,16 @@ class RewardsConfiguration:
                 os.makedirs(generated_path)
             shutil.copyfile(repo_file, generated_file)
 
+        focus_players_csv = f"{repo_path}/{focus_players_file_name}"
+        self.focus_players_df = pd.read_csv(focus_players_csv)
+
         self.rewards_file = generated_file
         self.cache = {}
         self.read_csv()
+
+
+    def get_focus_players(self):
+        return self.focus_players_df
 
     def build_cache_key(self, play_type, reward_type, outcome_type):
         return f"{play_type}-{reward_type}-{outcome_type}"

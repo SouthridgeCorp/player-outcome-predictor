@@ -94,7 +94,9 @@ class PredictiveUtils:
         # TODO: These distributions will no longer be required once the inferential model comes into play.
 
         # Probability of a legal delivery
-        self.legal_delivery_distribution = sps.bernoulli(p=0.9)
+        self.legal_delivery_distribution = sps.bernoulli(p=0.97)
+        logging.info("***************** Setting legal deliveries = 0.97 ***************** ")
+
 
         # Probability distribution of batting runs on a legal, wicket-less delivery
         legal_batting_distribution = [0.4, 0.35, 0.075, 0.006, 0.125, 0.004, 0.04]
@@ -104,7 +106,8 @@ class PredictiveUtils:
         self.extras_if_legal_no_run_distribution = sps.bernoulli(p=.03)
 
         # Probability of wickets on a legal delivery
-        self.legal_wickets_distribution = sps.bernoulli(p=.05)
+        self.legal_wickets_distribution = sps.bernoulli(p=.035)
+        logging.info("***************** Setting legal_wickets_distribution = 0.035 ***************** ")
 
         # Probability distribution of dismissal kinds
         self.legal_wicket_types = ["caught", "bowled", "run out", "lbw", "caught and bowled", "stumped", "others"]
@@ -123,7 +126,9 @@ class PredictiveUtils:
 
         # Distribution of non-legal deliveries
         self.non_legal_deliveries = ["wides", "noballs"]
-        non_legal_deliveries_probability = [0.87, 0.13]
+        non_legal_deliveries_probability = [0.95, 0.05]
+        logging.info("***************** Setting no-ball probability = 0.05 ***************** ")
+
         self.non_legal_deliveries_distribution = sps.multinomial(1, non_legal_deliveries_probability)
 
         # Distribution of extras scored on a non-legal delivery
@@ -174,6 +179,8 @@ class PredictiveUtils:
         """
         # Set up details for legal delivery
         mask = matches_df['legal_delivery']
+
+
         number_of_balls = len(mask[mask])
 
         # setup legal wicket scenarios

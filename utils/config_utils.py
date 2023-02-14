@@ -370,7 +370,8 @@ class ConfigUtils:
 
     def get_rewards_info(self) -> (str, str, str):
         rewards_config = self.config['player_outcome_predictor']['rewards_configuration']
-        return rewards_config["repo_path"], rewards_config["generated_path"], rewards_config["file_name"]
+        return rewards_config["repo_path"], rewards_config["generated_path"], rewards_config["file_name"], \
+            rewards_config['focus_players_file']
 
     def get_predictive_simulator_info(self) -> int:
         predictive_simulator = self.config['player_outcome_predictor']['predictive_simulator']

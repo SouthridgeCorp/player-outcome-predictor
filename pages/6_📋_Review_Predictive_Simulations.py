@@ -162,7 +162,7 @@ def app():
                                                              range(0, 120, 10), right=False, labels=labels)
                     raw_metrics_to_show_df["group"] = raw_metrics_to_show_df["group"].fillna(">100")
 
-                    mape_barchart_column, mape_data_column = st.columns(2)
+                    mape_barchart_column, mape_data_column, focus_players_column = st.columns(3)
                     with mape_barchart_column:
                         # show a histogram of mape buckets
                         mape_label_df = pd.DataFrame()
@@ -173,8 +173,6 @@ def app():
                             x=alt.X('group', sort=None),
                             y='number_of_players',
                         ))
-
-
 
                     # Show the raw data & assert the performance against the acceptable threshold
                     st.subheader("Key Player Stats - mape drill-down")
@@ -215,6 +213,25 @@ def app():
                         with st.expander("Click to see the list of key players"):
                             st.dataframe(select_players_with_detail[['name', 'is_batter', 'error_pct']],
                                          use_container_width=True)
+
+                    with focus_players_column:
+                        st.subheader("Focus player details")
+                        focus_players_df = rewards.get_focus_players()
+
+                        # Show the raw data of how many players were selected
+                        st.info(f"Total Number of focus players selected: {len(focus_players_df)}")
+
+                        focus_players_with_detail = pd.merge(focus_players_df,
+                                                              raw_metrics_to_show_df[['player_key', 'name', 'error_pct']],
+                                                              left_on='player_key', right_on='player_key',
+                                                              how='left')
+                        focus_players_with_detail.dropna(inplace=True)
+                        st.info(f"Total Number of key players in the test tournament: "
+                                f"{focus_players_with_detail['error_pct'].count()}")
+                        with st.expander("Click to see the list of key players"):
+                            st.dataframe(focus_players_with_detail[['name', 'error_pct']],
+                                         use_container_width=True)
+
 
                     st.dataframe(raw_metrics_to_show_df[['name',
                                                          'is_batter',

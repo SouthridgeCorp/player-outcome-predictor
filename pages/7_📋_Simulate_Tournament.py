@@ -55,8 +55,19 @@ def display_data(tournament_simulator, data_selection, regenerate):
 
             # Sort & display the grid
             metric_stats_df = metric_stats_df.sort_values(f'{metric}', ascending=False)
+            focus_players_df = tournament_simulator.rewards_configuration.get_focus_players().copy()
+            focus_players_df['is_focus_player'] = True
+            metric_stats_df = pd.merge(metric_stats_df, focus_players_df[['player_key', 'is_focus_player']],
+                                       left_on='player_key', right_on='player_key', how='left')
+            show_focus_players = st.checkbox("Click to only see focus players")
+            if show_focus_players:
+                metric_stats_df = metric_stats_df.query("is_focus_player == True")
+                st.write(f"Showing {len(metric_stats_df)} focus players")
+            save_file_name = st.text_input("Enter file name to save the results (as csv):", "")
+            if len(save_file_name) > 0:
+                metric_stats_df.to_csv(save_file_name)
             st.dataframe(metric_stats_df.query("number_of_matches > 0.0")
-                         [['name', 'number_of_matches', f'{metric}', 'sd', 'hdi_3%', 'hdi_97%']],
+                         [['name', 'is_focus_player', 'number_of_matches', f'{metric}', 'sd', 'hdi_3%', 'hdi_97%']],
                          use_container_width=True)
 
             # Show top X players
