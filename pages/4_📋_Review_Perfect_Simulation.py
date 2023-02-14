@@ -177,6 +177,7 @@ def app():
             errors_df = perfect_simulator.get_error_measures(True, perfect_simulator_df, granularity,
                                                              perfect_simulator_df)
 
+        perfect_simulator_df.to_csv("all_rewards.csv")
         number_of_players = st.slider("Select the number of top players to show:", min_value=0,
                                       max_value=len(perfect_simulator_df.index), value=30)
         st.subheader('Evaluation & Error Metrics')

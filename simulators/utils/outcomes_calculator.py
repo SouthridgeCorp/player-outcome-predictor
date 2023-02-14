@@ -98,6 +98,9 @@ def get_bowling_base_rewards(row, rewards_configuration: RewardsConfiguration):
     if 'legbyes' in list(row.axes[0]):
         legbyes = row['legbyes']
 
+    if no_ball >= 1:
+        total_runs = row['batter_runs']
+
     if byes > 0 or legbyes > 0:
         # Bowler gets no penalty or rewards for byes & legbyes
         bowling_rewards = 0
@@ -278,7 +281,7 @@ def get_bonus_penalty(row, rewards_configuration: RewardsConfiguration):
     player_deliveries = row['number_of_bowled_deliveries']
     player_total_runs = row['total_runs']
 
-    if pd.notna(player_economy_rate):
+    if pd.notna(bowling_base_rewards):
         innings_deliveries = row['inning_number_of_bowled_deliveries']
         inning_total_runs = row['inning_total_runs']
         denominator = (innings_deliveries - player_deliveries)
@@ -294,7 +297,7 @@ def get_bonus_penalty(row, rewards_configuration: RewardsConfiguration):
     player_total_balls = row['total_balls']
     batting_base_rewards = row['batter_base_rewards']
 
-    if pd.notna(player_strike_rate):
+    if pd.notna(batting_base_rewards):
         inning_total_balls = row['inning_total_balls']
         inning_batting_runs = row['inning_batting_total_runs']
         denominator = (inning_total_balls - player_total_balls)

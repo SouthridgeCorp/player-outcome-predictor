@@ -22,6 +22,7 @@ def main():
     parse_data("ssm", "Super Smash")
     parse_data("ntb", "T20 Blast")
     parse_data("msl", "Mzansi Super League")
+    parse_data("ilt", "International League T20")
 
 
 main()
