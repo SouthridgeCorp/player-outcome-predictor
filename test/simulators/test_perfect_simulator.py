@@ -255,13 +255,16 @@ class TestPerfectSimulator:
         non_striker_list = []
         # Calculate the batting strike rate
         for g, g_df in innings_df.groupby(['match_key', 'inning', 'batting_team', 'batter']):
-            total_balls_bowled = len(g_df) - g_df['wides'].count() - g_df['noballs'].count()
+            total_balls_bowled = len(g_df) - g_df['wides'].count()
+            total_batter_balls_bowled = len(g_df) - g_df['wides'].count() - g_df['noballs'].count()
             total_runs_made = g_df['batter_runs'].sum()
             total_runs = g_df['total_runs'].sum()
             batting_strike_rate = 100 * total_runs_made / total_balls_bowled
             outcomes_list.append({'match_key': g[0], 'inning': g[1], 'team': g[2],
                                   'player_key': g[3],
-                                  'total_balls': total_balls_bowled, 'batting_total_runs': total_runs_made,
+                                  'total_balls': total_balls_bowled,
+                                  'batting_total_balls': total_batter_balls_bowled,
+                                  'batting_total_runs': total_runs_made,
                                   'batting_total_runs_with_extras': total_runs,
                                   'strike_rate': batting_strike_rate})
 
@@ -344,10 +347,10 @@ class TestPerfectSimulator:
 
         df = perfect_simulator.get_outcomes_by_player_and_innings(is_testing)
 
-        expected_columns = ['batting_total_runs', 'batting_total_runs_with_extras', 'bowling_total_runs_with_extras',
-                            'economy_rate', 'non_striker_count', 'number_of_bowled_deliveries',
-                            'number_of_fielding_events', 'stage', 'strike_rate', 'total_balls', 'total_runs',
-                            'tournament_key', 'wickets_taken']
+        expected_columns = ['batting_total_balls', 'batting_total_runs', 'batting_total_runs_with_extras',
+                            'bowling_total_runs_with_extras', 'economy_rate', 'non_striker_count',
+                            'number_of_bowled_deliveries', 'number_of_fielding_events', 'stage', 'strike_rate',
+                            'total_balls', 'total_runs', 'tournament_key', 'wickets_taken']
 
         expected_columns.sort()
         received_columns = df.columns.values.tolist()
@@ -377,7 +380,7 @@ class TestPerfectSimulator:
         innings_outcomes_list = []
         for g, g_df in player_outcomes.groupby(['match_key', 'inning', 'team']):
             total_runs = g_df['bowling_total_runs_with_extras'].sum()
-            total_balls = g_df['total_balls'].sum()
+            total_balls = g_df['batting_total_balls'].sum()
             batting_total_runs = g_df['batting_total_runs_with_extras'].sum()
             inning_number_of_bowled_deliveries = g_df['number_of_bowled_deliveries'].sum()
             economy_rate = (total_runs / inning_number_of_bowled_deliveries) if \
@@ -417,6 +420,8 @@ class TestPerfectSimulator:
     def get_expected_batting_rewards(self, batting_outcome, row):
         expected_base_reward = 0
         extras = row['extras']
+        noballs = row['noballs']
+
 
         if batting_outcome == '0' or (batting_outcome == 'E'):
             expected_base_reward = -1
@@ -446,6 +451,9 @@ class TestPerfectSimulator:
 
     def get_expected_bowling_rewards(self, row):
         total_runs = row['total_runs']
+        no_ball = row['noballs']
+        if no_ball >= 1:
+            total_runs = row['batter_runs']
         reward = 0
         if total_runs == 0:
             reward = 2
@@ -513,12 +521,16 @@ class TestPerfectSimulator:
         assert non_striker_df['non_striker_base_rewards'].unique().tolist() == [-5]
 
         for index, row in bonus_penalty_df.iterrows():
-            if pd.isna(row['bowling_rewards']):
-                assert pd.isna(row['bowling_base_rewards'] + row['bowling_bonus_wickets'] \
-                               + row['bowling_bonus'] - row['bowling_penalty'])
+            if pd.isna(row['bowling_bonus']):
+                assert row['bowling_rewards'] == 0.0
             else:
                 assert row['bowling_rewards'] == row['bowling_base_rewards'] + row['bowling_bonus_wickets'] \
-                       + row['bowling_bonus'] - row['bowling_penalty']
+                       + row['bowling_bonus']
+
+            if pd.isna(row['batting_bonus']):
+                assert row['batting_rewards'] == 0.0
+            else:
+                assert row['batting_rewards'] == row['batter_base_rewards'] + row['batting_bonus']
 
         matches_df = perfect_simulator.data_selection.get_innings_for_selected_matches(is_testing)
         batters = list(matches_df['batter'].unique())
@@ -534,6 +546,8 @@ class TestPerfectSimulator:
         rewards_players.sort()
 
         assert unique_players == rewards_players
+
+
 
     @pytest.mark.parametrize('is_testing', [True, False])
     @pytest.mark.parametrize('granularity, expected_columns',

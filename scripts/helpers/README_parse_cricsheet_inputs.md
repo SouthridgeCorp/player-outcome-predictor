@@ -18,7 +18,7 @@ The data can be prepared in two ways:
 ### The Easy Way
 Use this to quickly setup your test environment
 - Download the file `cricsheet.zip` from Google Drive: 
-- https://drive.google.com/drive/folders/11-6nmM7WAkiJCIMaDkydxyDC1Em4WL17
+- https://drive.google.com/file/d/1Iy5x8F2TbrWxlakhH1L1BvB9YyRLgIqn/view?usp=share_link
 - Uncompress the zip file in the input folder you want to provide to your script (Note: the drive will all match 
 folders under a folder called cricsheet)
 

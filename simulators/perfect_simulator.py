@@ -270,8 +270,13 @@ class PerfectSimulator:
         batting_df = pd.DataFrame()
         batting_grouping = innings_df.groupby(['match_key', 'inning', 'batting_team', 'batter'])
 
-        # Total balls at the batter level must not include any wides or no-balls bowled
+        # Total balls at the batter level must not include wides bowled...
         batting_df['total_balls'] = \
+            batting_grouping['batter'].count() - batting_grouping['wides'].count()
+
+        # ... but at an innings level, total balls must also not include any no-balls bowled. Hence,
+        # `batting_total_balls` is the field used to calculate `innings_total_balls` for batters
+        batting_df['batting_total_balls'] = \
             batting_grouping['batter'].count() - batting_grouping['wides'].count() - batting_grouping['noballs'].count()
 
         # Batter runs should not include extras...
@@ -365,7 +370,7 @@ class PerfectSimulator:
         new_innings_outcomes_df = pd.DataFrame()
         innings_grouping = player_outcomes.groupby(index_columns)
         new_innings_outcomes_df['inning_batting_total_runs'] = innings_grouping['batting_total_runs_with_extras'].sum()
-        new_innings_outcomes_df['inning_total_balls'] = innings_grouping['total_balls'].sum()
+        new_innings_outcomes_df['inning_total_balls'] = innings_grouping['batting_total_balls'].sum()
         new_innings_outcomes_df['inning_total_runs'] = innings_grouping['bowling_total_runs_with_extras'].sum()
         new_innings_outcomes_df['inning_number_of_bowled_deliveries'] = \
             innings_grouping['number_of_bowled_deliveries'].sum()

@@ -167,6 +167,8 @@ def app():
 
     show_perfect_simulator_stats(perfect_simulator)
 
+    rewards_csv_file = st.text_input("Enter the csv file name to save the rewards to", "")
+
     if granularity == 'None':
         st.write("Please select a valid Granularity")
     else:
@@ -176,7 +178,8 @@ def app():
         with st.spinner('Calculating Error Measures'):
             errors_df = perfect_simulator.get_error_measures(True, perfect_simulator_df, granularity,
                                                              perfect_simulator_df)
-
+        if len(rewards_csv_file) > 0:
+            perfect_simulator_df.to_csv(rewards_csv_file)
         number_of_players = st.slider("Select the number of top players to show:", min_value=0,
                                       max_value=len(perfect_simulator_df.index), value=30)
         st.subheader('Evaluation & Error Metrics')
