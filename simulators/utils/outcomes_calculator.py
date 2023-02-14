@@ -99,6 +99,8 @@ def get_bowling_base_rewards(row, rewards_configuration: RewardsConfiguration):
         legbyes = row['legbyes']
 
     if no_ball >= 1:
+        # If this is a no-ball, make sure the bowler also gets penalised for the exact number batter runs given away
+        # The bowler will also get rewarded for dot balls & singles in this case
         total_runs = row['batter_runs']
 
     if byes > 0 or legbyes > 0:
