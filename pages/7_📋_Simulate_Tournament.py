@@ -96,7 +96,7 @@ def display_data(tournament_simulator, data_selection, regenerate):
                             "model performance in modeling variability._")
                 fig = px.scatter(focus_players_metric_stats_df, y= 'hdi_width',
                                  x='total_rewards_range',
-                                 color='name', trendline="ols")
+                                 color='name', range_y=[0, 800])
                 st.write(fig)
             else:
                 st.warning("Please select test players from the Perfect Simulator page to see the Variability Plot")
