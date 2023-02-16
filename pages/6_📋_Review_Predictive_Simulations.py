@@ -8,6 +8,7 @@ from simulators.perfect_simulator import PerfectSimulator
 import pandas as pd
 import logging
 import altair as alt
+from simulators.predictive_simulator import PredictiveSimulator
 
 
 
@@ -24,6 +25,89 @@ def get_non_error_metrics(metric, total_errors_df, total_errors_index, reference
     metrics_to_show_df = metric_stats_df[['name', 'number_of_matches',
                                           f'{metric}_expected', f'{metric}_received', 'sd', 'hdi_3%', 'hdi_97%']]
     return metrics_to_show_df
+
+def update_ball_counts(innings_df, source_df, perform_means):
+    if perform_means:
+        number_of_scenarios = innings_df.reset_index()['scenario_number'].max() + 1
+    else:
+        number_of_scenarios = 0
+    batting_counts_df = pd.DataFrame()
+    batting_grouping = innings_df.groupby("batter")
+    if number_of_scenarios > 0:
+        batting_counts_df['simulated_number_of_balls_faced'] = \
+            batting_grouping['batter_runs'].count() / number_of_scenarios
+    else:
+        batting_counts_df['number_of_balls_faced'] = batting_grouping['batter_runs'].count()
+
+    bowling_counts_df = pd.DataFrame()
+    bowling_grouping = innings_df.groupby("bowler")
+    if number_of_scenarios > 0:
+        bowling_counts_df['simulated_number_of_balls_bowled'] = \
+            bowling_grouping['batter_runs'].count() / number_of_scenarios
+    else:
+        bowling_counts_df['number_of_balls_bowled'] = bowling_grouping['batter_runs'].count()
+    counts_df = pd.merge(bowling_counts_df, batting_counts_df, left_index=True, right_index=True, how='outer')
+    counts_df.fillna(0, inplace=True)
+
+    return pd.merge(source_df, counts_df.reset_index(), left_on='player_key', right_on='index', how='left')
+
+def present_total_rewards_metric(players_df, raw_metrics_to_show_df, key, predictive_simulator: PredictiveSimulator):
+    details_df = pd.merge(players_df,
+                          raw_metrics_to_show_df[['player_key', 'name',
+                                                  'absolute_error_pct',
+                                                  'total_rewards_expected',
+                                                  'total_rewards_received',
+                                                  'total_rewards_expected_within_hdi',
+                                                  'total_rewards_hdi_width',
+                                                  'total_rewards_hdi_3%',
+                                                  'total_rewards_hdi_97%',
+                                                  'total_rewards_sd']],
+                                         left_on=key, right_on=key,
+                                         how='left')
+
+    details_df = details_df[details_df['absolute_error_pct'].notna()]
+    number_of_key_players = details_df['absolute_error_pct'].count()
+    st.info(f"Total Number of key players in the test tournament: "
+            f"{number_of_key_players}")
+    players_within_hdi = \
+        len(details_df[
+                details_df['total_rewards_expected_within_hdi'] == True])
+    st.info(f"% of players within hdi: {100 * players_within_hdi / number_of_key_players:.2f}%")
+
+    historical_test_innings_df = predictive_simulator.data_selection.get_innings_for_selected_matches(is_testing=True)
+
+    details_df = update_ball_counts(historical_test_innings_df, details_df, False)
+    details_df = update_ball_counts(predictive_simulator.simulated_innings_df, details_df, True)
+
+    details_df['total_rewards_error_pct'] = 0
+    mask = details_df['total_rewards_expected'] != 0
+    details_df.loc[mask, 'total_rewards_error_pct'] =\
+        100 * (details_df['total_rewards_received'] - details_df['total_rewards_expected']) / \
+        details_df['total_rewards_expected']
+
+    details_df['diff_number_of_balls_faced'] = details_df['simulated_number_of_balls_faced'] -\
+                                               details_df['number_of_balls_faced']
+    details_df['diff_number_of_balls_bowled'] = details_df['simulated_number_of_balls_bowled'] - \
+                                               details_df['number_of_balls_bowled']
+    columns = ['name', 'absolute_error_pct',
+               'total_rewards_expected_within_hdi',
+               'total_rewards_hdi_width',
+               'total_rewards_hdi_3%',
+               'total_rewards_hdi_97%',
+               'total_rewards_sd',
+               'number_of_balls_bowled',
+               'number_of_balls_faced',
+               'simulated_number_of_balls_bowled',
+               'simulated_number_of_balls_faced',
+               'diff_number_of_balls_faced',
+               'diff_number_of_balls_bowled',
+               'total_rewards_error_pct'
+               ]
+    if 'is_batter' in details_df.columns:
+        columns.append('is_batter')
+    st.info(f"Mean error value: {details_df['total_rewards_error_pct'].mean():.2f}")
+    st.dataframe(details_df[columns].sort_values(by='absolute_error_pct'),
+                 use_container_width=True)
 
 def app():
     page_utils.setup_page(" Review Predictive Simulation ")
@@ -162,7 +246,9 @@ def app():
                                                              range(0, 120, 10), right=False, labels=labels)
                     raw_metrics_to_show_df["group"] = raw_metrics_to_show_df["group"].fillna(">100")
 
-                    mape_barchart_column, mape_data_column, focus_players_column = st.columns(3)
+                    mape_data_column, focus_players_column = st.columns(2)
+                    mape_barchart_column, details_column = st.columns(2)
+
                     with mape_barchart_column:
                         # show a histogram of mape buckets
                         mape_label_df = pd.DataFrame()
@@ -190,29 +276,46 @@ def app():
                             f"{100 * number_of_batters_within_mape/total_number_of_batters:.2f}% "
                             f"({number_of_batters_within_mape} out of "
                             f"{total_number_of_batters})")
+
                     total_rewards_stats_df = \
                         get_non_error_metrics('total_rewards', total_errors_df, total_errors_index, reference_df)
+                    total_rewards_stats_df.rename(columns={'sd': "total_rewards_sd",
+                                                           'hdi_3%': 'total_rewards_hdi_3%',
+                                                           'hdi_97%': 'total_rewards_hdi_97%'}, inplace=True)
+
                     raw_metrics_to_show_df = pd.merge(raw_metrics_to_show_df,
                                                       total_rewards_stats_df.reset_index()
                                                       [['player_key', 'number_of_matches',
                                                         'total_rewards_expected',
-                                                        'total_rewards_received']],
+                                                        'total_rewards_received',
+                                                        'total_rewards_sd',
+                                                        'total_rewards_hdi_3%',
+                                                        'total_rewards_hdi_97%']],
                                                       left_on='player_key', right_on='player_key')
-                    raw_metrics_to_show_df.rename(columns = {error_metric_for_mape_calc: "error_pct"}, inplace=True)
+                    raw_metrics_to_show_df['total_rewards_hdi_width'] = \
+                        abs(raw_metrics_to_show_df['total_rewards_hdi_97%'] - raw_metrics_to_show_df['total_rewards_hdi_3%'])
+                    raw_metrics_to_show_df['total_rewards_expected_within_hdi'] = False
+                    mask = (raw_metrics_to_show_df['total_rewards_expected'] <= raw_metrics_to_show_df['total_rewards_hdi_97%']) & \
+                           (raw_metrics_to_show_df['total_rewards_expected'] >= raw_metrics_to_show_df['total_rewards_hdi_3%'])
+                    raw_metrics_to_show_df.loc[mask, 'total_rewards_expected_within_hdi'] = True
+                    raw_metrics_to_show_df.rename(columns={error_metric_for_mape_calc: "absolute_error_pct"}, inplace=True)
+
 
                     with mape_data_column:
                         st.subheader("Key player details")
                         # Show the raw data of how many players were selected
                         st.info(f"Total Number of key players: {len(selected_players)}")
-                        select_players_with_detail = pd.merge(selected_players_for_comparison_df,
-                                                                  raw_metrics_to_show_df[['name', 'error_pct']],
-                                                                  left_on='name', right_on='name',
-                                                                  how='left')
-                        st.info(f"Total Number of key players in the test tournament: "
-                                     f"{select_players_with_detail['error_pct'].count()}")
-                        with st.expander("Click to see the list of key players"):
-                            st.dataframe(select_players_with_detail[['name', 'is_batter', 'error_pct']],
-                                         use_container_width=True)
+                        #select_players_with_detail = pd.merge(selected_players_for_comparison_df,
+                         #                                         raw_metrics_to_show_df[['name', 'absolute_error_pct',
+                          #                                                                'total_rewards_expected_within_hdi',
+                           #                                                               'total_rewards_hdi_width',
+                            #                                                              'total_rewards_hdi_3%',
+                             #                                                             'total_rewards_hdi_97%',
+                              #                                                            'total_rewards_sd']],
+                               #                                   left_on='name', right_on='name',
+                                #                                  how='left')
+                        present_total_rewards_metric(selected_players_for_comparison_df,
+                                                     raw_metrics_to_show_df, 'name', predictive_simulator)
 
                     with focus_players_column:
                         st.subheader("Focus player details")
@@ -221,25 +324,29 @@ def app():
                         # Show the raw data of how many players were selected
                         st.info(f"Total Number of focus players selected: {len(focus_players_df)}")
 
-                        focus_players_with_detail = pd.merge(focus_players_df,
-                                                              raw_metrics_to_show_df[['player_key', 'name', 'error_pct']],
-                                                              left_on='player_key', right_on='player_key',
-                                                              how='left')
-                        focus_players_with_detail.dropna(inplace=True)
-                        st.info(f"Total Number of key players in the test tournament: "
-                                f"{focus_players_with_detail['error_pct'].count()}")
-                        with st.expander("Click to see the list of key players"):
-                            st.dataframe(focus_players_with_detail[['name', 'error_pct']],
-                                         use_container_width=True)
+                        #focus_players_with_detail = pd.merge(focus_players_df,
+                       #                                      raw_metrics_to_show_df[['player_key', 'name',
+                        #                                                              'absolute_error_pct',
+                         #                                                             'total_rewards_expected_within_hdi',
+                          #                                                            'total_rewards_hdi_width',
+                           #                                                           'total_rewards_hdi_3%',
+                            #                                                          'total_rewards_hdi_97%',
+                             #                                                         'total_rewards_sd']],
+                              #                                left_on='player_key', right_on='player_key',
+                               #                               how='left')
+                        #focus_players_with_detail.dropna(inplace=True)
+                        present_total_rewards_metric(focus_players_df, raw_metrics_to_show_df, 'player_key',
+                                                     predictive_simulator)
 
-
-                    st.dataframe(raw_metrics_to_show_df[['name',
-                                                         'is_batter',
-                                                         'total_rewards_expected',
-                                                         'total_rewards_received',
-                                                         'error_pct',
-                                                         'group']].sort_values(by='error_pct'),
-                                 use_container_width=True)
+                    with details_column:
+                        st.subheader("All players details")
+                        st.dataframe(raw_metrics_to_show_df[['name',
+                                                             'is_batter',
+                                                             'total_rewards_expected',
+                                                             'total_rewards_received',
+                                                             'absolute_error_pct',
+                                                             'group']].sort_values(by='absolute_error_pct'),
+                                    use_container_width=True)
 
 
             else:

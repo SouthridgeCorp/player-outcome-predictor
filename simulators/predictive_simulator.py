@@ -7,6 +7,7 @@ from simulators.utils.predictive_match_state import MatchState
 import pandas as pd
 import logging
 import datetime
+import swifter
 
 
 class PredictiveSimulator:
@@ -44,7 +45,7 @@ class PredictiveSimulator:
             self.perfect_simulators.append(PerfectSimulator(perfect_simulator_ds, rewards_configuration))
 
         self.scenario_date_time = None
-        self.max_number_of_scenarios = 100
+        self.max_number_of_scenarios = 1000
 
     def generate_matches(self):
         """
@@ -102,7 +103,7 @@ class PredictiveSimulator:
 
         logging.debug("Initialising match state")
         match_state_dict = {}
-        self.simulated_matches_df.apply(lambda x: self.initialise_match_state(x, match_state_dict, playing_xi_df),
+        self.simulated_matches_df.swifter.apply(lambda x: self.initialise_match_state(x, match_state_dict, playing_xi_df),
                                         axis=1)
 
         logging.debug(f"Starting to play {len(self.simulated_matches_df.index)} matches")

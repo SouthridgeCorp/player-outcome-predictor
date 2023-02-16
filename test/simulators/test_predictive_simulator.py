@@ -14,14 +14,6 @@ from utils.app_utils import show_stats
 )
 class TestPredictiveSimulator:
 
-    def test_bowling_probability_distribution(self, predictive_simulator):
-        utils = predictive_simulator.predictive_utils
-        utils.setup(False)
-
-        for key in utils.bowling_probabilities.probability_map.keys():
-            a = utils.bowling_probabilities.probability_map[key]
-            assert sum(a) > 0.9999999
-
     def test_generate_scenario(self, predictive_simulator, setup_and_teardown):
         prepare_tests(predictive_simulator.data_selection, True)
 

@@ -5,35 +5,21 @@ from data_selection.data_selection import DataSelection
 import logging
 
 from inferential_models.batter_runs_models import BatterRunsModel
+import random
 
-
-def calculate_bowling_probabilities(all_innings_df) -> pd.DataFrame:
+def calculate_bowling_probabilities(focus_innings_df, all_innings_df):
     """
     Counts the number of matches bowled by a player for a specific team & over, and uses that frequency as the
     probability distribution to seed the multinomial distribution to predict if a certain over for a certain team is
     bowled by a certain bowler.
     """
-    frequencies_df = \
-        all_innings_df.groupby(['bowling_team', 'over', 'bowler']).count()['match_key'].unstack()
-
-    frequencies_df = frequencies_df.fillna(0)
-    frequencies_df = frequencies_df.astype('float64')
-
     bowling_probabilities = Probabilities()
-    bowling_probabilities.populate_labels(frequencies_df.columns.values.tolist())
 
-    # Note: This entire operation could have been done via DataFrames but it led to precision errors with
-    # sps, hence np is used instead.
-    for index, row in frequencies_df.iterrows():
-        array = row.values.tolist()
-        a = np.asarray(array).astype('float64')
-        a = a / np.sum(a)
-        if np.sum(a) > 1.0:
-            a[np.argmax(a)] += 1.0 - np.sum(a)
+    raw_data = pd.DataFrame(focus_innings_df.groupby(['bowling_team', 'over', 'bowler']).count()['match_key'])
 
-        bowling_probabilities.setup_probability(index, a)
+    bowling_probabilities.set_raw_data(raw_data)
 
-    bowling_probabilities.setup_multinomials()
+    bowling_probabilities.set_of_bowlers = set(all_innings_df['bowler'].unique())
 
     return bowling_probabilities
 
@@ -54,6 +40,26 @@ class Probabilities:
         self.probability_map = {}
         # A map of multinomial instances mapped to the same key as the probability map
         self.multinomial_map = {}
+        self.raw_data_df = None
+        self.set_of_bowlers = None
+        self.rv_map = {}
+
+    def set_rv_value(self, key_list, rv):
+        key = tuple(key_list)
+        self.rv_map[key] = rv
+
+    def get_rv_value(self, key_list):
+        key = tuple(key_list)
+        if key in self.rv_map.keys():
+            return self.rv_map[key]
+        else:
+            return None
+
+    def set_raw_data(self, raw_data_df):
+        self.raw_data_df = raw_data_df.reset_index()
+
+    def get_raw_data(self):
+        return self.raw_data_df
 
     def populate_labels(self, labels):
         self.label_list = labels
@@ -328,7 +334,8 @@ class PredictiveUtils:
         self.all_innings_df, self.all_matches_df = self.data_selection.get_all_innings_and_matches()
 
         logging.debug("Calculating bowling probabilities")
-        self.bowling_probabilities = calculate_bowling_probabilities(self.all_innings_df)
+        self.bowling_probabilities = calculate_bowling_probabilities(
+            self.data_selection.get_innings_for_selected_matches(False), self.all_innings_df)
 
         logging.debug("getting featured players")
         self.featured_player_df = self.data_selection.get_frequent_players_universe()
@@ -340,11 +347,74 @@ class PredictiveUtils:
 
         self.is_setup = True
 
+
     def populate_bowler_for_state(self, match_key: str, bowling_team: str,
                                   over: int, previous_bowler: str, playing_xi: list) -> str:
         """
         Calculate the bowler for the current state of the match using a multinomial distribution over the actual
         historical data
+        """
+        available_bowlers = playing_xi.copy()
+        if previous_bowler in available_bowlers:
+            available_bowlers.remove(previous_bowler)
+
+        """if len(available_bowlers) > 0:
+            key_list = available_bowlers.copy()
+            key_list.append(bowling_team)
+            key_list.append(over)
+
+            rv_values = self.bowling_probabilities.get_rv_value(key_list)
+            if rv_values is not None:
+                multinomial = rv_values[0]
+                bowler_matrix = rv_values[1]
+            else:
+                multinomial = None
+                bowler_matrix = None
+            if multinomial is None:
+
+                raw_data = self.bowling_probabilities.get_raw_data()
+                mask = (raw_data['bowling_team'] == bowling_team) & (raw_data['over'] == over) \
+                       & (raw_data['bowler'].isin(available_bowlers))
+                bowler_matrix = raw_data[mask]
+
+                if bowler_matrix.empty:
+                    mask = (raw_data['bowling_team'] == bowling_team) & (raw_data['bowler'].isin(available_bowlers))
+                    bowler_matrix = raw_data[mask]
+
+                bowler_matrix['normalised_instances'] = bowler_matrix['match_key'] / bowler_matrix['match_key'].sum()
+
+                if not bowler_matrix.empty:
+                    multinomial = sps.multinomial(1, list(bowler_matrix['normalised_instances'].values))
+                    self.bowling_probabilities.set_rv_value(key_list, (multinomial, bowler_matrix))
+
+            if multinomial is not None:
+                selected_bowler_rv \
+                    = multinomial.rvs(1, random_state=np.random.randint((over + 1) * match_key))[0]
+
+                selected_bowler_id = np.where(selected_bowler_rv == 1)[0][0]
+                selected_bowler = bowler_matrix.reset_index().iloc[selected_bowler_id]['bowler']
+                return selected_bowler
+
+
+
+        #logging.warning(f"Could not find a bowler via Multinomials {bowling_team} / {over} / {available_bowlers}")
+        """
+        bowler_list = list(set(available_bowlers) & self.bowling_probabilities.set_of_bowlers)
+
+        if len(bowler_list) > 0:
+            return random.choice(bowler_list)
+
+        raise ValueError()
+        logging.warning(f"Could not find a bowler randomly {bowling_team} / {over} / {available_bowlers}")
+
+        # Catch all if we couldn't find a bowler key yet - this assumes that the playing xi is usually sorted to
+        # list the batters first & then the all-rounders and then the bowlers
+        bowler_key = playing_xi[-1]
+        if bowler_key == previous_bowler:
+            bowler_key = playing_xi[-2]
+
+        return bowler_key
+
         """
         index = (bowling_team, over)
         if self.bowling_probabilities.isin(index):
@@ -370,6 +440,7 @@ class PredictiveUtils:
             bowler_key = playing_xi[-2]
 
         return bowler_key
+        """
 
     def calculate_probability_toss_winner_fields_first(self) -> pd.DataFrame:
         """

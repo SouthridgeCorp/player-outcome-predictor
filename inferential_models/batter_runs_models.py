@@ -509,7 +509,8 @@ class BatterRunsModel:
     def construct_model_path(self):
         try:
             test_tournament = self.perfect_simulator.data_selection.historical_data_helper.tournaments.testing_selected_tournament
-            test_season = self.perfect_simulator.data_selection.historical_data_helper.tournaments.testing_selected_season
+            test_season = self.perfect_simulator.data_selection.historical_data_helper.\
+                tournaments.testing_selected_season.replace("/", "-")
             (train_start_date,
              train_end_date) = self.perfect_simulator.data_selection.historical_data_helper.tournaments.get_training_start_end_dates()
             data_selection_type = self.perfect_simulator.data_selection.get_selection_type()

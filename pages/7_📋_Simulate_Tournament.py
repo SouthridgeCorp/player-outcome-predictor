@@ -2,9 +2,11 @@ import streamlit as st
 import utils.page_utils as page_utils
 from utils.app_utils import data_selection_instance, prep_simulator_pages, show_granularity_metrics, \
     show_stats, write_top_X_to_st, get_tournament_simulator, has_tournament_simulator, reset_rewards_cache, \
-    get_tournament_rewards, reset_session_states
+    get_tournament_rewards, reset_session_states, rewards_instance
 import logging
 import pandas as pd
+from simulators.perfect_simulator import PerfectSimulator
+import plotly.express as px
 
 
 def display_data(tournament_simulator, data_selection, regenerate):
@@ -55,6 +57,8 @@ def display_data(tournament_simulator, data_selection, regenerate):
 
             # Sort & display the grid
             metric_stats_df = metric_stats_df.sort_values(f'{metric}', ascending=False)
+
+            # Filter based on focused players
             focus_players_df = tournament_simulator.rewards_configuration.get_focus_players().copy()
             focus_players_df['is_focus_player'] = True
             metric_stats_df = pd.merge(metric_stats_df, focus_players_df[['player_key', 'is_focus_player']],
@@ -69,6 +73,33 @@ def display_data(tournament_simulator, data_selection, regenerate):
             st.dataframe(metric_stats_df.query("number_of_matches > 0.0")
                          [['name', 'is_focus_player', 'number_of_matches', f'{metric}', 'sd', 'hdi_3%', 'hdi_97%']],
                          use_container_width=True)
+
+            if 'selected_players_for_comparison' in st.session_state and granularity == 'tournament':
+                selected_players_for_comparison_df = st.session_state['selected_players_for_comparison']
+                selected_players_for_comparison_df = selected_players_for_comparison_df.reset_index()
+                selected_players_for_comparison_df['total_rewards_range'] \
+                    = selected_players_for_comparison_df['max_total_rewards'] - selected_players_for_comparison_df['min_total_rewards']
+                focus_players_metric_stats_df = pd.merge(metric_stats_df,
+                                                         selected_players_for_comparison_df[['player_key', 'total_rewards_range']],
+                                           left_on="player_key", right_on='player_key')
+                focus_players_metric_stats_df['hdi_width'] = focus_players_metric_stats_df['hdi_97%'] - \
+                                                             focus_players_metric_stats_df['hdi_3%']
+                focus_players_metric_stats_df = focus_players_metric_stats_df.query("is_focus_player == True")
+                st.subheader("Variability Plot")
+                st.write("Measure of the model's prediction on player variability vs the actual variabily "
+                            "(looking back past three seasons of the test tournament).")
+
+                st.markdown("_A plot of the predicted hdi width of a player’s total rewards vs the range of their "
+                            "historical total rewards (looking back 3 seasons from the test tournament) is an "
+                            "indicator of the model’s capability to capture the inherent variability in a player’s "
+                            "overall performance - the more positively correlated the two variables, the better the "
+                            "model performance in modeling variability._")
+                fig = px.scatter(focus_players_metric_stats_df, y= 'hdi_width',
+                                 x='total_rewards_range',
+                                 color='name', trendline="ols")
+                st.write(fig)
+            else:
+                st.warning("Please select test players from the Perfect Simulator page to see the Variability Plot")
 
             # Show top X players
             df_length = len(metric_stats_df.index)
@@ -90,6 +121,9 @@ def app():
 
     data_selection = data_selection_instance()
     tournaments = data_selection.get_helper().tournaments
+    rewards = rewards_instance()
+
+    perfect_simulator = PerfectSimulator(data_selection, rewards)
 
     if 'tournament_use_inferential_model' in st.session_state:
         default_use_inferential_model = st.session_state['tournament_use_inferential_model']
