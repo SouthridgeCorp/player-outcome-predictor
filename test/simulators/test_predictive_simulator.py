@@ -14,16 +14,8 @@ from utils.app_utils import show_stats
 )
 class TestPredictiveSimulator:
 
-    def test_bowling_probability_distribution(self, predictive_simulator):
-        utils = predictive_simulator.predictive_utils
-        utils.setup(False)
-
-        for key in utils.bowling_probabilities.probability_map.keys():
-            a = utils.bowling_probabilities.probability_map[key]
-            assert sum(a) > 0.9999999
-
     def test_generate_scenario(self, predictive_simulator, setup_and_teardown):
-        prepare_tests(predictive_simulator.data_selection, True)
+        prepare_tests(predictive_simulator.data_selection, False)
 
         test_case, config_instance = setup_and_teardown
         number_of_scenarios = config_instance.get_predictive_simulator_info()
@@ -150,7 +142,7 @@ class TestPredictiveSimulator:
     @pytest.mark.parametrize('granularity', ['tournament', 'tournament_stage', 'match', 'innings'])
     def test_get_error_measures_predictive_simulator(self, predictive_simulator, granularity):
 
-        prepare_tests(predictive_simulator.data_selection, True)
+        prepare_tests(predictive_simulator.data_selection, False)
         predictive_simulator.generate_scenario()
 
         perfect_simulator_for_testing = PerfectSimulator(predictive_simulator.data_selection,

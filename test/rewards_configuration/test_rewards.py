@@ -83,7 +83,7 @@ class TestRewardsConfiguration:
 
     def test_rewards_generation(self, setup_and_teardown, rewards_configuration, generated_file):
         test_case, config_instance = setup_and_teardown
-        repo_path, generated_path, file_name = config_instance.get_rewards_info()
+        repo_path, generated_path, file_name, _ = config_instance.get_rewards_info()
         assert repo_path != ""
         assert generated_path != ""
         assert file_name != ""

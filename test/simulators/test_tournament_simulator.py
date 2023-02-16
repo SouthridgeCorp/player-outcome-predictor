@@ -48,7 +48,7 @@ class TestTournamentSimulator:
                == [22]
 
     def test_generate_scenarios(self, tournament_simulator):
-        prepare_tests(tournament_simulator.data_selection, True)
+        prepare_tests(tournament_simulator.data_selection, False)
         all_matches_df = tournament_simulator.generate_scenarios()
 
         mask = all_matches_df['stage'].isin(['Final', 'Qualifier 1', 'Qualifier 2', 'Eliminator'])
@@ -80,7 +80,7 @@ class TestTournamentSimulator:
 
     @pytest.mark.parametrize('granularity', ['match'])
     def test_rewards(self, tournament_simulator, granularity):
-        prepare_tests(tournament_simulator.data_selection, True)
+        prepare_tests(tournament_simulator.data_selection, False)
         tournament_simulator.generate_scenarios()
         rewards_df = tournament_simulator.get_rewards(granularity)
 

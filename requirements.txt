@@ -15,3 +15,5 @@ seaborn
 xarray
 arviz
 scikit-learn
+swifter
+plotly
