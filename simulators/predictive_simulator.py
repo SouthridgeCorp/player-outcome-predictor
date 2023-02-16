@@ -45,7 +45,7 @@ class PredictiveSimulator:
             self.perfect_simulators.append(PerfectSimulator(perfect_simulator_ds, rewards_configuration))
 
         self.scenario_date_time = None
-        self.max_number_of_scenarios = 1000
+        self.max_number_of_scenarios = 100
 
     def generate_matches(self):
         """

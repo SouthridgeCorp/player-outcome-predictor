@@ -75,6 +75,7 @@ def display_data(tournament_simulator, data_selection, regenerate):
                          use_container_width=True)
 
             if 'selected_players_for_comparison' in st.session_state and granularity == 'tournament':
+                # Show an additional drill down to map out variability of the predicted tournament outcomes
                 selected_players_for_comparison_df = st.session_state['selected_players_for_comparison']
                 selected_players_for_comparison_df = selected_players_for_comparison_df.reset_index()
                 selected_players_for_comparison_df['total_rewards_range'] \
@@ -108,6 +109,7 @@ def display_data(tournament_simulator, data_selection, regenerate):
         else:
             st.write("Could not find any rewards metrics to report")
 
+
 def on_inferential_model_change():
     value = st.session_state.tournament_inferential_model_checkbox
     st.session_state['tournament_use_inferential_model'] = value
@@ -121,9 +123,6 @@ def app():
 
     data_selection = data_selection_instance()
     tournaments = data_selection.get_helper().tournaments
-    rewards = rewards_instance()
-
-    perfect_simulator = PerfectSimulator(data_selection, rewards)
 
     if 'tournament_use_inferential_model' in st.session_state:
         default_use_inferential_model = st.session_state['tournament_use_inferential_model']

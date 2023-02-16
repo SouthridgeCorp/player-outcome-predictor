@@ -26,8 +26,21 @@ def get_non_error_metrics(metric, total_errors_df, total_errors_index, reference
                                           f'{metric}_expected', f'{metric}_received', 'sd', 'hdi_3%', 'hdi_97%']]
     return metrics_to_show_df
 
-def update_ball_counts(innings_df, source_df, perform_means):
-    if perform_means:
+
+def update_ball_counts(innings_df, source_df, mean_across_scenarios):
+    """
+    Utility method that calculates the number of balls bowled by a bowler or faced by a batter for the specified innings
+    and then merges the results to the specified source_df
+
+    :param innings_df: The innings over which the ball counts should be calculated
+    :param source_df: the source_df to enhance with the calculations. Must have a column for player_key.
+    :param mean_across_scenarios: If True, treat innings as a set of scenarios and calculate ball counts as means across
+    the scenarios.
+
+    :return A dataframe based off source_df, where the following values have been inserted (on the basis of player_key)
+
+    """
+    if mean_across_scenarios:
         number_of_scenarios = innings_df.reset_index()['scenario_number'].max() + 1
     else:
         number_of_scenarios = 0
@@ -51,7 +64,19 @@ def update_ball_counts(innings_df, source_df, perform_means):
 
     return pd.merge(source_df, counts_df.reset_index(), left_on='player_key', right_on='index', how='left')
 
-def present_total_rewards_metric(players_df, raw_metrics_to_show_df, key, predictive_simulator: PredictiveSimulator):
+
+def present_total_rewards_metric(players_df, raw_metrics_to_show_df, key, predictive_simulator):
+    """
+    Helper function which presents several metrics (in streamtlit) related to total rewards for further analysis
+    :param players_df: The list of players to show the metrics for
+    :param raw_metrics_to_show_df: The list of raw metrics per player
+    :param key: The common key between players_df & raw_metrics_to_show_df, for any merges between the two dfs
+    :param predictive_simulator: The Preditive simulator used to generate the scenarios
+
+    :return None
+    """
+
+    # Select all the key columns
     details_df = pd.merge(players_df,
                           raw_metrics_to_show_df[['player_key', 'name',
                                                   'absolute_error_pct',
@@ -65,10 +90,13 @@ def present_total_rewards_metric(players_df, raw_metrics_to_show_df, key, predic
                                          left_on=key, right_on=key,
                                          how='left')
 
+    # If we can't calculate the error_pct, we don't care about showing those players as they probably didn't play in our
+    # focus set of matches
     details_df = details_df[details_df['absolute_error_pct'].notna()]
+
     number_of_key_players = details_df['absolute_error_pct'].count()
-    st.info(f"Total Number of key players in the test tournament: "
-            f"{number_of_key_players}")
+    st.info(f"Total Number of key players in the test tournament: {number_of_key_players}")
+
     players_within_hdi = \
         len(details_df[
                 details_df['total_rewards_expected_within_hdi'] == True])
@@ -108,6 +136,7 @@ def present_total_rewards_metric(players_df, raw_metrics_to_show_df, key, predic
     st.info(f"Mean error value: {details_df['total_rewards_error_pct'].mean():.2f}")
     st.dataframe(details_df[columns].sort_values(by='absolute_error_pct'),
                  use_container_width=True)
+
 
 def app():
     page_utils.setup_page(" Review Predictive Simulation ")
@@ -247,7 +276,7 @@ def app():
                     raw_metrics_to_show_df["group"] = raw_metrics_to_show_df["group"].fillna(">100")
 
                     mape_data_column, focus_players_column = st.columns(2)
-                    mape_barchart_column, details_column = st.columns(2)
+                    mape_barchart_column, mape_details_column = st.columns(2)
 
                     with mape_barchart_column:
                         # show a histogram of mape buckets
@@ -302,44 +331,20 @@ def app():
 
 
                     with mape_data_column:
-                        st.subheader("Key player details")
-                        # Show the raw data of how many players were selected
+                        st.subheader("Key player stats")
                         st.info(f"Total Number of key players: {len(selected_players)}")
-                        #select_players_with_detail = pd.merge(selected_players_for_comparison_df,
-                         #                                         raw_metrics_to_show_df[['name', 'absolute_error_pct',
-                          #                                                                'total_rewards_expected_within_hdi',
-                           #                                                               'total_rewards_hdi_width',
-                            #                                                              'total_rewards_hdi_3%',
-                             #                                                             'total_rewards_hdi_97%',
-                              #                                                            'total_rewards_sd']],
-                               #                                   left_on='name', right_on='name',
-                                #                                  how='left')
                         present_total_rewards_metric(selected_players_for_comparison_df,
                                                      raw_metrics_to_show_df, 'name', predictive_simulator)
 
                     with focus_players_column:
-                        st.subheader("Focus player details")
+                        st.subheader("Focus player stats")
                         focus_players_df = rewards.get_focus_players()
-
-                        # Show the raw data of how many players were selected
                         st.info(f"Total Number of focus players selected: {len(focus_players_df)}")
-
-                        #focus_players_with_detail = pd.merge(focus_players_df,
-                       #                                      raw_metrics_to_show_df[['player_key', 'name',
-                        #                                                              'absolute_error_pct',
-                         #                                                             'total_rewards_expected_within_hdi',
-                          #                                                            'total_rewards_hdi_width',
-                           #                                                           'total_rewards_hdi_3%',
-                            #                                                          'total_rewards_hdi_97%',
-                             #                                                         'total_rewards_sd']],
-                              #                                left_on='player_key', right_on='player_key',
-                               #                               how='left')
-                        #focus_players_with_detail.dropna(inplace=True)
                         present_total_rewards_metric(focus_players_df, raw_metrics_to_show_df, 'player_key',
                                                      predictive_simulator)
 
-                    with details_column:
-                        st.subheader("All players details")
+                    with mape_details_column:
+                        st.subheader("Mape details drill-down")
                         st.dataframe(raw_metrics_to_show_df[['name',
                                                              'is_batter',
                                                              'total_rewards_expected',

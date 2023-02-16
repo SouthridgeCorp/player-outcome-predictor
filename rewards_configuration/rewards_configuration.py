@@ -87,6 +87,9 @@ class RewardsConfiguration:
 
 
     def get_focus_players(self):
+        """
+        Returns the players who the app should report additional stats on as they are cherry picked qualitatively
+        """
         return self.focus_players_df
 
     def build_cache_key(self, play_type, reward_type, outcome_type):

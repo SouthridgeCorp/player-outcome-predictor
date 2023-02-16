@@ -17,4 +17,3 @@ arviz
 scikit-learn
 swifter
 plotly
-statsmodels
